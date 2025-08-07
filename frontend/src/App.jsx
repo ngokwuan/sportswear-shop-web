@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios';
+import AddUserForm from './pages/add-user';
 
-function App() {
+// Component trang chủ (shop)
+function Home() {
   const [backendStatus, setBackendStatus] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,67 +36,81 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-      <h1>🏃‍♂️ Shop Quần Áo Thể Thao</h1>
+    <div>
+      <h1 className="mb-4">🏃‍♂️ Shop Quần Áo Thể Thao</h1>
 
       {/* Test Backend Status */}
       <div
-        style={{
-          padding: '10px',
-          backgroundColor: backendStatus.includes('hoạt động')
-            ? '#d4edda'
-            : '#f8d7da',
-          border: '1px solid #ccc',
-          marginBottom: '20px',
-          borderRadius: '5px',
-        }}
+        className={`alert ${
+          backendStatus.includes('hoạt động') ? 'alert-success' : 'alert-danger'
+        } mb-4`}
       >
         <strong>Trạng thái Backend:</strong> {backendStatus}
       </div>
 
       {/* Hiển thị sản phẩm */}
-      <h2>📦 Danh sách sản phẩm</h2>
+      <h2 className="mb-3">📦 Danh sách sản phẩm</h2>
       {loading ? (
-        <p>Đang tải sản phẩm...</p>
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Đang tải sản phẩm...</span>
+          </div>
+          <p className="mt-2">Đang tải sản phẩm...</p>
+        </div>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '15px',
-          }}
-        >
+        <div className="row g-3">
           {products.map((product) => (
-            <div
-              key={product.id}
-              style={{
-                border: '1px solid #ddd',
-                padding: '15px',
-                borderRadius: '8px',
-                backgroundColor: '#f9f9f9',
-              }}
-            >
-              <h3>{product.name}</h3>
-              <p style={{ color: '#e74c3c', fontWeight: 'bold' }}>
-                {product.price.toLocaleString('vi-VN')} VND
-              </p>
-              <button
-                style={{
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                Thêm vào giỏ
-              </button>
+            <div key={product.id} className="col-md-4">
+              <div className="card h-100">
+                <div className="card-body">
+                  <h5 className="card-title">{product.name}</h5>
+                  <p className="card-text text-danger fw-bold">
+                    {product.price.toLocaleString('vi-VN')} VND
+                  </p>
+                  <button className="btn btn-primary">🛒 Thêm vào giỏ</button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+// Navigation component
+function Navigation() {
+  return (
+    <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4">
+      <div className="container">
+        <Link className="navbar-brand" to="/">
+          🏃‍♂️ Shop Thể Thao
+        </Link>
+        <div className="navbar-nav">
+          <Link className="nav-link" to="/">
+            🏠 Trang chủ
+          </Link>
+          <Link className="nav-link" to="/add-user">
+            👤 Thêm người dùng
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// App chính với routing
+function App() {
+  return (
+    <>
+      <Navigation />
+      <div className="container">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/add-user" element={<AddUserForm />} />
+        </Routes>
+      </div>
+    </>
   );
 }
 
