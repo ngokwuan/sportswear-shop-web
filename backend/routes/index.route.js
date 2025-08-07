@@ -1,4 +1,6 @@
 import { productRoute } from './products.route.js';
+import { userRoute } from './users.route.js';
+
 export function mainRoute(app) {
   app.get('/test', (req, res) => {
     // res.send('Backend is running!');
@@ -16,4 +18,5 @@ export function mainRoute(app) {
   });
 
   app.use('/products', productRoute);
+  app.use('/users', userRoute);
 }
