@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
-
-function AddUserForm() {
+function Register() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -20,7 +19,7 @@ function AddUserForm() {
   const submitUserData = async (userData) => {
     try {
       setIsSubmitting(true);
-      const response = await axios.post(
+      const res = await axios.post(
         'http://localhost:3000/users/create',
         userData
       );
@@ -29,23 +28,21 @@ function AddUserForm() {
       setFormData({ fullName: '', email: '', password: '' });
 
       // Hiển thị thông báo thành công với thông tin từ server
-      alert(response.data.message || 'Thêm người dùng thành công!');
-      console.log('User created:', response.data.user);
+      alert(res.data.message || 'Thêm người dùng thành công!');
 
-      return response.data;
+      return res.data;
     } catch (error) {
       console.error('Lỗi khi thêm người dùng:', error);
 
       // Xử lý các loại lỗi khác nhau
-      if (error.response) {
+      if (error.res) {
         // Server trả về lỗi với status code
-        const errorMessage =
-          error.response.data.error || 'Có lỗi xảy ra từ server';
+        const errorMessage = error.res.data.error || 'Có lỗi xảy ra từ server';
         alert(errorMessage);
 
         // Nếu có chi tiết lỗi validation
-        if (error.response.data.details) {
-          console.error('Validation details:', error.response.data.details);
+        if (error.res.data.details) {
+          console.error('Validation details:', error.res.data.details);
         }
       } else if (error.request) {
         // Không kết nối được với server
@@ -161,4 +158,4 @@ function AddUserForm() {
   );
 }
 
-export default AddUserForm;
+export default Register;
