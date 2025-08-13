@@ -3,17 +3,18 @@ import PropTypes from 'prop-types';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import styles from './DefaultLayout.module.scss';
+import Nav from '../../components/Navigation';
 
 const cx = classNames.bind(styles);
 function DefaultLayout({ children }) {
   return (
     <div className={cx('wrapper')}>
-      <Header />
+      <Nav /> {/* Nav nằm ngoài container */}
+      {/* <Header /> */}
       <div className={cx('container')}>
-        {/*de load content vao trong children */}
         <div className={cx('content')}>{children}</div>
       </div>
-      <Footer />
+      <Footer /> {/* Footer nằm ngoài container */}
     </div>
   );
 }
