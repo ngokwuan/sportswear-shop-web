@@ -1,4 +1,9 @@
 // Footer.scss
+.wrapper {
+  width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 .footer {
   margin-top: auto; // Push footer to bottom if using flexbox layout
 }
