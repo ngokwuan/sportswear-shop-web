@@ -1,0 +1,126 @@
+.wrapper {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100vw; // Thêm dòng này
+  left: 0;
+  padding: 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  // Xóa hoặc chỉnh max-width nếu muốn full màn hình
+  // max-width: 1200px;
+  // margin: 0 auto;
+}
+
+.shipping-info {
+  color: #6b7280;
+}
+
+.contact-info {
+  display: flex;
+  gap: 16px;
+  color: #6b7280;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.logo-sport {
+  font-size: 24px;
+  font-weight: bold;
+  color: #dc2626; // red-600
+}
+
+.logo-zy {
+  font-size: 24px;
+  font-weight: bold;
+  color: #374151; // gray-700
+}
+
+.nav-link {
+  color: #6b7280;
+  text-decoration: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    color: #dc2626;
+  }
+
+  &.active {
+    color: #dc2626;
+    border-bottom-color: #dc2626;
+  }
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 16px; // khoảng cách giữa các item
+}
+
+.nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #dc2626;
+  }
+}
+
+.cart-btn {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #dc2626;
+  color: white;
+  font-size: 12px;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-btn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #b91c1c;
+  }
+}
