@@ -10,6 +10,8 @@ import {
   faList,
   faChevronDown,
   faStar,
+  faShare,
+  faShareNodes,
 } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames/bind';
 import styles from './Products.module.scss';
@@ -320,7 +322,7 @@ function Products() {
             <FontAwesomeIcon icon={faHeart} />
           </button>
           <button className={cx('overlay-btn')} title="Quick View">
-            <FontAwesomeIcon icon={faEye} />
+            <FontAwesomeIcon icon={faShareNodes} />
           </button>
         </div>
         <button className={cx('add-to-cart')}>ADD TO CART</button>
@@ -353,11 +355,6 @@ function Products() {
 
   return (
     <div className={cx('products-page')}>
-      {/* Breadcrumb */}
-      <div className={cx('breadcrumb')}>
-        <span>Home</span> / <span className={cx('current')}>Products</span>
-      </div>
-
       <div className={cx('products-container')}>
         {/* Sidebar */}
         <aside className={cx('sidebar')}>
@@ -475,7 +472,7 @@ function Products() {
           {/* Header */}
           <div className={cx('products-header')}>
             <div className={cx('results-info')}>
-              <h1>Products</h1>
+              <h2>Products</h2>
               <span>
                 Showing 1 - {products.length} of {products.length} Results
               </span>

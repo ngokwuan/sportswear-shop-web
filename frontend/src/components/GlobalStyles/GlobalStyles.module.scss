@@ -1,0 +1,27 @@
+:root {
+  //dung khi bi lap lai code qua nhieu (hard code nen set cung' bang bien)
+  --primary: #f8183e;
+  --black: #000;
+  --white: #ffffff;
+  //Defaulayout
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+//embed
+@font-face {
+  font-family: 'Akira';
+  src: url('../../assets/fonts/Akira Expanded Demo.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Lemans';
+  src: url('../../assets/fonts/LE MANS CLASSIC Regular by Kazer Studio.otf')
+    format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
