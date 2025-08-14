@@ -9,12 +9,12 @@ const cx = classNames.bind(styles);
 function DefaultLayout({ children }) {
   return (
     <div className={cx('wrapper')}>
-      <Nav /> {/* Nav nằm ngoài container */}
-      {/* <Header /> */}
+      <Header />
+      <Nav />
       <div className={cx('container')}>
         <div className={cx('content')}>{children}</div>
       </div>
-      <Footer /> {/* Footer nằm ngoài container */}
+      <Footer />
     </div>
   );
 }
