@@ -480,7 +480,7 @@ function Products() {
 
             <div className={cx('header-controls')}>
               <div className={cx('sort-by')}>
-                <label>Sort by:</label>
+                <label>Sort by</label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import styles from './DefaultLayout.module.scss';
-import Nav from '../../components/Navigation';
+import Nav from '../../components/Navigation/Navigation';
 
 const cx = classNames.bind(styles);
 function DefaultLayout({ children }) {

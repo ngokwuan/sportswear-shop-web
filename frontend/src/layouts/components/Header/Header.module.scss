@@ -20,6 +20,11 @@
   align-items: center;
   justify-content: center;
 }
+.nav-link {
+  text-decoration: none;
+
+  cursor: pointer;
+}
 .logo {
   font-family: 'Akira';
   font-weight: 400;
