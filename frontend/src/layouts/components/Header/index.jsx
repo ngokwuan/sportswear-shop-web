@@ -9,6 +9,7 @@ import {
   faShoppingCart,
   faUserAlt,
 } from '@fortawesome/free-solid-svg-icons';
+import Logo from '../../../components/Logo';
 
 const cx = classNames.bind(styles);
 
@@ -17,14 +18,9 @@ function Nav() {
 
   return (
     <div className={cx('wrapper')}>
-      <NavLink to="/" className={cx('nav-link')}>
-        <div className={cx('logo')}>
-          <span className={cx('logo-s')}>S</span>
-          <span className={cx('logo-w')}>W</span>
-          <span className={cx('logo-s')}>S</span>
-        </div>
-      </NavLink>
       {/* Logo */}
+
+      <Logo />
 
       {/* Icons */}
       <div className={cx('nav-icons')}>
