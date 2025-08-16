@@ -25,16 +25,15 @@
   border-bottom: 2px solid transparent;
   transition: all 0.2s ease;
   cursor: pointer;
-
+  &:global(.active) {
+    background-color: #dc2626;
+    color: #fff;
+  }
   &:hover {
     color: #dc2626;
   }
-
-  &.active {
-    color: #dc2626;
-    border-bottom-color: #dc2626;
-  }
 }
+
 .categories {
   padding: 8px 110px 8px 0;
   background-color: #c1032f;

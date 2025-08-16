@@ -17,19 +17,23 @@ function Nav() {
 
   return (
     <div className={cx('wrapper')}>
+      <NavLink to="/" className={cx('nav-link')}>
+        <div className={cx('logo')}>
+          <span className={cx('logo-s')}>S</span>
+          <span className={cx('logo-w')}>W</span>
+          <span className={cx('logo-s')}>S</span>
+        </div>
+      </NavLink>
       {/* Logo */}
-      <div className={cx('logo')}>
-        <span className={cx('logo-s')}>S</span>
-        <span className={cx('logo-w')}>W</span>
-        <span className={cx('logo-s')}>S</span>
-      </div>
 
       {/* Icons */}
       <div className={cx('nav-icons')}>
-        <button className={cx('icon-btn', 'login-btn')}>
-          <FontAwesomeIcon icon={faUserAlt} />
-          SIGN IN
-        </button>
+        <NavLink to="/login" className={cx('nav-link')}>
+          <button className={cx('icon-btn', 'login-btn')}>
+            <FontAwesomeIcon icon={faUserAlt} />
+            SIGN IN
+          </button>
+        </NavLink>
 
         <button className={cx('icon-btn')}>
           <FontAwesomeIcon icon={faShoppingCart} />
