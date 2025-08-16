@@ -204,17 +204,19 @@
     display: flex;
     align-items: center;
     gap: 10px;
-
     label {
       font-weight: 500;
       color: #374151;
     }
 
     .sort-select {
+      border: none;
+
       padding: 8px 12px;
-      border: 1px solid #d1d5db;
       background: white;
       cursor: pointer;
+      border-left: 2px solid var(--primary);
+      border-right: 2px solid #454b53;
     }
   }
 
@@ -224,15 +226,13 @@
 
     .view-btn {
       padding: 8px 12px;
-      border: 1px solid #d1d5db;
       background: white;
       cursor: pointer;
       transition: all 0.2s ease;
+      border: none;
 
       &.active {
-        background-color: var(--primary);
-        border-color: var(--primary);
-        color: white;
+        color: var(--primary);
       }
     }
   }
