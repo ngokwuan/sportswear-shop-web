@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
 }
-.login-container {
+.register-container {
   width: 100%;
   min-width: 500px;
 }
@@ -33,7 +33,7 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
 .input-group {
@@ -54,22 +54,10 @@
   color: #374151;
 }
 
-.forgot-password {
-  font-size: 14px;
-  color: #3b82f6;
-  text-decoration: none;
-  transition: color 0.2s;
-
-  &:hover {
-    color: #1d4ed8;
-    text-decoration: underline;
-  }
-}
-
 .input {
-  padding: 12px 14px;
+  padding: 10px 14px;
   border: 1px solid #d1d5db;
-  font-size: 16px;
+  font-size: 15px;
   transition: all 0.2s;
   outline: none;
 
@@ -87,29 +75,7 @@
   }
 }
 
-.remember-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 4px 0;
-}
-
-.checkbox {
-  width: 16px;
-  height: 16px;
-  border: 1px solid #d1d5db;
-  cursor: pointer;
-  accent-color: #3b82f6;
-}
-
-.remember-label {
-  font-size: 14px;
-  color: #374151;
-  cursor: pointer;
-  user-select: none;
-}
-
-.login-btn {
+.register-btn {
   background: var(--primary);
   color: white;
   padding: 14px 20px;
@@ -193,13 +159,13 @@
   object-fit: contain;
 }
 
-.signup-link {
+.login-link {
   text-align: center;
   font-size: 14px;
   color: #6b7280;
 }
 
-.signup-text {
+.login-text {
   color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
@@ -216,7 +182,7 @@
     padding: 12px;
   }
 
-  .login-container {
+  .register-container {
     padding: 32px 24px;
   }
 
