@@ -1,5 +1,6 @@
 import classNames from 'classnames/bind';
 import styles from './Footer.module.scss';
+import Logo from '../../../components/Logo';
 
 const cx = classNames.bind(styles);
 
@@ -12,11 +13,7 @@ function Footer() {
           {/* Logo & Description Column */}
           <div className={cx('col-lg-4', 'col-md-6', 'mb-4')}>
             <div className={cx('footer-brand')}>
-              <div className={cx('logo')}>
-                <span className={cx('logo-s')}>S</span>
-                <span className={cx('logo-w')}>W</span>
-                <span className={cx('logo-s')}>S</span>
-              </div>
+              <Logo />
             </div>
             <p className={cx('footer-description')}>
               Discover our curated selection of premium sports equipment and
