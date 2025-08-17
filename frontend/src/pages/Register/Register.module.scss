@@ -64,7 +64,10 @@
   &::placeholder {
     color: #9ca3af;
   }
-
+  &.input-error {
+    border-color: #f31d33 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+  }
   &:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
