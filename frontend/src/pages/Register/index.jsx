@@ -3,16 +3,26 @@ import classNames from 'classnames/bind';
 import axios from 'axios';
 import styles from './Register.module.scss';
 import Logo from '../../components/Logo';
-
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 const cx = classNames.bind(styles);
 
 function Register() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    phone: '',
     password: '',
+    confirmPassword: '',
   });
-
+  const defaultValidInput = {
+    isValidFullName: true,
+    isValidEmail: true,
+    isValidPhone: true,
+    isValidPassword: true,
+    isValidConfirmPassword: true,
+  };
+  const [objectCheckInput, setObjectCheckInput] = useState(defaultValidInput);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
@@ -31,32 +41,30 @@ function Register() {
       );
 
       // Reset form sau khi thành công
-      setFormData({ fullName: '', email: '', password: '' });
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+      });
 
-      // Hiển thị thông báo thành công với thông tin từ server
-      alert(res.data.message || 'Thêm người dùng thành công!');
+      toast.success(res.data.message || 'Thêm người dùng thành công!');
 
       return res.data;
     } catch (error) {
       console.error('Lỗi khi thêm người dùng:', error);
 
-      // Xử lý các loại lỗi khác nhau
       if (error.response) {
-        // Server trả về lỗi với status code
         const errorMessage =
           error.response.data.error || 'Có lỗi xảy ra từ server';
-        alert(errorMessage);
-
-        // Nếu có chi tiết lỗi validation
-        if (error.response.data.details) {
-          console.error('Validation details:', error.response.data.details);
-        }
+        toast.error(errorMessage);
       } else if (error.request) {
-        // Không kết nối được với server
-        alert('Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.');
+        toast.error(
+          'Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.'
+        );
       } else {
-        // Lỗi khác
-        alert('Có lỗi xảy ra: ' + error.message);
+        toast.error('Có lỗi xảy ra: ' + error.message);
       }
     } finally {
       setIsSubmitting(false);
@@ -66,19 +74,51 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form data
     if (!formData.fullName.trim()) {
-      alert('Vui lòng nhập họ và tên');
+      toast.error('Vui lòng nhập họ và tên');
       return;
     }
 
     if (!formData.email.trim()) {
-      alert('Vui lòng nhập email');
+      setObjectCheckInput({ ...defaultValidInput, isValidEmail: false });
+      toast.error('Vui lòng nhập email');
+
       return;
     }
+    const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!regexEmail.test(formData.email.trim())) {
+      setObjectCheckInput({ ...defaultValidInput, isValidEmail: false });
 
+      toast.error('Vui lòng nhập email hợp lệ ');
+      return;
+    }
+    if (!formData.phone.trim()) {
+      setObjectCheckInput({ ...defaultValidInput, isValidPhone: false });
+
+      toast.error('Vui lòng nhập sdt');
+      return;
+    }
+    const regexPhoneNumber =
+      /^(0|84)(2(0[3-9]|1[0-689]|2[0-25-9]|3[2-9]|4[0-9]|5[124-9]|6[0369]|7[0-7]|8[0-9]|9[012346789])|3[2-9]|5[25689]|7[06-9]|8[0-9]|9[012346789])([0-9]{7})$/gm;
+    if (!regexPhoneNumber.test(formData.phone.trim())) {
+      setObjectCheckInput({ ...defaultValidInput, isValidPhone: false });
+
+      toast.error('Vui lòng nhập sdt hợp lệ ');
+      return;
+    }
     if (formData.password.length < 6) {
-      alert('Mật khẩu phải có ít nhất 6 ký tự');
+      setObjectCheckInput({ ...defaultValidInput, isValidPassword: false });
+
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự');
+      return;
+    }
+    if (formData.confirmPassword !== formData.password) {
+      setObjectCheckInput({
+        ...defaultValidInput,
+        isValidConfirmPassword: false,
+      });
+
+      toast.error('Nhập lại mật khẩu không trùng khớp ');
       return;
     }
 
@@ -87,12 +127,10 @@ function Register() {
   };
 
   const handleGoogleSignup = () => {
-    // Xử lý đăng ký Google
     console.log('Google signup');
   };
 
   const handleAppleSignup = () => {
-    // Xử lý đăng ký Apple
     console.log('Apple signup');
   };
 
@@ -118,11 +156,12 @@ function Register() {
               type="text"
               name="fullName"
               id="fullName"
-              className={cx('input')}
+              className={cx('input', {
+                'input-error': !objectCheckInput.isValidFullName,
+              })}
               value={formData.fullName}
               onChange={handleChange}
               placeholder="Enter your full name"
-              required
               minLength="2"
               maxLength="100"
             />
@@ -136,15 +175,34 @@ function Register() {
               type="email"
               name="email"
               id="email"
-              className={cx('input')}
+              className={cx('input', {
+                'input-error': !objectCheckInput.isValidEmail,
+              })}
               value={formData.email}
               onChange={handleChange}
               placeholder="example@email.com"
-              required
               maxLength="100"
             />
           </div>
 
+          <div className={cx('input-group')}>
+            <label htmlFor="phone" className={cx('label')}>
+              Phone number
+            </label>
+            <input
+              type="text"
+              name="phone"
+              id="phone"
+              className={cx('input', {
+                'input-error': !objectCheckInput.isValidPhone,
+              })}
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+              minLength="6"
+              maxLength="11"
+            />
+          </div>
           <div className={cx('input-group')}>
             <label htmlFor="password" className={cx('label')}>
               Password
@@ -153,11 +211,30 @@ function Register() {
               type="password"
               name="password"
               id="password"
-              className={cx('input')}
+              className={cx('input', {
+                'input-error': !objectCheckInput.isValidPassword,
+              })}
               value={formData.password}
               onChange={handleChange}
               placeholder="At least 6 characters"
-              required
+              minLength="6"
+              maxLength="255"
+            />
+          </div>
+          <div className={cx('input-group')}>
+            <label htmlFor="re-enter-password" className={cx('label')}>
+              Re-Enter Password
+            </label>
+            <input
+              type="password"
+              name="confirmPassword"
+              id="re-enter-password"
+              className={cx('input', {
+                'input-error': !objectCheckInput.isValidConfirmPassword,
+              })}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter-password"
               minLength="6"
               maxLength="255"
             />
@@ -206,9 +283,9 @@ function Register() {
 
           <div className={cx('login-link')}>
             <span>Already have an account? </span>
-            <a href="/login" className={cx('login-text')}>
+            <Link to="/login" className={cx('login-text')}>
               Sign In
-            </a>
+            </Link>
           </div>
         </form>
       </div>

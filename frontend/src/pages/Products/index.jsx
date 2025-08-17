@@ -71,7 +71,7 @@ function Products() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/products');
+        const response = await axios.get('http://localhost:3000/products');
         // Nếu có data từ backend, sử dụng và thêm ảnh
         if (response.data && response.data.length > 0) {
           const productsWithImages = response.data.map((product, index) => ({

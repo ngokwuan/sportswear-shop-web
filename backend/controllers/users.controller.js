@@ -1,4 +1,4 @@
-import User from '../models/users.model.js'; // Sửa import model
+import User from '../models/users.model.js';
 
 export const show = async (req, res) => {
   try {
@@ -12,32 +12,15 @@ export const show = async (req, res) => {
 
 export const create = async (req, res) => {
   try {
-    const { fullName, email, password, phone, address } = req.body;
-
-    // Validate required fields
-    if (!fullName || !email || !password) {
-      return res.status(400).json({
-        error:
-          'Vui lòng điền đầy đủ thông tin bắt buộc (họ tên, email, mật khẩu)',
-      });
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({
-        error: 'Email này đã được sử dụng',
-      });
-    }
+    const { fullName, email, password, phone } = req.body;
 
     // Create new user
     const newUser = await User.create({
-      name: fullName, // Map fullName to name field in database
+      name: fullName,
       email,
       password,
-      phone: phone || null,
-      address: address || null,
-      role: 'customer', // Default role
+      phone,
+      role: 'customer',
     });
 
     // Return user without password
