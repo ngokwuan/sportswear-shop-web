@@ -3,6 +3,7 @@ import classNames from 'classnames/bind';
 import styles from './Login.module.scss';
 import axios from 'axios';
 import Logo from '../../components/Logo';
+import { Link } from 'react-router-dom';
 
 const cx = classNames.bind(styles);
 
@@ -193,9 +194,9 @@ function Login() {
 
           <div className={cx('signup-link')}>
             <span>Don't have an account? </span>
-            <a href="/register" className={cx('signup-text')}>
+            <Link to="/register" className={cx('signup-text')}>
               Sign Up
-            </a>
+            </Link>
           </div>
         </form>
       </div>
