@@ -2,13 +2,11 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 dotenv.config();
-export const createJWT = () => {
-  let payload = { name: 'quan', address: 'binh dinh' };
+export const createJWT = (payload) => {
   let key = process.env.JWT_SECRET;
   let token = null;
   try {
     token = jwt.sign(payload, key);
-    console.log(token);
   } catch (error) {
     console.log(error);
   }
@@ -16,7 +14,7 @@ export const createJWT = () => {
 };
 
 export const verifyToken = (token) => {
-  let key = process.env.JWT_SECRET;
+  const key = process.env.JWT_SECRET;
   let data = null;
   try {
     let decoded = jwt.verify(token, key);
