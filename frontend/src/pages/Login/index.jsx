@@ -36,7 +36,8 @@ function Login() {
       setIsSubmitting(true);
       const res = await axios.post(
         'http://localhost:3000/auth/login',
-        userData
+        userData,
+        { withCredentials: true }
       );
 
       toast.success(res.data.message || 'Đăng nhập thành công!');

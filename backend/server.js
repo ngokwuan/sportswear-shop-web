@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { mainRoute } from './routes/index.route.js';
 import * as db from './config/database.js';
+import cookieParser from 'cookie-parser';
 
 //Connect db
 db.connectDB();
@@ -22,7 +23,9 @@ app.use(
   })
 );
 
-// Đảm bảo đường dẫn static đúng
+//config cookie-parser
+app.use(cookieParser());
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../frontend/public')));
@@ -40,13 +43,10 @@ app.use(express.json());
 // Middleware override lại phương thức gửi lên
 app.use(methodOverride('_method'));
 
-// HTTP logger
-// app.use(morgan('combined'));
-
-// Route init
 mainRoute(app);
-
-// 127.0.0.1 - localhost
+app.use((req, res) => {
+  return res.send('404 Not found');
+});
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
 });
