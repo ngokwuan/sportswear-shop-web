@@ -2,6 +2,11 @@ import { productRoute } from './products.route.js';
 import { userRoute } from './users.route.js';
 import { authRoute } from './auth.route.js';
 
+const testMiddleware = (req, res, next) => {
+  console.log('calling me middleware');
+  next();
+};
+
 export function mainRoute(app) {
   app.get('/test', (req, res) => {
     res.json({
@@ -16,7 +21,7 @@ export function mainRoute(app) {
     });
   });
 
-  app.use('/products', productRoute);
+  app.use('/products', testMiddleware, productRoute);
   app.use('/users', userRoute);
   app.use('/auth', authRoute);
 }
