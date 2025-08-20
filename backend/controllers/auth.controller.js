@@ -77,6 +77,9 @@ export const login = async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN,
     };
     const token = createJWT(payload);
+
+    //set cookie
+    res.cookie('jwt', token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
     return res.status(200).json({
       message: 'Đăng nhập thành công!',
       rememberMe: rememberMe || false,
