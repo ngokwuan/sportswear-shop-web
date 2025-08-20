@@ -36,7 +36,7 @@ function Register() {
     try {
       setIsSubmitting(true);
       const res = await axios.post(
-        'http://localhost:3000/users/create',
+        'http://localhost:3000/auth/register',
         userData
       );
 
