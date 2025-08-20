@@ -2,18 +2,25 @@ import { useState } from 'react';
 import classNames from 'classnames/bind';
 import styles from './Login.module.scss';
 import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import Logo from '../../components/Logo';
-import { Link } from 'react-router-dom';
 
 const cx = classNames.bind(styles);
 
 function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false,
   });
-
+  const defaultValidInput = {
+    isValidEmail: true,
+    isValidPassword: true,
+  };
+  const [objectCheckInput, setObjectCheckInput] = useState(defaultValidInput);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
@@ -32,13 +39,17 @@ function Login() {
         userData
       );
 
-      // Xử lý khi đăng nhập thành công
-      alert(res.data.message || 'Đăng nhập thành công!');
+      toast.success(res.data.message || 'Đăng nhập thành công!');
 
-      // Lưu token nếu có
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
+      // Lưu thông tin user vào localStorage (tạm thời không dùng JWT)
+      if (res.data.user) {
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        localStorage.setItem('isLoggedIn', 'true');
       }
+
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
 
       return res.data;
     } catch (error) {
@@ -47,11 +58,13 @@ function Login() {
       if (error.response) {
         const errorMessage =
           error.response.data.error || 'Có lỗi xảy ra từ server';
-        alert(errorMessage);
+        toast.error(errorMessage);
       } else if (error.request) {
-        alert('Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.');
+        toast.error(
+          'Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.'
+        );
       } else {
-        alert('Có lỗi xảy ra: ' + error.message);
+        toast.error('Có lỗi xảy ra: ' + error.message);
       }
     } finally {
       setIsSubmitting(false);
@@ -61,14 +74,24 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form data
+    setObjectCheckInput(defaultValidInput);
+
     if (!formData.email.trim()) {
-      alert('Vui lòng nhập email');
+      setObjectCheckInput({ ...defaultValidInput, isValidEmail: false });
+      toast.error('Vui lòng nhập email');
       return;
     }
 
-    if (!formData.password.trim()) {
-      alert('Vui lòng nhập mật khẩu');
+    const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!regexEmail.test(formData.email.trim())) {
+      setObjectCheckInput({ ...defaultValidInput, isValidEmail: false });
+      toast.error('Vui lòng nhập email hợp lệ');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setObjectCheckInput({ ...defaultValidInput, isValidPassword: false });
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
 
@@ -108,11 +131,12 @@ function Login() {
               type="email"
               name="email"
               id="email"
-              className={cx('input')}
+              className={cx('input', {
+                'input-error': !objectCheckInput.isValidEmail,
+              })}
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email"
-              required
             />
           </div>
 
@@ -129,11 +153,12 @@ function Login() {
               type="password"
               name="password"
               id="password"
-              className={cx('input')}
+              className={cx('input', {
+                'input-error': !objectCheckInput.isValidPassword,
+              })}
               value={formData.password}
               onChange={handleChange}
               placeholder="Password"
-              required
             />
           </div>
 
