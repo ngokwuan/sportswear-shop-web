@@ -6,18 +6,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { mainRoute } from './routes/index.route.js';
 import * as db from './config/database.js';
-import { createJWT, verifyToken } from './middleware/JWTActions.js';
 
 //Connect db
 db.connectDB();
-
-//test jwt
-createJWT();
-let decoded = verifyToken(
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoicXVhbiIsImFkZHJlc3MiOiJiaW5oIGRpbmgiLCJpYXQiOjE3NTQ1NTM5ODF9._WWJOQqOwAeTsz6XMezq8xipmH5oeKmSyJJTI1VsLhM'
-);
-
-console.log(decoded);
 
 const app = express();
 const port = process.env.PORT || 3000;

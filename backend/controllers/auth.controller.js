@@ -1,4 +1,8 @@
+import dotenv from 'dotenv';
+import { createJWT } from '../middleware/JWTActions.js';
 import User from '../models/users.model.js';
+import { getRoleByEmail } from '../services/jwt.service.js';
+dotenv.config();
 
 export const create = async (req, res) => {
   try {
@@ -68,11 +72,15 @@ export const login = async (req, res) => {
     }
 
     const { password: _, ...userWithoutPassword } = existUser.toJSON();
-
-    res.status(200).json({
+    const payload = {
+      userWithoutPassword,
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    };
+    const token = createJWT(payload);
+    return res.status(200).json({
       message: 'Đăng nhập thành công!',
-      user: userWithoutPassword,
       rememberMe: rememberMe || false,
+      accessToken: token,
     });
   } catch (error) {
     console.error('Error during login:', error);
