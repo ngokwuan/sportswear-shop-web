@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeart,
-  faEye,
-  faShoppingCart,
   faFilter,
   faTh,
   faList,
-  faChevronDown,
   faStar,
-  faShare,
   faShareNodes,
 } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames/bind';
@@ -71,7 +67,7 @@ function Products() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/products');
+        const response = await axios.get('/products');
         // Nếu có data từ backend, sử dụng và thêm ảnh
         if (response.data && response.data.length > 0) {
           const productsWithImages = response.data.map((product, index) => ({
@@ -95,166 +91,6 @@ function Products() {
         }
       } catch (error) {
         console.error('Lỗi khi lấy sản phẩm:', error);
-        // Fallback với mock data với ảnh hoạt động
-        const mockProducts = [
-          {
-            id: 1,
-            name: 'Nike Air Max Running Shoes',
-            price: 1299,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
-            category: 'SHOES',
-            brand: 'Nike',
-            rating: 5,
-            isNew: true,
-            isSale: false,
-          },
-          {
-            id: 2,
-            name: 'Adidas Ultraboost 22',
-            price: 1599,
-            oldPrice: 1899,
-            image:
-              'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop',
-            category: 'SHOES',
-            brand: 'Adidas',
-            rating: 4,
-            isNew: false,
-            isSale: true,
-          },
-          {
-            id: 3,
-            name: 'Nike Tech Fleece Hoodie',
-            price: 799,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop',
-            category: 'APPAREL',
-            brand: 'Nike',
-            rating: 5,
-            isNew: true,
-            isSale: false,
-          },
-          {
-            id: 4,
-            name: 'Under Armour Storm Duffel Bag',
-            price: 450,
-            oldPrice: 599,
-            image:
-              'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
-            category: 'EQUIPMENT',
-            brand: 'Under Armour',
-            rating: 4,
-            isNew: false,
-            isSale: true,
-          },
-          {
-            id: 5,
-            name: 'Puma RS-X Sneakers',
-            price: 999,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=400&fit=crop',
-            category: 'SHOES',
-            brand: 'Puma',
-            rating: 4,
-            isNew: true,
-            isSale: false,
-          },
-          {
-            id: 6,
-            name: 'Adidas 3-Stripes Track Jacket',
-            price: 899,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
-            category: 'APPAREL',
-            brand: 'Adidas',
-            rating: 3,
-            isNew: false,
-            isSale: false,
-          },
-          {
-            id: 7,
-            name: 'Premium Yoga Training Mat',
-            price: 199,
-            oldPrice: 249,
-            image:
-              'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop',
-            category: 'EQUIPMENT',
-            brand: 'YogaPro',
-            rating: 5,
-            isNew: false,
-            isSale: true,
-          },
-          {
-            id: 8,
-            name: 'Nike Basketball Shorts',
-            price: 549,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop',
-            category: 'APPAREL',
-            brand: 'Nike',
-            rating: 4,
-            isNew: false,
-            isSale: false,
-          },
-          {
-            id: 9,
-            name: 'Professional Basketball',
-            price: 89,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1520256862855-398228c41684?w=400&h=400&fit=crop',
-            category: 'EQUIPMENT',
-            brand: 'Wilson',
-            rating: 4,
-            isNew: false,
-            isSale: false,
-          },
-          {
-            id: 10,
-            name: 'Complete Sports Gear Set',
-            price: 2999,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop',
-            category: 'EQUIPMENT',
-            brand: 'Nike',
-            rating: 5,
-            isNew: true,
-            isSale: false,
-          },
-          {
-            id: 11,
-            name: 'Reebok CrossFit Shoes',
-            price: 1199,
-            oldPrice: null,
-            image:
-              'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop',
-            category: 'SHOES',
-            brand: 'Reebok',
-            rating: 4,
-            isNew: false,
-            isSale: false,
-          },
-          {
-            id: 12,
-            name: 'New Balance Running Tights',
-            price: 699,
-            oldPrice: 899,
-            image:
-              'https://images.unsplash.com/photo-1506629905607-47b7921b2050?w=400&h=400&fit=crop',
-            category: 'APPAREL',
-            brand: 'New Balance',
-            rating: 3,
-            isNew: false,
-            isSale: true,
-          },
-        ];
-        setProducts(mockProducts);
       } finally {
         setLoading(false);
       }
