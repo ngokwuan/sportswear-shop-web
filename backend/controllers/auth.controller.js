@@ -70,10 +70,10 @@ export const login = async (req, res) => {
         error: 'Mật khẩu không chính xác',
       });
     }
-
-    const { password: _, ...userWithoutPassword } = existUser.toJSON();
+    const role = await getRoleByEmail(email);
     const payload = {
-      userWithoutPassword,
+      email,
+      role,
       expiresIn: process.env.JWT_EXPIRES_IN,
     };
     const token = createJWT(payload);
