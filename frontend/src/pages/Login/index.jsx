@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import classNames from 'classnames/bind';
 import styles from './Login.module.scss';
-import axios from 'axios';
+import axios from '../../setup/axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Logo from '../../components/Logo';
@@ -34,11 +34,9 @@ function Login() {
   const submitLoginData = async (userData) => {
     try {
       setIsSubmitting(true);
-      const res = await axios.post(
-        'http://localhost:3000/auth/login',
-        userData,
-        { withCredentials: true }
-      );
+      const res = await axios.post('/auth/login', userData, {
+        withCredentials: true,
+      });
 
       toast.success(res.data.message || 'Đăng nhập thành công!');
 
