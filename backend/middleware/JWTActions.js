@@ -15,12 +15,56 @@ export const createJWT = (payload) => {
 
 export const verifyToken = (token) => {
   const key = process.env.JWT_SECRET;
-  let data = null;
+  let decoded = null;
   try {
-    let decoded = jwt.verify(token, key);
-    data = decoded;
+    decoded = jwt.verify(token, key);
   } catch (error) {
-    console.log(err);
+    console.log(error);
   }
-  return data;
+  return decoded;
+};
+
+export const checkUserJWT = (req, res, next) => {
+  let cookies = req.cookies;
+  if (cookies && cookies.jwt) {
+    let token = cookies.jwt;
+    let decoded = verifyToken(token);
+    if (decoded) {
+      req.user = decoded;
+      next();
+    } else {
+      return res.status(401).json({
+        message: 'Không xác thực được người dùng. Vui lòng đăng nhập',
+      });
+    }
+  } else {
+    return res.status(401).json({
+      message: 'Không xác thực được người dùng. Vui lòng đăng nhập',
+    });
+  }
+};
+
+export const checkUserPermission = (req, res, next) => {
+  //req.user dc gui tu middleware checkUserJWT nen co the dung duoc sau khi hoan thanh middleware checkUserJWT
+  if (req.user) {
+    let email = req.user.email;
+    let roles = req.user.role;
+    let currentURL = req.path;
+    if (!roles || roles.length === 0) {
+      return res.status(403).json({
+        message: "You don't have permission to access this resource... ",
+      });
+    }
+    if (roles === 'customer') {
+      next();
+    } else {
+      return res.status(403).json({
+        message: "You don't have permission to access this resource... ",
+      });
+    }
+  } else {
+    return res.status(401).json({
+      message: 'Không xác thực được người dùng. Vui lòng đăng nhập',
+    });
+  }
 };
