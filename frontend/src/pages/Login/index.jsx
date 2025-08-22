@@ -100,7 +100,6 @@ function Login() {
       return;
     }
 
-    console.log('Dữ liệu đăng nhập:', formData);
     await submitLoginData(formData);
   };
 
