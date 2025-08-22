@@ -1,28 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from '../setup/axios';
+const UserContext = React.createContext(null);
 
-const UserContext = React.createContext({ name: '', auth: false });
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    isAuthenticated: true,
-    token: '',
-    account: {},
+  const [user, setUser] = useState(() => {
+    // Lấy user từ localStorage nếu có
+    const storedUser = localStorage.getItem('user');
+    return storedUser
+      ? JSON.parse(storedUser)
+      : { isAuthenticated: false, token: '', account: {} };
   });
 
-  // Login updates the user data with a name parameter
+  // Khi login, lưu vào localStorage
   const loginContext = (userData) => {
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  // Logout updates the user data to default
-  const logout = () => {
-    setUser((userData) => ({
-      name: '',
-      auth: false,
-    }));
+  // Khi logout, xóa khỏi localStorage
+  const logoutContext = () => {
+    setUser({ isAuthenticated: false, token: '', account: {} });
+    localStorage.removeItem('user');
   };
 
   return (
-    <UserContext.Provider value={{ user, loginContext, logout }}>
+    <UserContext.Provider value={{ user, loginContext, logoutContext }}>
       {children}
     </UserContext.Provider>
   );
