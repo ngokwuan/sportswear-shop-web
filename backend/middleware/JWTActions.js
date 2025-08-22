@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const nonSecurePath = ['/auth/login', '/auth/register'];
+const nonSecurePath = ['/', '/auth/login', '/auth/register'];
 
 export const createJWT = (payload) => {
   let key = process.env.JWT_SECRET;
@@ -50,7 +50,7 @@ export const checkUserJWT = (req, res, next) => {
 };
 
 export const checkUserPermission = (req, res, next) => {
-  if (nonSecurePath.includes(req.path) || req.path === '/account')
+  if (nonSecurePath.includes(req.path) || req.path === '/auth/me')
     return next();
 
   //req.user dc gui tu middleware checkUserJWT nen co the dung duoc sau khi hoan thanh middleware checkUserJWT

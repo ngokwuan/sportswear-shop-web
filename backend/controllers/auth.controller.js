@@ -96,3 +96,23 @@ export const login = async (req, res) => {
     });
   }
 };
+
+export const me = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(500).json({
+        error: 'Không tìm thấy thông tin người dùng',
+      });
+    }
+    const { email, role } = req.user;
+    return res.status(200).json({
+      message: 'Token hợp lệ',
+      email,
+      role,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: 'Có lỗi xảy ra khi xác thực',
+    });
+  }
+};
