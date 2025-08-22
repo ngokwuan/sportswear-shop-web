@@ -1,13 +1,23 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { DefaultLayout } from './layouts';
-import { publicRoutes } from './routes';
-import GlobalStyles from './components/GlobalStyles/global-style';
+import { publicRoutes, privateRoutes } from './routes';
 import { ToastContainer } from 'react-toastify';
+import { useContext } from 'react';
+import { UserContext } from './context/UserContext';
+
 function App() {
+  const { user } = useContext(UserContext);
+
   return (
     <Router>
       <div className="App">
         <Routes>
+          {/* Public routes */}
           {publicRoutes.map((route, index) => {
             const Layout = route.layout || DefaultLayout;
             const Page = route.component;
@@ -19,6 +29,27 @@ function App() {
                   <Layout>
                     <Page />
                   </Layout>
+                }
+              />
+            );
+          })}
+
+          {/* Private routes */}
+          {privateRoutes.map((route, index) => {
+            const Layout = route.layout || DefaultLayout;
+            const Page = route.component;
+            return (
+              <Route
+                key={`private-${index}`}
+                path={route.path}
+                element={
+                  user && user.isAuthenticated ? (
+                    <Layout>
+                      <Page />
+                    </Layout>
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
                 }
               />
             );
@@ -36,7 +67,6 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
-        // transition={Bounce}
       />
     </Router>
   );

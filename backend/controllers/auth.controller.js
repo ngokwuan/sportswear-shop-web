@@ -72,23 +72,47 @@ export const login = async (req, res) => {
     }
     const role = await getRoleByEmail(email);
     const payload = {
-      email,
+      email: existUser.email,
       role,
       expiresIn: process.env.JWT_EXPIRES_IN,
     };
     const token = createJWT(payload);
 
     //set cookie
-    res.cookie('jwt', token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+    if (isValidPassword) {
+      res.cookie('jwt', token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+    }
     return res.status(200).json({
       message: 'Đăng nhập thành công!',
       rememberMe: rememberMe || false,
       accessToken: token,
+      email: existUser.email,
+      name: existUser.name,
     });
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({
       error: 'Có lỗi xảy ra khi đăng nhập',
+    });
+  }
+};
+
+export const me = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(500).json({
+        error: 'Không tìm thấy thông tin người dùng',
+      });
+    }
+    const { email, role } = req.user;
+    return res.status(200).json({
+      message: 'Token hợp lệ',
+      email,
+      role,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: 'Có lỗi xảy ra khi xác thực',
     });
   }
 };
