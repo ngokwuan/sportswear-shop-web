@@ -72,18 +72,22 @@ export const login = async (req, res) => {
     }
     const role = await getRoleByEmail(email);
     const payload = {
-      email,
+      email: existUser.email,
       role,
       expiresIn: process.env.JWT_EXPIRES_IN,
     };
     const token = createJWT(payload);
 
     //set cookie
-    res.cookie('jwt', token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+    if (isValidPassword) {
+      res.cookie('jwt', token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+    }
     return res.status(200).json({
       message: 'Đăng nhập thành công!',
       rememberMe: rememberMe || false,
       accessToken: token,
+      email: existUser.email,
+      name: existUser.name,
     });
   } catch (error) {
     console.error('Error during login:', error);
