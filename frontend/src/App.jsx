@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DefaultLayout } from './layouts';
 import { publicRoutes } from './routes';
-import GlobalStyles from './components/GlobalStyles/global-style';
 import { ToastContainer } from 'react-toastify';
+
 function App() {
   return (
     <Router>
