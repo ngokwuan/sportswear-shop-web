@@ -50,7 +50,8 @@ export const checkUserJWT = (req, res, next) => {
 };
 
 export const checkUserPermission = (req, res, next) => {
-  if (nonSecurePath.includes(req.path)) return next();
+  if (nonSecurePath.includes(req.path) || req.path === '/account')
+    return next();
 
   //req.user dc gui tu middleware checkUserJWT nen co the dung duoc sau khi hoan thanh middleware checkUserJWT
   if (req.user) {
