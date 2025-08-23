@@ -80,7 +80,6 @@ function Products() {
                 ? 'APPAREL'
                 : 'EQUIPMENT',
             rating: Math.floor(Math.random() * 5) + 1, // Random rating 1-5
-            isNew: product.is_featured || false,
             isSale: product.sale_price !== null,
             oldPrice: product.sale_price ? product.price : null,
             price: product.sale_price || product.price,

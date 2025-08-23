@@ -20,7 +20,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop',
-    is_featured: true,
     status: 'active',
   },
   {
@@ -41,7 +40,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=800&h=800&fit=crop',
-    is_featured: false,
     status: 'active',
   },
   {
@@ -62,7 +60,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&h=800&fit=crop',
-    is_featured: true,
     status: 'active',
   },
   {
@@ -82,7 +79,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=800&fit=crop',
-    is_featured: false,
     status: 'active',
   },
   {
@@ -102,7 +98,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=800&fit=crop',
-    is_featured: true,
     status: 'active',
   },
   {
@@ -121,7 +116,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=800&fit=crop',
-    is_featured: false,
     status: 'active',
   },
   {
@@ -140,7 +134,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=800&fit=crop',
-    is_featured: false,
     status: 'active',
   },
   {
@@ -159,7 +152,6 @@ const sampleProducts = [
     ]),
     featured_image:
       'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=800&fit=crop',
-    is_featured: false,
     status: 'active',
   },
 ];

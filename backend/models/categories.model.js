@@ -28,16 +28,14 @@ const Category = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    image: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
   },
   {
     tableName: 'categories',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: false,
+    paranoid: true,
+    deletedAt: 'deleted_at',
   }
 );
 
