@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import { mainRoute } from './routes/index.route.js';
 import * as db from './config/database.js';
 import cookieParser from 'cookie-parser';
-
+import sequelize from './config/database.js';
 //Connect db
 db.connectDB();
 
@@ -47,6 +47,8 @@ mainRoute(app);
 app.use((req, res) => {
   return res.send('404 Not found');
 });
+//update schema
+// sequelize.sync({ alter: true });
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
 });

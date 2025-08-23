@@ -81,10 +81,7 @@ const Product = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    is_featured: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
+
     status: {
       type: DataTypes.ENUM('active', 'inactive'),
       defaultValue: 'active',
@@ -101,6 +98,8 @@ const Product = sequelize.define(
       { fields: ['price'] },
       { type: 'FULLTEXT', fields: ['name', 'description', 'brand'] },
     ],
+    paranoid: true,
+    deletedAt: 'deleted_at',
   }
 );
 
