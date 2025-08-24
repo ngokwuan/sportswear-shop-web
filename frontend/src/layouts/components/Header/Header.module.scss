@@ -6,12 +6,55 @@
   z-index: 50;
   width: 100vw;
   left: 0;
-  padding: 0 90px;
+  padding: 0 110px;
   display: flex;
   justify-content: center;
   align-items: center;
-}
+  &.home-layout {
+    padding: 0 56px;
 
+    justify-content: space-between;
+    .logo {
+      margin-right: 20px; // Tạo khoảng cách với nav-icons
+    }
+  }
+}
+.search {
+  position: absolute;
+  left: 110px;
+  display: flex;
+  align-items: center;
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--white);
+    padding: 8px 0px;
+    min-width: 20px;
+
+    &:hover {
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+
+    input {
+      border: none;
+      outline: none;
+      background: transparent;
+      flex: 1;
+      font-size: 14px;
+      color: #374151;
+      width: 200px;
+      &::placeholder {
+        color: #9ca3af;
+      }
+    }
+
+    &::after {
+      display: none;
+    }
+  }
+}
 .nav-icons {
   position: absolute;
   right: 90px;
