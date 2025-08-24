@@ -1,0 +1,14 @@
+.breadcrumb {
+  padding: 0 110px;
+
+  font-size: 0.8rem;
+  color: #6b7280;
+  .current {
+    color: #dc2626;
+    font-weight: 500;
+  }
+}
+.link {
+  text-decoration: none;
+  color: #6b7280;
+}

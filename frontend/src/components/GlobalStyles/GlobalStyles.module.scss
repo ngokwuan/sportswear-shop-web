@@ -1,8 +1,16 @@
 :root {
   //dung khi bi lap lai code qua nhieu (hard code nen set cung' bang bien)
-  --primary: #f8183e;
-  --black: #000;
+  --primary-color: #dc2626;
+  --primary-hover: #b91c1c;
+  --secondary-color: #6b7280;
+  --text-color: #374151;
+  --text-light: #a6aab0;
+  --bg-light: #f9fafb;
   --white: #ffffff;
+  --black: #000000;
+  --border-color: #e5e7eb;
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 * {
   box-sizing: border-box;
