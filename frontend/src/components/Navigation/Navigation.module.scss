@@ -5,8 +5,26 @@
   width: 100vw;
   left: 0;
   display: flex;
-  align-items: flex-start; // Đổi từ center sang flex-start
+  align-items: flex-start;
   border-bottom: 1px solid #6b7280;
+  &.home-layout {
+    border-top: 1px solid var(--text-light);
+    border-bottom: none;
+    .nav-menu {
+      padding: 0 56px;
+
+      background-color: var(--white);
+    }
+    .nav-link {
+      color: var(--text-color);
+      &:hover {
+        background-color: #d1cfcf;
+      }
+    }
+    .categories {
+      background-color: var(--white);
+    }
+  }
 }
 
 .wrapper > div {
@@ -14,7 +32,12 @@
   flex-direction: column;
   width: 100%;
 }
-
+.nav-menu {
+  padding: 0 110px;
+  background-color: #303030;
+  display: flex;
+  align-items: center;
+}
 .nav-link {
   color: #eeeeee;
   text-decoration: none;
@@ -37,24 +60,4 @@
 .categories {
   padding: 8px 110px 8px 0;
   background-color: #c1032f;
-}
-.nav-menu {
-  padding: 0 110px;
-
-  background-color: #303030;
-
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.breadcrumb {
-  padding: 0 110px;
-
-  font-size: 0.8rem;
-  color: #6b7280;
-  .current {
-    color: #dc2626;
-    font-weight: 500;
-  }
 }
