@@ -1,0 +1,175 @@
+.container {
+  max-width: 100%;
+  padding: 0 56px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  font-size: 1.1rem;
+  color: var(--secondary-color, #666);
+}
+
+.new-products-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.yoga-section {
+  background: url('https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg')
+    center/cover no-repeat;
+  padding: 40px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  height: 100%;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+  }
+}
+
+.yoga-content {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.yoga-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.yoga-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.shop-now-btn {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 24px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-size: 1rem;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Products Section
+.products-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 400px; // Đảm bảo có đủ chiều cao
+}
+
+.products-scroll {
+  // Custom styles cho ScrollContainer trong context này
+  .scroll-wrapper {
+    min-height: 350px; // Chiều cao tối thiểu cho container
+  }
+
+  .scroll-content {
+    height: 100%;
+  }
+
+  .scroll-item {
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    // Đảm bảo ProductCard chiếm full width của scroll-item
+    & > * {
+      width: 100%;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 32px;
+  }
+
+  .new-products-grid {
+    gap: 20px;
+  }
+
+  .yoga-title {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .new-products-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .yoga-section {
+    padding: 32px 24px;
+    min-height: 250px;
+  }
+
+  .yoga-title {
+    font-size: 1.6rem;
+  }
+
+  .yoga-subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .yoga-section {
+    padding: 24px 20px;
+    min-height: 200px;
+  }
+
+  .yoga-title {
+    font-size: 1.4rem;
+  }
+
+  .shop-now-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}

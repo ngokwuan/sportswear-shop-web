@@ -10,6 +10,24 @@ export const getProduct = async (req, res) => {
     res.status(500).json({ error: 'Không lấy được sản phẩm' });
   }
 };
+export const getTrendingProduct = async (req, res) => {
+  try {
+    const products = await Products.findAll({ order: [['star', 'DESC']] });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Không lấy được sản phẩm' });
+  }
+};
+export const getNewProduct = async (req, res) => {
+  try {
+    const products = await Products.findAll({
+      order: [['created_at', 'DESC']],
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Không lấy được sản phẩm' });
+  }
+};
 
 export const createProduct = async (req, res) => {
   try {
@@ -18,8 +36,8 @@ export const createProduct = async (req, res) => {
       description,
       price,
       salePrice,
+      categoryId,
       stockQuantity,
-      productId,
       brand,
       size,
       color,
@@ -30,8 +48,8 @@ export const createProduct = async (req, res) => {
       name,
       description,
       price,
+      categoryId,
       stockQuantity,
-      productId,
       brand,
       size,
       color,
@@ -51,13 +69,15 @@ export const createProduct = async (req, res) => {
       price,
       sale_price: salePrice || null,
       stock_quantity: stockQuantity,
-      product_id: productId,
+      category_id: categoryId,
       brand,
       size,
       color,
       images,
       featured_image: featuredImage,
       status: true,
+      isNew: true,
+      star: 0,
     });
     res.status(201).json({
       message: 'Thêm sản phầm thành công!',

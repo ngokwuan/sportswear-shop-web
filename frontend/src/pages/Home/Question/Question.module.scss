@@ -1,12 +1,10 @@
-.faq-section {
-  padding: 48px 0;
-}
-
 .faq-content {
-  background: var(--white);
-  padding: 32px;
 }
 
+.container {
+  background: var(--bg-light);
+  padding: 56px;
+}
 .faq-item {
   display: flex;
   align-items: flex-start;
