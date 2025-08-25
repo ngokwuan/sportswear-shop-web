@@ -1,0 +1,46 @@
+.container {
+  max-width: 100%;
+  padding: 0 56px;
+}
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.team-card {
+  position: relative;
+  overflow: hidden;
+
+  cursor: pointer;
+
+  &:hover .team-image {
+    transform: scale(1.05);
+  }
+}
+
+.team-image {
+  width: 100%;
+  height: 256px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.team-overlay {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  color: var(--white);
+}
+
+.team-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+  font-size: 1.25rem;
+}
+
+.team-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin: 0;
+}

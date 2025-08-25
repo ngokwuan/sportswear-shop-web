@@ -1,0 +1,160 @@
+.container {
+  max-width: 100%;
+  padding: 0 56px;
+}
+
+.trending-layout {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 12px;
+}
+
+// Xóa .trending-grid vì nó đang override ScrollContainer
+// .trending-grid sẽ không cần thiết nữa
+
+.main-banner-2 {
+  position: relative;
+  background: url('https://tse1.mm.bing.net/th/id/OIP.Hi0U5o4G5S5DiOEgQBFLrAHaEz?cb=thfvnext&rs=1&pid=ImgDetMain&o=7&rm=3')
+    center/cover no-repeat;
+
+  .logo {
+    align-items: center;
+    justify-content: center;
+    z-index: 20; // đảm bảo nằm trên nền
+  }
+
+  .banner-content {
+    height: 100%;
+    min-height: 380px;
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: end;
+    z-index: 10;
+    padding: 60px 32px;
+  }
+
+  .banner-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+
+  .banner-subtitle {
+    color: var(--primary-color);
+    font-size: 1rem;
+    margin-bottom: 20px;
+    opacity: 0.9;
+    line-height: 1.5;
+  }
+
+  .cta-button {
+    background: #dc2626;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #b91c1c;
+    }
+  }
+}
+
+.products-scroll {
+  // Custom styles cho ScrollContainer trong context này
+  .scroll-wrapper {
+    min-height: 350px; // Chiều cao tối thiểu cho container
+  }
+
+  .scroll-content {
+    height: 100%;
+  }
+
+  .scroll-item {
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    // Đảm bảo ProductCard chiếm full width của scroll-item
+    & > * {
+      width: 100%;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 32px;
+  }
+
+  .trending-layout {
+    gap: 20px;
+  }
+
+  .main-banner-2 {
+    .banner-title {
+      font-size: 1.6rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .trending-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .main-banner-2 {
+    min-height: 250px;
+
+    .banner-content {
+      padding: 32px 24px;
+      min-height: 250px;
+    }
+
+    .banner-title {
+      font-size: 1.4rem;
+    }
+
+    .banner-subtitle {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .main-banner-2 {
+    min-height: 200px;
+
+    .banner-content {
+      padding: 24px 20px;
+      min-height: 200px;
+    }
+
+    .banner-title {
+      font-size: 1.2rem;
+    }
+
+    .cta-button {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+  }
+}
