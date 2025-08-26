@@ -3,6 +3,11 @@ import * as controller from '../controllers/products.controller.js';
 
 const router = express.Router();
 router.get('/', controller.getProduct);
+router.get('/brands', controller.getBrandProduct);
+router.get('/price', controller.getPriceProduct);
+router.get('/size', controller.getSizeProduct);
+router.get('/trending', controller.getTrendingProduct);
+router.get('/new', controller.getNewProduct);
 router.post('/', controller.createProduct);
 router.patch('/:id', controller.updateProduct);
 router.delete('/:id', controller.softDeleteProduct);

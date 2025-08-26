@@ -81,7 +81,18 @@ const Product = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    isNew: {
+      type: DataTypes.BOOLEAN,
+    },
 
+    star: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+        max: 5,
+      },
+    },
     status: {
       type: DataTypes.ENUM('active', 'inactive'),
       defaultValue: 'active',
