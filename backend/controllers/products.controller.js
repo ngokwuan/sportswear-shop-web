@@ -1,7 +1,7 @@
 import slugify from 'slugify';
 import Products from '../models/products.model.js';
 import { filterFields } from '../utils/filterFields.js';
-
+import { Sequelize } from 'sequelize';
 export const getProduct = async (req, res) => {
   try {
     const products = await Products.findAll();
@@ -18,6 +18,159 @@ export const getTrendingProduct = async (req, res) => {
     res.status(500).json({ error: 'Không lấy được sản phẩm' });
   }
 };
+export const getBrandProduct = async (req, res) => {
+  try {
+    const brands = await Products.findAll({
+      attributes: [
+        'brand',
+
+        [Sequelize.fn('GROUP_CONCAT', Sequelize.col('id')), 'product_ids'],
+      ],
+      group: ['brand'],
+      order: [['brand', 'ASC']],
+    });
+
+    // convert chuỗi id thành mảng số
+    const result = brands.map((b) => ({
+      brand: b.brand,
+      product_ids: b
+        .get('product_ids')
+        .split(',')
+        .map((id) => Number(id)),
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: 'Không lấy được brand và danh sách sản phẩm' });
+  }
+};
+export const getSizeProduct = async (req, res) => {
+  try {
+    const sizes = await Products.findAll({
+      attributes: [
+        'size',
+
+        [Sequelize.fn('GROUP_CONCAT', Sequelize.col('id')), 'product_ids'],
+      ],
+      group: ['size'],
+    });
+
+    // convert chuỗi id thành mảng số
+    const result = sizes.map((b) => ({
+      size: b.size,
+      product_ids: b
+        .get('product_ids')
+        .split(',')
+        .map((id) => Number(id)),
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: 'Không lấy được size và danh sách sản phẩm' });
+  }
+};
+
+export const getPriceProduct = async (req, res) => {
+  try {
+    const { minPrice = 0, maxPrice = 999999 } = req.query;
+
+    // Lấy tất cả sản phẩm để tính min/max price thực tế
+    const allProducts = await Products.findAll();
+
+    // Tính giá thực tế (ưu tiên sale_price nếu có, không thì dùng price)
+    const actualPrices = allProducts.map((product) => {
+      return product.sale_price || product.price || 0;
+    });
+
+    const minPriceFromDB = Math.min(...actualPrices);
+    const maxPriceFromDB = Math.max(...actualPrices);
+
+    // Lọc sản phẩm theo khoảng giá được yêu cầu
+    const products = await Products.findAll({
+      where: {
+        [Sequelize.Op.or]: [
+          {
+            sale_price: {
+              [Sequelize.Op.not]: null,
+              [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
+            },
+          },
+          {
+            sale_price: null,
+            price: {
+              [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
+            },
+          },
+        ],
+      },
+      order: [['created_at', 'DESC']],
+    });
+
+    res.json({
+      products,
+      count: products.length,
+      priceRange: {
+        min: Number(minPrice),
+        max: Number(maxPrice),
+      },
+      // Thêm thông tin về min/max price thực tế từ database
+      actualPriceRange: {
+        min_price: minPriceFromDB,
+        max_price: maxPriceFromDB,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm theo khoảng giá',
+    });
+  }
+};
+// export const getPriceProduct = async (req, res) => {
+//   try {
+//     const { minPrice = 0, maxPrice = 999999 } = req.query;
+
+//     const products = await Products.findAll({
+//       where: {
+//         [Sequelize.Op.or]: [
+//           {
+//             sale_price: {
+//               [Sequelize.Op.not]: null,
+//               [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
+//             },
+//           },
+//           {
+//             sale_price: null,
+//             price: {
+//               [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
+//             },
+//           },
+//         ],
+//       },
+//       order: [['created_at', 'DESC']],
+//     });
+
+//     res.json({
+//       products,
+//       count: products.length,
+//       priceRange: {
+//         min: Number(minPrice),
+//         max: Number(maxPrice),
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       error: 'Không lấy được sản phẩm theo khoảng giá',
+//     });
+//   }
+// };
 export const getNewProduct = async (req, res) => {
   try {
     const products = await Products.findAll({
