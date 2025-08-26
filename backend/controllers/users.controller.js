@@ -11,6 +11,30 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const getUserByEmail = async (email) => {
+  try {
+    const user = await Users.findOne({
+      where: { email: email },
+      attributes: ['id', 'name', 'email', 'role'], // Chỉ lấy những field cần thiết
+    });
+    return user;
+  } catch (error) {
+    console.error('Error finding user by email:', error);
+    return null;
+  }
+};
+
+export const getUserById = async (userId) => {
+  try {
+    const user = await Users.findByPk(userId, {
+      attributes: ['id', 'name', 'email', 'role'],
+    });
+    return user;
+  } catch (error) {
+    console.error('Error finding user by ID:', error);
+    return null;
+  }
+};
 export const updateUsers = async (req, res) => {
   try {
     const { id } = req.params;

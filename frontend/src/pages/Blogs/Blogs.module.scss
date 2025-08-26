@@ -1,0 +1,677 @@
+// Variables
+$primary-color: #ff6b35;
+$secondary-color: #2c3e50;
+$accent-color: #00d4aa;
+$dark-color: #1a1a1a;
+$light-gray: #f8f9fa;
+$medium-gray: #6c757d;
+$white: #ffffff;
+
+// Mixins
+@mixin flex-center($direction: row) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: $direction;
+}
+
+@mixin gradient-bg() {
+  background: linear-gradient(
+    135deg,
+    $primary-color 0%,
+    darken($primary-color, 10%) 100%
+  );
+}
+
+@mixin card-shadow() {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+@mixin hover-scale() {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.wrapper {
+  min-height: 100vh;
+  background-color: $light-gray;
+  overflow-x: hidden;
+}
+
+// Hero Section
+.hero {
+  position: relative;
+  height: 60vh;
+  min-height: 500px;
+  @include flex-center(column);
+  color: $white;
+  overflow: hidden;
+  margin-bottom: 4rem;
+
+  &-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    @include gradient-bg();
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="80" r="2.5" fill="rgba(255,255,255,0.1)"/></svg>');
+      animation: float 20s infinite linear;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      background: linear-gradient(transparent, $light-gray);
+    }
+  }
+
+  &-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 800px;
+    padding: 0 2rem;
+  }
+
+  &-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+
+    .highlight {
+      color: $accent-color;
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: $accent-color;
+        border-radius: 2px;
+      }
+    }
+  }
+
+  &-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 3rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  &-stats {
+    display: flex;
+    gap: 3rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    @include flex-center(column);
+
+    &-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: $accent-color;
+      display: block;
+    }
+
+    &-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+// Container
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+// Categories Section
+.categories-section {
+  margin-bottom: 4rem;
+}
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.category-btn {
+  padding: 0.75rem 1.5rem;
+  background: $white;
+  border: 2px solid transparent;
+  border-radius: 25px;
+  font-weight: 600;
+  color: $secondary-color;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  @include card-shadow();
+
+  .count {
+    opacity: 0.7;
+    margin-left: 0.5rem;
+  }
+
+  &:hover {
+    border-color: $primary-color;
+    color: $primary-color;
+    transform: translateY(-2px);
+  }
+
+  &.active {
+    @include gradient-bg();
+    color: $white;
+    border-color: transparent;
+
+    .count {
+      opacity: 1;
+    }
+  }
+}
+
+// Section Headers
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: $secondary-color;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.title-underline {
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(to right, $primary-color, $accent-color);
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+// Featured Section
+.featured-section {
+  margin-bottom: 5rem;
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.featured-card {
+  background: $white;
+  border-radius: 15px;
+  overflow: hidden;
+  @include card-shadow();
+  @include hover-scale();
+  cursor: pointer;
+
+  .card-image {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 100%
+      );
+    }
+
+    .category-badge {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      padding: 0.5rem 1rem;
+      @include gradient-bg();
+      color: $white;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+
+  .card-content {
+    padding: 2rem;
+  }
+
+  .card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $secondary-color;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+
+  .card-excerpt {
+    color: $medium-gray;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+  }
+
+  .author-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    @include gradient-bg();
+  }
+
+  .author-name {
+    font-weight: 600;
+    color: $secondary-color;
+    font-size: 0.9rem;
+  }
+
+  .post-info {
+    @include flex-center(column);
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  .date,
+  .read-time {
+    font-size: 0.8rem;
+    color: $medium-gray;
+  }
+
+  &:hover {
+    .card-image img {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Recent Section
+.recent-section {
+  margin-bottom: 5rem;
+}
+
+.recent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.recent-card {
+  background: $white;
+  border-radius: 15px;
+  overflow: hidden;
+  @include card-shadow();
+  @include hover-scale();
+  cursor: pointer;
+
+  .card-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .category-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.4rem 0.8rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: $white;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+  }
+
+  .card-content {
+    padding: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $secondary-color;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+
+  .card-excerpt {
+    color: $medium-gray;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .card-meta {
+    .date {
+      font-size: 0.8rem;
+      color: $medium-gray;
+    }
+  }
+
+  &:hover {
+    .card-image img {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Newsletter Section
+.newsletter-section {
+  margin-bottom: 4rem;
+  padding: 4rem 2rem;
+  background: linear-gradient(
+    135deg,
+    $secondary-color 0%,
+    darken($secondary-color, 10%) 100%
+  );
+  border-radius: 20px;
+  text-align: center;
+  color: $white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 70%
+    );
+    border-radius: 50%;
+  }
+
+  .newsletter-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .newsletter-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .newsletter-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .newsletter-form {
+    display: flex;
+    gap: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+
+  .newsletter-input {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    min-width: 250px;
+
+    &::placeholder {
+      color: $medium-gray;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+    }
+  }
+
+  .newsletter-btn {
+    padding: 1rem 2rem;
+    @include gradient-bg();
+    color: $white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// Load More Section
+.load-more-section {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.load-more-btn {
+  padding: 1rem 2.5rem;
+  background: $white;
+  border: 2px solid $primary-color;
+  color: $primary-color;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  @include flex-center();
+  gap: 0.5rem;
+
+  .btn-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    @include gradient-bg();
+    color: $white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
+
+    .btn-icon {
+      transform: translateX(5px);
+    }
+  }
+}
+
+// Animations
+@keyframes float {
+  0% {
+    transform: translateX(-100px);
+  }
+  100% {
+    transform: translateX(calc(100vw + 100px));
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .hero {
+    height: 50vh;
+    min-height: 400px;
+
+    &-title {
+      font-size: 2.5rem;
+    }
+
+    &-stats {
+      gap: 2rem;
+
+      .stat {
+        &-number {
+          font-size: 2rem;
+        }
+      }
+    }
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .featured-grid,
+  .recent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .categories {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $primary-color;
+      border-radius: 2px;
+    }
+  }
+
+  .category-btn {
+    flex-shrink: 0;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+    align-items: stretch;
+
+    .newsletter-input {
+      min-width: auto;
+    }
+  }
+
+  .featured-card,
+  .recent-card {
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: 1rem;
+
+    .stat {
+      flex-direction: row;
+      gap: 1rem;
+
+      &-number {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .newsletter-section {
+    padding: 2rem 1rem;
+    margin: 0 -1rem 4rem -1rem;
+    border-radius: 0;
+  }
+}
