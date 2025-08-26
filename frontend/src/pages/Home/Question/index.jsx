@@ -33,27 +33,23 @@ export default function Question() {
   };
 
   return (
-    <section className={cx('faq-section')}>
-      <div className={cx('container')}>
-        <div className={cx('faq-content')}>
-          <h2 className={cx('section-title')}>Questions</h2>
-          {faqs.map((faq, index) => (
-            <div
-              key={index}
-              className={cx('faq-item', { active: activeIndex === index })}
-              onClick={() => toggleFAQ(index)}
-            >
-              <div className={cx('faq-number')}>{faq.number}</div>
-              <div className={cx('faq-text')}>
-                <h3 className={cx('faq-question')}>{faq.question}</h3>
-                {activeIndex === index && (
-                  <p className={cx('faq-answer')}>{faq.answer}</p>
-                )}
-              </div>
-            </div>
-          ))}
+    <div className={cx('container')}>
+      <h2 className={cx('section-title')}>Questions</h2>
+      {faqs.map((faq, index) => (
+        <div
+          key={index}
+          className={cx('faq-item', { active: activeIndex === index })}
+          onClick={() => toggleFAQ(index)}
+        >
+          <div className={cx('faq-number')}>{faq.number}</div>
+          <div className={cx('faq-text')}>
+            <h3 className={cx('faq-question')}>{faq.question}</h3>
+            {activeIndex === index && (
+              <p className={cx('faq-answer')}>{faq.answer}</p>
+            )}
+          </div>
         </div>
-      </div>
-    </section>
+      ))}
+    </div>
   );
 }

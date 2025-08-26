@@ -1,0 +1,210 @@
+.scroll-container {
+  position: relative;
+  width: 100%;
+}
+
+.scroll-wrapper {
+  position: relative;
+  overflow: visible;
+}
+
+// Products Grid - Hiển thị động theo itemsPreView prop
+.products-grid {
+  display: grid;
+  // Không set grid-template-columns ở đây nữa, sẽ set inline trong JS
+  transition: opacity 0.3s ease;
+  min-height: 350px;
+
+  // Đặc biệt xử lý cho itemsPreView = 6 (3x2 grid)
+  &.grid-3x2 {
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+.product-item {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.4s ease forwards;
+
+  // Staggered animation cho nhiều items
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{($i - 1) * 0.05s};
+    }
+  }
+}
+
+// Navigation Arrows
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 1.3rem;
+  color: var(--primary-color, #333);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+
+  &:hover {
+    background: var(--primary-color, #333);
+    color: white;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 3px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.98);
+  }
+}
+
+.prev-arrow {
+  left: -22px;
+}
+
+.next-arrow {
+  right: -22px;
+}
+
+.scroll-wrapper:hover .nav-arrow {
+  opacity: 1;
+  visibility: visible;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+// Dots Indicator
+.dots-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 8px 0;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+
+  &:hover:not(.active) {
+    background: rgba(0, 0, 0, 0.4);
+    transform: scale(1.2);
+  }
+
+  &.active {
+    background: var(--primary-color, #333);
+    transform: scale(1.3);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      border: 2px solid var(--primary-color, #333);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: pulse 2s infinite;
+    }
+  }
+}
+
+// Animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.1;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .products-grid {
+    // Trên mobile, luôn hiển thị 1 cột
+    grid-template-columns: 1fr !important;
+  }
+
+  .nav-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .prev-arrow {
+    left: -18px;
+  }
+
+  .next-arrow {
+    right: -18px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dots-indicator {
+    gap: 6px;
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .prev-arrow {
+    left: -16px;
+  }
+
+  .next-arrow {
+    right: -16px;
+  }
+}

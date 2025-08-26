@@ -8,9 +8,9 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 100%;
+  padding: 0 56px;
   margin: 0 auto;
-  padding: 0 20px;
 }
 
 // Hero Section
@@ -18,7 +18,7 @@
   .hero-grid {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
-    gap: 12px;
+    gap: 16px;
   }
 }
 
@@ -117,24 +117,19 @@
     opacity: 0.9;
     line-height: 1.5;
   }
+}
+.shop-now-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
 
-  .cta-button {
-    background: #dc2626;
-    color: #fff;
-    padding: 10px 20px;
-
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    text-transform: uppercase;
-    transition: background 0.2s ease;
-
-    &:hover {
-      background: #b91c1c;
-    }
+  &:hover {
+    color: var(--primary-hover);
   }
 }
-
 .sidebar-items {
   display: flex;
   flex-direction: column;
@@ -148,7 +143,8 @@
   box-shadow: var(--shadow);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+
   transition: box-shadow 0.2s ease;
   cursor: pointer;
 
@@ -192,257 +188,9 @@
   margin: 0;
 }
 
-// Section Headers
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-color);
-  margin: 0;
-}
-
-.view-all-link {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: var(--primary-hover);
-  }
-}
-
 // New Products Section
 .new-products-section {
   padding: 48px 0;
-}
-
-.new-products-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.yoga-section {
-  background: url('https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg')
-    center/cover no-repeat;
-  padding: 32px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.yoga-content {
-  flex: 1;
-}
-
-.yoga-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: var(--text-color);
-}
-
-.yoga-subtitle {
-  color: var(--secondary-color);
-  margin-bottom: 16px;
-}
-
-.shop-now-btn {
-  background: none;
-  border: none;
-  color: var(--primary-color);
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: var(--primary-hover);
-  }
-}
-
-.yoga-image {
-  flex: 1;
-
-  img {
-    width: 100%;
-    height: 192px;
-    object-fit: cover;
-  }
-}
-
-.products-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-// Product Cards
-.product-card {
-  background: var(--white);
-
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: box-shadow 0.2s ease;
-
-  &:hover {
-    box-shadow: var(--shadow-lg);
-  }
-}
-
-.product-image-wrapper {
-  position: relative;
-  overflow: hidden;
-
-  &:hover .product-overlay {
-    opacity: 1;
-  }
-}
-
-.product-image {
-  width: 100%;
-  height: 192px;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-
-  .product-card:hover & {
-    transform: scale(1.05);
-  }
-}
-
-.badge {
-  position: absolute;
-  top: 8px;
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-
-  text-transform: uppercase;
-
-  &.badge-new {
-    left: 8px;
-    background: #3b82f6;
-    color: var(--white);
-  }
-
-  &.badge-sale {
-    right: 8px;
-    background: var(--primary-color);
-    color: var(--white);
-  }
-}
-
-.product-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.product-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.action-btn {
-  width: 40px;
-  height: 40px;
-
-  border: none;
-  background: var(--white);
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--bg-light);
-  }
-
-  &.primary {
-    background: var(--primary-color);
-    color: var(--white);
-
-    &:hover {
-      background: var(--primary-hover);
-    }
-  }
-}
-
-.product-info {
-  padding: 16px;
-}
-
-.product-rating {
-  display: flex;
-  gap: 2px;
-  margin-bottom: 8px;
-}
-
-.star {
-  width: 16px;
-  height: 16px;
-  color: #d1d5db;
-
-  &.filled {
-    color: #fbbf24;
-  }
-}
-
-.product-name {
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: var(--text-color);
-  font-size: 0.875rem;
-}
-
-.product-price {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.price-current {
-  color: var(--primary-color);
-  font-weight: 700;
-}
-
-.price-original {
-  color: var(--text-light);
-  text-decoration: line-through;
-  font-size: 0.875rem;
-}
-
-// CTA Buttons
-.cta-button {
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  padding: 12px 32px;
-
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background: var(--primary-hover);
-  }
-
-  &.cta-secondary {
-    margin-top: 32px;
-  }
 }
 
 // We Are Different Section
@@ -454,7 +202,8 @@
 .different-content {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
+
   background: #1f2937;
   color: var(--white);
   padding: 48px;
@@ -522,131 +271,22 @@
 
 // Team Section
 .team-section {
-  padding: 48px 0;
-}
-
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.team-card {
-  position: relative;
-  overflow: hidden;
-
-  cursor: pointer;
-
-  &:hover .team-image {
-    transform: scale(1.05);
-  }
-}
-
-.team-image {
-  width: 100%;
-  height: 256px;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.team-overlay {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  color: var(--white);
-}
-
-.team-title {
-  font-weight: 700;
-  margin-bottom: 4px;
-  font-size: 1.25rem;
-}
-
-.team-subtitle {
-  font-size: 0.875rem;
-  opacity: 0.9;
-  margin: 0;
+  padding: 30px 0;
 }
 
 // Trending Section
 .trending-section {
-  padding: 48px 0;
-}
-
-.trending-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-
-  .product-card:nth-child(n + 5) {
-    grid-column: span 1;
-  }
+  padding: 30px 0;
 }
 
 // FAQ Section
 .faq-section {
-  padding: 12px 0;
+  padding: 30px 0;
 }
 
 // Blog Section
 .blog-section {
-  padding: 48px 0;
-}
-
-.blog-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.blog-card {
-  background: var(--white);
-
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: box-shadow 0.2s ease;
-  cursor: pointer;
-
-  &:hover {
-    box-shadow: var(--shadow-lg);
-  }
-}
-
-.blog-image {
-  width: 100%;
-  height: 192px;
-  object-fit: cover;
-}
-
-.blog-content {
-  padding: 24px;
-}
-
-.blog-date {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.875rem;
-  color: var(--text-light);
-  margin-bottom: 8px;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.blog-title {
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--text-color);
-  transition: color 0.2s ease;
-  margin: 0;
-  font-size: 1rem;
-
-  .blog-card:hover & {
-    color: var(--primary-color);
-  }
+  padding: 30px 0;
 }
 
 // Responsive Design
