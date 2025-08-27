@@ -132,45 +132,7 @@ export const getPriceProduct = async (req, res) => {
     });
   }
 };
-// export const getPriceProduct = async (req, res) => {
-//   try {
-//     const { minPrice = 0, maxPrice = 999999 } = req.query;
 
-//     const products = await Products.findAll({
-//       where: {
-//         [Sequelize.Op.or]: [
-//           {
-//             sale_price: {
-//               [Sequelize.Op.not]: null,
-//               [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
-//             },
-//           },
-//           {
-//             sale_price: null,
-//             price: {
-//               [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
-//             },
-//           },
-//         ],
-//       },
-//       order: [['created_at', 'DESC']],
-//     });
-
-//     res.json({
-//       products,
-//       count: products.length,
-//       priceRange: {
-//         min: Number(minPrice),
-//         max: Number(maxPrice),
-//       },
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       error: 'Không lấy được sản phẩm theo khoảng giá',
-//     });
-//   }
-// };
 export const getNewProduct = async (req, res) => {
   try {
     const products = await Products.findAll({

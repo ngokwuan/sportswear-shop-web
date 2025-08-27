@@ -72,6 +72,7 @@ export const login = async (req, res) => {
     }
     const role = await getRoleByEmail(email);
     const payload = {
+      id: existUser.id,
       email: existUser.email,
       role,
       expiresIn: process.env.JWT_EXPIRES_IN,

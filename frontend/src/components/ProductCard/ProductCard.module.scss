@@ -119,28 +119,76 @@
       margin-bottom: 4px;
     }
 
+    // .product-name {
+    //   font-size: 16px;
+    //   font-weight: 600;
+    //   margin-bottom: 8px;
+    //   color: #111827;
+    //   line-height: 1.3;
+    // }
+
+    // .product-rating {
+    //   margin-bottom: 8px;
+
+    //   .star {
+    //     color: #d1d5db;
+    //     font-size: 14px;
+    //     margin-right: 2px;
+
+    //     &.filled {
+    //       color: #fbbf24;
+    //     }
+    //   }
+    // }
+
     .product-name {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #111827;
-      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      display: block;
+    }
+
+    // Container cho rating và size tag
+    .product-rating-size {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0;
+      gap: 8px;
     }
 
     .product-rating {
-      margin-bottom: 8px;
-
-      .star {
-        color: #d1d5db;
-        font-size: 14px;
-        margin-right: 2px;
-
-        &.filled {
-          color: #fbbf24;
-        }
-      }
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0; // Không cho rating bị co lại
     }
 
+    // Style cho size tag
+    .size-tag {
+      background-color: #f0f0f0;
+      color: #666;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0; // Không cho size tag bị co lại
+
+      // Variant màu khác nếu muốn nổi bật hơn
+      // background-color: #007bff;
+      // color: white;
+    }
+
+    // Đảm bảo star rating không bị ảnh hưởng
+    .star {
+      color: #ddd;
+      font-size: 14px;
+
+      &.filled {
+        color: #ffa500;
+      }
+    }
     .product-price {
       .current-price {
         font-size: 18px;

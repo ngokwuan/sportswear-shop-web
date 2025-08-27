@@ -1,6 +1,5 @@
-import Cart from '../models/cart.model.js';
-import Product from '../models/products.model.js';
-import { getUserByEmail } from '../services/user.service.js';
+import { Cart, Product } from '../models/index.js';
+import { getUserByEmail } from './users.controller.js';
 
 export const addToCart = async (req, res) => {
   try {
@@ -66,21 +65,10 @@ export const addToCart = async (req, res) => {
 
 export const getCart = async (req, res) => {
   try {
-    const userEmail = req.user.email;
+    const userId = req.user.id;
 
-    // Tìm user để lấy user_id
-    const user = await getUserByEmail(userEmail);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy người dùng',
-      });
-    }
-
-    // Lấy giỏ hàng với thông tin sản phẩm
-    const cartItems = await Cart.findAll({
-      where: { user_id: user.id },
+    const cart = await Cart.findAll({
+      where: { user_id: userId },
       include: [
         {
           model: Product,
@@ -89,15 +77,46 @@ export const getCart = async (req, res) => {
       ],
     });
 
-    return res.status(200).json({
+    res.json(cart);
+  } catch (error) {
+    res.status(500).json({
+      error: 'Lỗi khi lấy giỏ hàng',
+      detail: error.message,
+    });
+  }
+};
+
+export const getCountCart = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Tìm user để lấy user_id
+    const user = await getUserByEmail(userEmail);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        count: 0,
+        message: 'Không tìm thấy người dùng',
+      });
+    }
+
+    // Đếm số lượng sản phẩm trong giỏ hàng
+    const cartCount = await Cart.count({
+      where: { user_id: user.id },
+    });
+
+    res.json({
       success: true,
-      cartItems: cartItems,
+      count: cartCount,
     });
   } catch (error) {
-    console.error('Error getting cart:', error);
-    return res.status(500).json({
+    console.error('Lỗi khi lấy số lượng giỏ hàng:', error);
+    res.status(500).json({
       success: false,
-      message: 'Có lỗi xảy ra khi lấy giỏ hàng',
+      count: 0,
+      error: 'Lỗi khi lấy số lượng giỏ hàng',
+      detail: error.message,
     });
   }
 };
@@ -189,6 +208,41 @@ export const removeFromCart = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Có lỗi xảy ra khi xóa sản phẩm khỏi giỏ hàng',
+    });
+  }
+};
+
+export const clearCart = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Tìm user để lấy user_id
+    const user = await getUserByEmail(userEmail);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng',
+      });
+    }
+
+    // Xóa toàn bộ cart items của user
+    const deletedRows = await Cart.destroy({
+      where: {
+        user_id: user.id,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Đã xóa toàn bộ giỏ hàng (${deletedRows} sản phẩm)`,
+      deletedCount: deletedRows,
+    });
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Có lỗi xảy ra khi xóa giỏ hàng',
     });
   }
 };

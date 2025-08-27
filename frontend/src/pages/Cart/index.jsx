@@ -20,23 +20,20 @@ function Cart() {
   const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
 
-  // Lấy user_id từ localStorage hoặc context
-  const userId =
-    localStorage.getItem('userId') || sessionStorage.getItem('userId');
+  const user = localStorage.getItem('user');
 
   useEffect(() => {
-    if (!userId) {
-      // Redirect to login if no user
+    if (!user) {
       navigate('/login');
       return;
     }
     fetchCartItems();
-  }, [userId]);
+  }, [user]);
 
   const fetchCartItems = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/cart/${userId}`);
+      const response = await axios.get('/cart');
       setCartItems(response.data);
     } catch (error) {
       console.error('Lỗi khi lấy giỏ hàng:', error);
@@ -46,23 +43,20 @@ function Cart() {
     }
   };
 
-  const updateQuantity = async (productId, newQuantity) => {
+  const updateQuantity = async (cartId, newQuantity) => {
     if (newQuantity < 1) return;
 
     try {
       setUpdating(true);
       await axios.put('/cart/update', {
-        user_id: userId,
-        product_id: productId,
+        cart_id: cartId,
         quantity: newQuantity,
       });
 
       // Update local state
       setCartItems((prevItems) =>
         prevItems.map((item) =>
-          item.product_id === productId
-            ? { ...item, quantity: newQuantity }
-            : item
+          item.id === cartId ? { ...item, quantity: newQuantity } : item
         )
       );
     } catch (error) {
@@ -73,23 +67,18 @@ function Cart() {
     }
   };
 
-  const removeFromCart = async (productId) => {
+  const removeFromCart = async (cartId) => {
     if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
       return;
     }
 
     try {
       setUpdating(true);
-      await axios.delete('/cart/remove', {
-        data: {
-          user_id: userId,
-          product_id: productId,
-        },
-      });
+      await axios.delete(`/cart/remove/${cartId}`);
 
       // Update local state
       setCartItems((prevItems) =>
-        prevItems.filter((item) => item.product_id !== productId)
+        prevItems.filter((item) => item.id !== cartId)
       );
     } catch (error) {
       console.error('Lỗi khi xóa sản phẩm:', error);
@@ -106,8 +95,13 @@ function Cart() {
 
     try {
       setUpdating(true);
-      await axios.delete(`/cart/clear/${userId}`);
-      setCartItems([]);
+      const response = await axios.delete('/cart/clear');
+
+      if (response.data.success) {
+        setCartItems([]);
+        // Hiển thị thông báo thành công
+        alert(response.data.message);
+      }
     } catch (error) {
       console.error('Lỗi khi xóa giỏ hàng:', error);
       alert('Không thể xóa giỏ hàng');
@@ -150,7 +144,7 @@ function Cart() {
           </button>
           <h1>
             <FontAwesomeIcon icon={faShoppingCart} />
-            Giỏ hàng của bạn
+            Giỏ hàng của bạn ({cartItems.length})
           </h1>
           {cartItems.length > 0 && (
             <button
@@ -158,6 +152,7 @@ function Cart() {
               onClick={clearCart}
               disabled={updating}
             >
+              <FontAwesomeIcon icon={faTrash} />
               Xóa toàn bộ
             </button>
           )}
@@ -211,12 +206,18 @@ function Cart() {
                         />
                         <div className={cx('product-details')}>
                           <h3>{item.product?.name}</h3>
-                          <p>{item.product?.category}</p>
-                          {item.product?.brand && (
-                            <span className={cx('brand')}>
-                              {item.product.brand}
-                            </span>
-                          )}
+                          <div className={cx('product-type')}>
+                            {item.product?.size && (
+                              <span className={cx('size')}>
+                                {item.product.size}
+                              </span>
+                            )}
+                            {item.product?.brand && (
+                              <span className={cx('brand')}>
+                                {item.product.brand}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -237,7 +238,7 @@ function Cart() {
                         <button
                           className={cx('quantity-btn')}
                           onClick={() =>
-                            updateQuantity(item.product_id, item.quantity - 1)
+                            updateQuantity(item.id, item.quantity - 1)
                           }
                           disabled={updating || item.quantity <= 1}
                         >
@@ -247,7 +248,7 @@ function Cart() {
                         <button
                           className={cx('quantity-btn')}
                           onClick={() =>
-                            updateQuantity(item.product_id, item.quantity + 1)
+                            updateQuantity(item.id, item.quantity + 1)
                           }
                           disabled={updating}
                         >
@@ -265,7 +266,7 @@ function Cart() {
                     <div className={cx('col-action')}>
                       <button
                         className={cx('remove-btn')}
-                        onClick={() => removeFromCart(item.product_id)}
+                        onClick={() => removeFromCart(item.id)}
                         disabled={updating}
                         title="Xóa sản phẩm"
                       >
