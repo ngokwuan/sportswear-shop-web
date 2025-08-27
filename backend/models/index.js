@@ -1,10 +1,10 @@
-import User from './User.js';
-import Category from './Category.js';
-import Product from './Product.js';
-import Cart from './Cart.js';
-import Order from './Order.js';
-import OrderItem from './OrderItem.js';
-import Review from './Review.js';
+import User from './users.model.js';
+import Category from './categories.model.js';
+import Product from './products.model.js';
+import Cart from './cart.model.js';
+import Order from './orders.model.js';
+import OrderItem from './order-items.model.js';
+import Review from './reviews.model.js';
 
 // User associations
 User.hasMany(Cart, { foreignKey: 'user_id', as: 'cartItems' });

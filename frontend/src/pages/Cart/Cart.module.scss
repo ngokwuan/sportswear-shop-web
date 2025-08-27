@@ -34,7 +34,7 @@
     padding: 0.5rem 1rem;
     background: transparent;
     border: 1px solid #ddd;
-    border-radius: 4px;
+
     color: #666;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -50,7 +50,7 @@
     background-color: #dc3545;
     color: white;
     border: none;
-    border-radius: 4px;
+
     cursor: pointer;
     transition: background-color 0.3s ease;
 
@@ -77,7 +77,7 @@
     height: 40px;
     border: 4px solid #f3f3f3;
     border-top: 4px solid #007bff;
-    border-radius: 50%;
+
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
   }
@@ -96,7 +96,7 @@
   text-align: center;
   padding: 4rem 2rem;
   background: white;
-  border-radius: 8px;
+
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 
   .empty-icon {
@@ -120,7 +120,7 @@
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 6px;
+
     font-size: 1.1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -139,7 +139,7 @@
 
 .cart-items {
   background: white;
-  border-radius: 8px;
+
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -179,7 +179,7 @@
     width: 80px;
     height: 80px;
     object-fit: cover;
-    border-radius: 8px;
+
     border: 1px solid #e9ecef;
   }
 
@@ -189,19 +189,24 @@
       color: #333;
       margin: 0 0 0.5rem 0;
     }
-
-    p {
-      color: #6c757d;
-      margin: 0 0 0.25rem 0;
-      font-size: 0.9rem;
+    .product-type {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
     }
 
-    .brand {
+    .brand,
+    .size {
       background-color: #e9ecef;
       padding: 0.2rem 0.5rem;
-      border-radius: 12px;
+      border-radius: 8px;
       font-size: 0.8rem;
+      width: 80%;
       color: #495057;
+    }
+    .size {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
     }
   }
 }
@@ -230,7 +235,7 @@
   align-items: center;
   gap: 0.5rem;
   border: 1px solid #dee2e6;
-  border-radius: 6px;
+
   padding: 0.25rem;
   width: fit-content;
 
@@ -242,7 +247,7 @@
     justify-content: center;
     background: transparent;
     border: none;
-    border-radius: 4px;
+
     cursor: pointer;
     color: #6c757d;
     transition: all 0.2s ease;
@@ -279,7 +284,7 @@
   justify-content: center;
   background: transparent;
   border: 1px solid #dee2e6;
-  border-radius: 6px;
+
   color: #dc3545;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -298,7 +303,7 @@
 .cart-summary {
   .summary-card {
     background: white;
-    border-radius: 8px;
+
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 1.5rem;
     position: sticky;
@@ -338,7 +343,7 @@
       background-color: #28a745;
       color: white;
       border: none;
-      border-radius: 6px;
+
       font-size: 1.1rem;
       font-weight: 600;
       cursor: pointer;
@@ -373,7 +378,7 @@
     gap: 1rem;
     padding: 1.5rem;
     border: 1px solid #e9ecef;
-    border-radius: 8px;
+
     margin-bottom: 1rem;
 
     .col-product {

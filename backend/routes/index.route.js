@@ -6,7 +6,7 @@ import { categoriesRoute } from './categories.route.js';
 import { checkUserJWT, checkUserPermission } from '../middleware/JWTActions.js';
 
 export function mainRoute(app) {
-  app.all('/{*any}', checkUserJWT, checkUserPermission);
+  app.use(checkUserJWT, checkUserPermission);
 
   app.use('/products', productRoute);
   app.use('/categories', categoriesRoute);
