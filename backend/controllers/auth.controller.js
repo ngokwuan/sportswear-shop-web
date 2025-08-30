@@ -22,6 +22,7 @@ export const create = async (req, res) => {
       message: 'Thêm người dùng thành công!',
       user: userWithoutPassword,
     });
+    res.redirect('/');
   } catch (error) {
     console.error('Error creating user:', error);
 
@@ -86,6 +87,7 @@ export const login = async (req, res) => {
     return res.status(200).json({
       message: 'Đăng nhập thành công!',
       rememberMe: rememberMe || false,
+      id: existUser.id,
       accessToken: token,
       email: existUser.email,
       name: existUser.name,

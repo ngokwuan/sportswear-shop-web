@@ -42,11 +42,13 @@ function Login() {
 
       toast.success(res.data.message);
       //success
-      let role = res.data.role;
+      let role = res.data.role || 'customer';
       let name = res.data.name;
       let email = res.data.email;
       let data = {
+        id: res.data.id || 'id',
         isAuthenticated: true,
+
         token: res.data.accessToken,
         account: { role, name, email },
       };

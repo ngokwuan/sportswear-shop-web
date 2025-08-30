@@ -8,10 +8,10 @@
   overflow: visible;
 }
 
-// Products Grid - Hiển thị động theo itemsPreView prop
+// Products Grid - Hiển thị $ộng theo itemsPreView prop
 .products-grid {
   display: grid;
-  // Không set grid-template-columns ở đây nữa, sẽ set inline trong JS
+  // Không set grid-template-columns ở $ây nữa, sẽ set inline trong JS
   transition: opacity 0.3s ease;
   min-height: 350px;
 
