@@ -327,7 +327,7 @@ function ProductDetail() {
               ${product.sale_price || product.price}
             </span>
             {product.sale_price && (
-              <span className={cx('old-price')}>${product.price}</span>
+              <span className={cx('old-price')}>{product.price}đ</span>
             )}
           </div>
 
@@ -583,12 +583,12 @@ function ProductDetail() {
           {activeTab === 'shipping' && (
             <div>
               <p>
-                Free shipping on orders over $50. Standard delivery takes 3-5
+                Free shipping on orders over đ50. Standard delivery takes 3-5
                 business days.
               </p>
               <ul>
                 <li>Free standard shipping (3-5 business days)</li>
-                <li>Express shipping available (1-2 business days) - $9.99</li>
+                <li>Express shipping available (1-2 business days) - đ9.99</li>
                 <li>International shipping available</li>
                 <li>30-day return policy</li>
               </ul>
@@ -674,11 +674,11 @@ function ProductDetail() {
                     </div>
                     <div className={cx('product-price')}>
                       <span className={cx('current-price')}>
-                        ${relatedProduct.sale_price || relatedProduct.price}
+                        {relatedProduct.sale_price || relatedProduct.price}đ
                       </span>
                       {relatedProduct.sale_price && (
                         <span className={cx('old-price')}>
-                          ${relatedProduct.price}
+                          {relatedProduct.price}đ
                         </span>
                       )}
                     </div>

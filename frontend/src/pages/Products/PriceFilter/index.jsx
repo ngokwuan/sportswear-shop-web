@@ -101,7 +101,7 @@ function PriceFilter({ priceRange, onPriceChange }) {
 
         <div className={cx('price-display')}>
           <span className={cx('price-label')}>
-            ${priceRange[0] || minPrice} - ${priceRange[1] || maxPrice}
+            {priceRange[0] || minPrice} - đ{priceRange[1] || maxPrice}đ
           </span>
         </div>
       </div>

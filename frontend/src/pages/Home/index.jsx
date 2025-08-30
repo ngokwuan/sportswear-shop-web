@@ -19,20 +19,20 @@ function Home() {
     {
       title: 'SMART FITNESS TRACKER WATCH',
       subtitle: 'DIGITAL',
-      price: 'From $299',
+      price: 'From đ299',
       image: 'https://cdn.mos.cms.futurecdn.net/FkGweMeB7hdPgaSFQdgsfj.jpg',
     },
     {
       title: 'RUNNING SHOES',
       subtitle: 'EQUIPMENT',
-      price: 'From $149',
+      price: 'From đ149',
       image:
         'https://allaboutginger.com/wp-content/uploads/2023/02/Nike-ZoomX-Vaporfly-3-Prototype-01-1024x719.webp',
     },
     {
       title: 'GYM BAG',
       subtitle: 'ACCESSORIES',
-      price: 'From $89',
+      price: 'From đ89',
       image:
         'https://tse1.mm.bing.net/th/id/OIP.gHfVH9A2_z7fcy87KXEMtgHaJQ?cb=thfvnext&rs=1&pid=ImgDetMain&o=7&rm=3',
     },
@@ -115,7 +115,7 @@ function Home() {
                   />
                   <h3 className={cx('feature-title')}>Worldwide Shipping</h3>
                   <p className={cx('feature-description')}>
-                    Free shipping on orders over $100
+                    Free shipping on orders over đ100
                   </p>
                 </div>
                 <div className={cx('feature-item')}>
