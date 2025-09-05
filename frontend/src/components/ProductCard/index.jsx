@@ -134,8 +134,8 @@ function ProductCard({ product, viewMode }) {
             )}
           </div>
           <div className={cx('product-price')}>
-            <span className={cx('current-price')}>${currentPrice}</span>
-            {oldPrice && <span className={cx('old-price')}>${oldPrice}</span>}
+            <span className={cx('current-price')}>{currentPrice}đ</span>
+            {oldPrice && <span className={cx('old-price')}>{oldPrice}đ</span>}
           </div>
         </div>
       </div>

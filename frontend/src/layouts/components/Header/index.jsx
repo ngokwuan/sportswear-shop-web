@@ -51,12 +51,10 @@ function Header() {
   const fetchCartCount = async () => {
     try {
       // Kiểm tra token trong cookie hoặc localStorage
-      const token =
-        document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('jwt='))
-          ?.split('=')[1] || localStorage.getItem('token');
-
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('jwt='))
+        ?.split('=')[1];
       if (!token) {
         setCartCount(0);
         return;
