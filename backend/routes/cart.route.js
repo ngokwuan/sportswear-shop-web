@@ -1,6 +1,5 @@
 import express from 'express';
 import * as controller from '../controllers/cart.controller.js';
-import { checkUserJWT } from '../middleware/JWTActions.js';
 const router = express.Router();
 
 router.get('/', controller.getCart);

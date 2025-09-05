@@ -33,6 +33,50 @@ function Login() {
     });
   };
 
+  // const submitLoginData = async (userData) => {
+  //   try {
+  //     setIsSubmitting(true);
+  //     const res = await axios.post('/auth/login', userData, {
+  //       withCredentials: true,
+  //     });
+
+  //     toast.success(res.data.message);
+  //     //success
+  //     let role = res.data.role;
+  //     let name = res.data.name;
+  //     let email = res.data.email;
+  //     let id = res.data.id;
+  //     let data = {
+  //       isAuthenticated: true,
+  //       token: res.data.accessToken,
+  //       account: { id, name, email, role },
+  //     };
+  //     loginContext(data);
+
+  //     setTimeout(() => {
+  //       navigate('/');
+  //     }, 1000);
+
+  //     return res.data;
+  //   } catch (error) {
+  //     console.error('Lỗi khi đăng nhập:', error);
+
+  //     if (error.response) {
+  //       const errorMessage =
+  //         error.response.data.error || 'Có lỗi xảy ra từ server';
+  //       toast.error(errorMessage);
+  //     } else if (error.request) {
+  //       toast.error(
+  //         'Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.'
+  //       );
+  //     } else {
+  //       toast.error('Có lỗi xảy ra: ' + error.message);
+  //     }
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
   const submitLoginData = async (userData) => {
     try {
       setIsSubmitting(true);
@@ -40,17 +84,34 @@ function Login() {
         withCredentials: true,
       });
 
+      console.log('Full response:', res); // Debug log
+      console.log('Response data:', res.data); // Debug log
+      console.log('ID from response:', res.data.id); // Debug log
+
       toast.success(res.data.message);
-      //success
+
+      let id = res.data.id;
       let role = res.data.role;
       let name = res.data.name;
       let email = res.data.email;
+
+      console.log('Extracted values:', { id, role, name, email }); // Debug log
+
       let data = {
         isAuthenticated: true,
         token: res.data.accessToken,
-        account: { role, name, email },
+        account: { id, role, name, email },
       };
+
+      console.log('Data to save in localStorage:', data); // Debug log
+
       loginContext(data);
+
+      // Verify localStorage immediately after
+      setTimeout(() => {
+        const savedData = localStorage.getItem('user');
+        console.log('Data in localStorage:', JSON.parse(savedData));
+      }, 100);
 
       setTimeout(() => {
         navigate('/');
@@ -58,24 +119,11 @@ function Login() {
 
       return res.data;
     } catch (error) {
-      console.error('Lỗi khi đăng nhập:', error);
-
-      if (error.response) {
-        const errorMessage =
-          error.response.data.error || 'Có lỗi xảy ra từ server';
-        toast.error(errorMessage);
-      } else if (error.request) {
-        toast.error(
-          'Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.'
-        );
-      } else {
-        toast.error('Có lỗi xảy ra: ' + error.message);
-      }
+      // ... error handling
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 

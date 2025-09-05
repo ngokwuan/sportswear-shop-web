@@ -8,7 +8,7 @@ import {
   faShoppingCart,
   faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import classNames from 'classnames/bind';
 import styles from './Cart.module.scss';
 
@@ -225,10 +225,10 @@ function Cart() {
                     <div className={cx('col-price')}>
                       <div className={cx('price-info')}>
                         <span className={cx('current-price')}>
-                          ${currentPrice}
+                          {currentPrice}đ
                         </span>
                         {oldPrice && (
-                          <span className={cx('old-price')}>${oldPrice}</span>
+                          <span className={cx('old-price')}>{oldPrice}đ</span>
                         )}
                       </div>
                     </div>
@@ -259,7 +259,7 @@ function Cart() {
 
                     <div className={cx('col-total')}>
                       <span className={cx('subtotal')}>
-                        ${calculateSubtotal(item).toFixed(2)}
+                        {calculateSubtotal(item).toFixed(2)}đ
                       </span>
                     </div>
 
@@ -283,7 +283,7 @@ function Cart() {
                 <h3>Tổng kết đơn hàng</h3>
                 <div className={cx('summary-row')}>
                   <span>Tạm tính ({cartItems.length} sản phẩm):</span>
-                  <span>${calculateTotal().toFixed(2)}</span>
+                  <span>{calculateTotal().toFixed(2)}đ</span>
                 </div>
                 <div className={cx('summary-row')}>
                   <span>Phí vận chuyển:</span>
@@ -292,11 +292,13 @@ function Cart() {
                 <hr />
                 <div className={cx('summary-row', 'total-row')}>
                   <strong>Tổng cộng:</strong>
-                  <strong>${calculateTotal().toFixed(2)}</strong>
+                  <strong>{calculateTotal().toFixed(2)}đ</strong>
                 </div>
-                <button className={cx('checkout-btn')} disabled={updating}>
-                  Tiến hành thanh toán
-                </button>
+                <Link to="/checkout">
+                  <button className={cx('checkout-btn')} disabled={updating}>
+                    Tiến hành thanh toán
+                  </button>
+                </Link>
               </div>
             </div>
           </div>

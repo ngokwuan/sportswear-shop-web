@@ -83,13 +83,17 @@ export const login = async (req, res) => {
     if (isValidPassword) {
       res.cookie('jwt', token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
     }
-    return res.status(200).json({
+    const responseData = {
       message: 'Đăng nhập thành công!',
       rememberMe: rememberMe || false,
       accessToken: token,
+      id: existUser.id,
       email: existUser.email,
       name: existUser.name,
-    });
+      role: role,
+    };
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({
