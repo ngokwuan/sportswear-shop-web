@@ -12,9 +12,25 @@ export const UserProvider = ({ children }) => {
   });
 
   // Khi login, lưu vào localStorage
+  // const loginContext = (userData) => {
+  //   const userToStore = {
+  //     isAuthenticated: true,
+  //     token: userData.token,
+  //     account: {
+  //       id: userData.user.id, // Đảm bảo có id user
+  //       name: userData.user.name,
+  //       email: userData.user.email,
+  //       // other user info
+  //     },
+  //   };
+  //   setUser(userToStore);
+  //   localStorage.setItem('user', JSON.stringify(userToStore));
+  // };
+  // Trong UserContext
   const loginContext = (userData) => {
-    setUser(userData);
+    console.log('loginContext received:', userData); // Debug log
     localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData); // hoặc logic tương tự
   };
 
   // Khi logout, xóa khỏi localStorage
