@@ -4,45 +4,7 @@ import User from '../models/users.model.js';
 import { getRoleByEmail } from '../services/jwt.service.js';
 dotenv.config();
 
-export const create = async (req, res) => {
-  try {
-    const { fullName, email, password, phone } = req.body;
 
-    const newUser = await User.create({
-      name: fullName,
-      email,
-      password,
-      phone,
-      role: 'customer',
-    });
-
-    const { password: _, ...userWithoutPassword } = newUser.toJSON();
-
-    res.status(201).json({
-      message: 'Thêm người dùng thành công!',
-      user: userWithoutPassword,
-    });
-  } catch (error) {
-    console.error('Error creating user:', error);
-
-    if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({
-        error: 'Dữ liệu không hợp lệ',
-        details: error.errors.map((err) => err.message),
-      });
-    }
-
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({
-        error: 'Email này đã được sử dụng',
-      });
-    }
-
-    res.status(500).json({
-      error: 'Có lỗi xảy ra khi thêm người dùng',
-    });
-  }
-};
 
 export const login = async (req, res) => {
   try {
@@ -102,6 +64,22 @@ export const login = async (req, res) => {
   }
 };
 
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      sameSite: 'strict',
+    });
+    return res.status(200).json({
+      message: 'Đăng xuất thành công!',
+    });
+  } catch (error) {
+    console.error('Có lỗi xảy ra khi đăng xuất:', error);
+    return res.status(500).json({
+      error: 'Có lỗi xảy ra khi đăng xuất',
+    });
+  }
+};
 export const me = async (req, res) => {
   try {
     if (!req.user) {
@@ -109,11 +87,15 @@ export const me = async (req, res) => {
         error: 'Không tìm thấy thông tin người dùng',
       });
     }
-    const { email, role } = req.user;
+    const existUser = await User.findByPk(req.user.id, {
+      attributes: ['id', 'email', 'role', 'name'],
+    });
+    if (!existUser) {
+      return res.status(404).json({ error: 'Người dùng không tồn tại ' });
+    }
     return res.status(200).json({
       message: 'Token hợp lệ',
-      email,
-      role,
+      ...existUser.toJSON(),
     });
   } catch (error) {
     return res.status(500).json({

@@ -8,13 +8,11 @@ import { vnpayRoute } from './vnpay.route.js';
 import { checkUserJWT, checkUserPermission } from '../middleware/JWTActions.js';
 
 export function mainRoute(app) {
-  app.use(checkUserJWT, checkUserPermission);
-
+  app.use('/auth', authRoute);
   app.use('/products', productRoute);
   app.use('/categories', categoriesRoute);
-  app.use('/users', userRoute);
-  app.use('/auth', authRoute);
-  app.use('/cart', cartRoute);
-  app.use('/orders', orderRoute);
-  app.use('/payment/vnpay', vnpayRoute);
+  app.use('/cart', checkUserJWT, cartRoute);
+  app.use('/orders', checkUserJWT, orderRoute);
+  app.use('/payment/vnpay', checkUserJWT, vnpayRoute);
+  app.use('/users', checkUserJWT, checkUserPermission(['admin']), userRoute);
 }

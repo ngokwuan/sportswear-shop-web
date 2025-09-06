@@ -48,8 +48,8 @@ function Cart() {
 
     try {
       setUpdating(true);
-      await axios.put('/cart/update', {
-        cart_id: cartId,
+      await axios.patch('/cart/update', {
+        cartId: cartId,
         quantity: newQuantity,
       });
 

@@ -38,7 +38,7 @@ function ProductCard({ product, viewMode }) {
 
       // Gửi request không cần user_id, server sẽ lấy từ JWT token
       const response = await axios.post('/cart/add', {
-        product_id: product.id,
+        productId: product.id,
         quantity: 1,
       });
 

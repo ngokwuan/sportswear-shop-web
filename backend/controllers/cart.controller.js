@@ -3,23 +3,17 @@ import { getUserByEmail } from './users.controller.js';
 
 export const addToCart = async (req, res) => {
   try {
-    const { product_id, quantity = 1 } = req.body;
+    const { productId, quantity = 1 } = req.body;
+    const userId = req.user.id;
 
-    // Lấy thông tin user từ token (đã được xác thực qua middleware)
-    const userEmail = req.user.email;
-
-    // Tìm user để lấy user_id
-    const user = await getUserByEmail(userEmail);
-
-    if (!user) {
+    if (!userId) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy người dùng',
       });
     }
 
-    // Kiểm tra sản phẩm có tồn tại không
-    const product = await Product.findByPk(product_id);
+    const product = await Product.findByPk(productId);
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -27,33 +21,17 @@ export const addToCart = async (req, res) => {
       });
     }
 
-    // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
-    const existingCartItem = await Cart.findOne({
-      where: {
-        user_id: user.id,
-        product_id: product_id,
-      },
+    const newCartItem = await Cart.create({
+      user_id: userId,
+      product_id: productId,
+      quantity: parseInt(quantity),
     });
 
-    if (existingCartItem) {
-      return res.status(409).json({
-        success: false,
-        message: 'Sản phẩm đã có trong giỏ hàng',
-      });
-    } else {
-      // Nếu chưa có, tạo mới
-      const newCartItem = await Cart.create({
-        user_id: user.id,
-        product_id: product_id,
-        quantity: parseInt(quantity),
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: 'Đã thêm sản phẩm vào giỏ hàng',
-        cartItem: newCartItem,
-      });
-    }
+    return res.status(201).json({
+      success: true,
+      message: 'Đã thêm sản phẩm vào giỏ hàng',
+      cartItem: newCartItem,
+    });
   } catch (error) {
     console.error('Error adding to cart:', error);
     return res.status(500).json({
@@ -88,59 +66,39 @@ export const getCart = async (req, res) => {
 
 export const getCountCart = async (req, res) => {
   try {
-    const userEmail = req.user.email;
-
-    // Tìm user để lấy user_id
-    const user = await getUserByEmail(userEmail);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        count: 0,
-        message: 'Không tìm thấy người dùng',
-      });
-    }
-
-    // Đếm số lượng sản phẩm trong giỏ hàng
-    const cartCount = await Cart.count({
-      where: { user_id: user.id },
+    const userId = req.user.id;
+    const cartItem = await Cart.findAll({
+      where: { user_id: userId },
     });
-
-    res.json({
-      success: true,
-      count: cartCount,
-    });
+    const count = cartItem.reduce((acc, item) => acc + item.quantity, 0);
+    return res.json({ count });
   } catch (error) {
-    console.error('Lỗi khi lấy số lượng giỏ hàng:', error);
-    res.status(500).json({
-      success: false,
-      count: 0,
-      error: 'Lỗi khi lấy số lượng giỏ hàng',
-      detail: error.message,
-    });
+    console.error(error);
+    return res.status(500).json({ message: 'Lỗi khi lấy giỏ hàng' });
   }
 };
 
 export const updateCartItem = async (req, res) => {
   try {
-    const { cart_id, quantity } = req.body;
-    const userEmail = req.user.email;
-
-    // Tìm user để lấy user_id
-    const user = await getUserByEmail(userEmail);
-
-    if (!user) {
+    const userId = req.user.id;
+    const { cartId, quantity } = req.body;
+    if (!userId) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy người dùng',
       });
     }
-
+    if (!cartId || !quantity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu cart_id hoặc quantity',
+      });
+    }
     // Tìm cart item và đảm bảo nó thuộc về user hiện tại
     const cartItem = await Cart.findOne({
       where: {
-        id: cart_id,
-        user_id: user.id,
+        id: cartId,
+        user_id: userId,
       },
     });
 
