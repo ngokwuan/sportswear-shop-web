@@ -10,12 +10,14 @@ import { useState } from 'react';
 import axios from '../../setup/axios';
 import classNames from 'classnames/bind';
 import styles from './ProductCard.module.scss';
-
+import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '../../utils/formatCurrency';
 const cx = classNames.bind(styles);
 
 function ProductCard({ product, viewMode }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+  const navigate = useNavigate();
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -26,7 +28,9 @@ function ProductCard({ product, viewMode }) {
       />
     ));
   };
-
+  const handleClick = () => {
+    navigate(`/products/${product.slug}_${product.id}`);
+  };
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -36,7 +40,6 @@ function ProductCard({ product, viewMode }) {
     try {
       setIsAddingToCart(true);
 
-      // Gửi request không cần user_id, server sẽ lấy từ JWT token
       const response = await axios.post('/cart/add', {
         productId: product.id,
         quantity: 1,
@@ -57,8 +60,6 @@ function ProductCard({ product, viewMode }) {
       }
     } catch (error) {
       console.error('Lỗi khi thêm vào giỏ hàng:', error);
-      // Lỗi đã được xử lý bởi axios interceptor với toast
-      // Chỉ cần xử lý logic UI
     } finally {
       setIsAddingToCart(false);
     }
@@ -68,11 +69,17 @@ function ProductCard({ product, viewMode }) {
   const currentPrice = product.sale_price || product.price;
   const oldPrice = product.sale_price ? product.price : null;
   const isOnSale = product.sale_price && product.sale_price < product.price;
+  const discountPercent = product.sale_price
+    ? Math.round(((product.price - product.sale_price) / product.price) * 100)
+    : 0;
 
   return (
-    <div className={cx('product-grid', viewMode)}>
+    <div className={cx('product-grid', viewMode)} onClick={handleClick}>
       <div className={cx('product-card', viewMode)}>
-        {isOnSale && <span className={cx('sale-badge')}>Sale</span>}
+        {/* Chỉ hiển thị sale badge khi có discount > 0% */}
+        {isOnSale && discountPercent > 0 && (
+          <span className={cx('sale-badge')}>-{discountPercent}%</span>
+        )}
         {product.isNew && <span className={cx('new-badge')}>New</span>}
 
         <div className={cx('product-image')}>
@@ -93,6 +100,7 @@ function ProductCard({ product, viewMode }) {
               <FontAwesomeIcon icon={faShareNodes} />
             </button>
           </div>
+
           <button
             className={cx('add-to-cart', {
               adding: isAddingToCart,
@@ -134,8 +142,14 @@ function ProductCard({ product, viewMode }) {
             )}
           </div>
           <div className={cx('product-price')}>
-            <span className={cx('current-price')}>{currentPrice}đ</span>
-            {oldPrice && <span className={cx('old-price')}>{oldPrice}đ</span>}
+            <span className={cx('current-price')}>
+              {formatCurrency(currentPrice)}
+            </span>
+            {oldPrice && (
+              <span className={cx('old-price')}>
+                {formatCurrency(oldPrice)}
+              </span>
+            )}
           </div>
         </div>
       </div>

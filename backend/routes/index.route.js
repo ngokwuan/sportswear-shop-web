@@ -11,8 +11,8 @@ export function mainRoute(app) {
   app.use('/auth', authRoute);
   app.use('/products', productRoute);
   app.use('/categories', categoriesRoute);
-  app.use('/cart', checkUserJWT, cartRoute);
+  app.use('/cart', cartRoute);
   app.use('/orders', checkUserJWT, orderRoute);
-  app.use('/payment/vnpay', checkUserJWT, vnpayRoute);
+  app.use('/payment/vnpay', vnpayRoute);
   app.use('/users', checkUserJWT, checkUserPermission(['admin']), userRoute);
 }

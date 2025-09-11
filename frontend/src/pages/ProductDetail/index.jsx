@@ -1,6 +1,4 @@
-// ProductDetail.jsx - Version with real API integration
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -14,13 +12,16 @@ import {
 import axios from '../../setup/axios';
 import classNames from 'classnames/bind';
 import styles from './ProductDetail.module.scss';
-
+import { formatCurrency } from '../../utils/formatCurrency';
+import { UserContext } from '../../context/UserContext';
+import { toast } from 'react-toastify';
 const cx = classNames.bind(styles);
 
 function ProductDetail() {
-  const { id } = useParams();
+  const { slugAndId } = useParams();
+  const id = slugAndId.split('_').pop();
   const navigate = useNavigate();
-
+  const user = useContext(UserContext);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +37,6 @@ function ProductDetail() {
     seconds: 12,
   });
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [relatedProducts, setRelatedProducts] = useState([]);
 
   // Fetch product data from API
   useEffect(() => {
@@ -48,7 +48,7 @@ function ProductDetail() {
         const response = await axios.get(`/products/${id}`);
 
         if (response.data && response.data.success) {
-          const productData = response.data.product || response.data.data;
+          const productData = response.data.data;
           setProduct(productData);
 
           // Set default selections
@@ -59,7 +59,6 @@ function ProductDetail() {
             setSelectedColor(productData.color);
           }
 
-          // Parse images if they're stored as JSON string
           if (typeof productData.images === 'string') {
             try {
               productData.images = JSON.parse(productData.images);
@@ -83,31 +82,6 @@ function ProductDetail() {
       fetchProduct();
     }
   }, [id]);
-
-  // Fetch related products
-  useEffect(() => {
-    const fetchRelatedProducts = async () => {
-      if (!product) return;
-
-      try {
-        const response = await axios.get(
-          `/products/related/${product.category_id}?limit=4&exclude=${product.id}`
-        );
-
-        if (response.data.success) {
-          setRelatedProducts(
-            response.data.products || response.data.data || []
-          );
-        }
-      } catch (error) {
-        console.error('Error fetching related products:', error);
-        // Set empty array if there's an error
-        setRelatedProducts([]);
-      }
-    };
-
-    fetchRelatedProducts();
-  }, [product]);
 
   // Countdown timer
   useEffect(() => {
@@ -137,19 +111,7 @@ function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (isAddingToCart) return;
-
-    // Check if user is logged in
-    const token =
-      document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('jwt='))
-        ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
-      navigate('/login');
-      return;
-    }
+    if (!user) return;
 
     try {
       setIsAddingToCart(true);
@@ -157,7 +119,6 @@ function ProductDetail() {
       const response = await axios.post('/cart/add', {
         product_id: product.id,
         quantity: quantity,
-        // Include selected options if needed
         size: selectedSize,
         color: selectedColor,
       });
@@ -171,7 +132,7 @@ function ProductDetail() {
         );
 
         // Show success message
-        alert('Đã thêm sản phẩm vào giỏ hàng!');
+        toast.success('Đã thêm sản phẩm vào giỏ hàng!');
       } else {
         throw new Error(response.data.message || 'Không thể thêm vào giỏ hàng');
       }
@@ -179,12 +140,12 @@ function ProductDetail() {
       console.error('Error adding to cart:', error);
 
       if (error.response?.status === 401) {
-        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
         navigate('/login');
       } else if (error.response?.status === 409) {
-        alert('Sản phẩm đã có trong giỏ hàng!');
+        toast.error('Sản phẩm đã có trong giỏ hàng!');
       } else {
-        alert(
+        toast.error(
           error.response?.data?.message ||
             'Không thể thêm sản phẩm vào giỏ hàng'
         );
@@ -202,10 +163,6 @@ function ProductDetail() {
         className={cx('star', { filled: i < rating })}
       />
     ));
-  };
-
-  const handleRelatedProductClick = (productId) => {
-    navigate(`/products/${productId}`);
   };
 
   if (loading) {
@@ -257,23 +214,6 @@ function ProductDetail() {
 
   return (
     <div className={cx('product-detail')}>
-      {/* Breadcrumb */}
-      <nav className={cx('breadcrumb')}>
-        <span className={cx('breadcrumb-item')} onClick={() => navigate('/')}>
-          Home
-        </span>
-        <span
-          className={cx('breadcrumb-item')}
-          onClick={() => navigate('/products')}
-        >
-          Products
-        </span>
-        <span className={cx('breadcrumb-item')}>
-          {product.category?.name || 'Category'}
-        </span>
-        <span className={cx('breadcrumb-item')}>{product.name}</span>
-      </nav>
-
       <div className={cx('product-container')}>
         {/* Product Images */}
         <div className={cx('product-images')}>
@@ -324,10 +264,13 @@ function ProductDetail() {
 
           <div className={cx('product-price')}>
             <span className={cx('current-price')}>
-              ${product.sale_price || product.price}
+              {formatCurrency(product.sale_price) ||
+                formatCurrency(product.price)}
             </span>
             {product.sale_price && (
-              <span className={cx('old-price')}>${product.price}</span>
+              <span className={cx('old-price')}>
+                {formatCurrency(product.price)}
+              </span>
             )}
           </div>
 
@@ -549,10 +492,6 @@ function ProductDetail() {
 
           {activeTab === 'specifications' && (
             <div className={cx('product-specs')}>
-              <div className={cx('spec-row')}>
-                <span>Product ID</span>
-                <span>{product.id}</span>
-              </div>
               {product.size && (
                 <div className={cx('spec-row')}>
                   <span>Size</span>
@@ -612,83 +551,6 @@ function ProductDetail() {
           )}
         </div>
       </div>
-
-      {/* Related Products */}
-      {relatedProducts.length > 0 && (
-        <div className={cx('related-products')}>
-          <div className={cx('section-header')}>
-            <h2 className={cx('section-title')}>Related Products</h2>
-            <button
-              className={cx('view-all')}
-              onClick={() => navigate('/products')}
-            >
-              View All →
-            </button>
-          </div>
-
-          <div className={cx('products-grid')}>
-            {relatedProducts.map((relatedProduct) => {
-              const relatedDiscountPercent = relatedProduct.sale_price
-                ? Math.round(
-                    ((relatedProduct.price - relatedProduct.sale_price) /
-                      relatedProduct.price) *
-                      100
-                  )
-                : 0;
-
-              return (
-                <div
-                  key={relatedProduct.id}
-                  className={cx('product-card')}
-                  onClick={() => handleRelatedProductClick(relatedProduct.id)}
-                >
-                  {relatedDiscountPercent > 0 && (
-                    <span className={cx('sale-badge')}>
-                      -{relatedDiscountPercent}%
-                    </span>
-                  )}
-                  <div className={cx('product-image')}>
-                    <img
-                      src={
-                        relatedProduct.featured_image ||
-                        'https://via.placeholder.com/300x200/f0f0f0/666?text=No+Image'
-                      }
-                      alt={relatedProduct.name}
-                      onError={(e) => {
-                        e.target.src =
-                          'https://via.placeholder.com/300x200/f0f0f0/666?text=No+Image';
-                      }}
-                    />
-                  </div>
-                  <div className={cx('product-info')}>
-                    <div className={cx('product-category')}>
-                      {relatedProduct.category?.name ||
-                        relatedProduct.brand ||
-                        'PRODUCT'}
-                    </div>
-                    <h3 className={cx('product-name')}>
-                      {relatedProduct.name}
-                    </h3>
-                    <div className={cx('product-rating')}>
-                      {renderStars(relatedProduct.star || 0)}
-                    </div>
-                    <div className={cx('product-price')}>
-                      <span className={cx('current-price')}>
-                        ${relatedProduct.sale_price || relatedProduct.price}
-                      </span>
-                      {relatedProduct.sale_price && (
-                        <span className={cx('old-price')}>
-                          ${relatedProduct.price}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
