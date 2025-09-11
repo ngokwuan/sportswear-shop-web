@@ -35,6 +35,46 @@ export const getUserById = async (userId) => {
     return null;
   }
 };
+
+export const createUsers = async (req, res) => {
+  try {
+    const { fullName, email, password, phone } = req.body;
+
+    const newUser = await User.create({
+      name: fullName,
+      email,
+      password,
+      phone,
+      role: 'customer',
+    });
+
+    const { password: _, ...userWithoutPassword } = newUser.toJSON();
+
+    res.status(201).json({
+      message: 'Thêm người dùng thành công!',
+      user: userWithoutPassword,
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        error: 'Dữ liệu không hợp lệ',
+        details: error.errors.map((err) => err.message),
+      });
+    }
+
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({
+        error: 'Email này đã được sử dụng',
+      });
+    }
+
+    res.status(500).json({
+      error: 'Có lỗi xảy ra khi thêm người dùng',
+    });
+  }
+};
 export const updateUsers = async (req, res) => {
   try {
     const { id } = req.params;

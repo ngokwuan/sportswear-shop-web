@@ -11,7 +11,7 @@ export const createOrder = async (req, res) => {
       shipping_address,
       phone,
       email,
-      full_name,
+      name,
       notes,
       payment_method = 'vnpay',
     } = req.body;
@@ -24,7 +24,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    if (!shipping_address || !phone || !email || !full_name) {
+    if (!shipping_address || !phone || !email || !name) {
       return res.status(400).json({
         success: false,
         message: 'Thiếu thông tin giao hàng',
@@ -96,7 +96,7 @@ export const createOrder = async (req, res) => {
       {
         user_id,
         order_number: orderNumber, // Add this line
-        customer_name: full_name,
+        customer_name: name,
         customer_email: email,
         customer_phone: phone,
         shipping_address,
@@ -266,7 +266,7 @@ export const getOrderById = async (req, res) => {
         {
           model: User,
           as: 'user',
-          attributes: ['id', 'email', 'full_name'],
+          attributes: ['id', 'email', 'name'],
         },
       ],
     });
@@ -487,7 +487,7 @@ export const getAllOrders = async (req, res) => {
         {
           model: User,
           as: 'user',
-          attributes: ['id', 'email', 'full_name'],
+          attributes: ['id', 'email', 'name'],
         },
       ],
       order: [['created_at', 'DESC']],

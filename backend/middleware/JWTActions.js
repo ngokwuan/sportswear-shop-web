@@ -1,89 +1,72 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-
 dotenv.config();
-
-const nonSecurePath = ['/', '/auth/login', '/auth/register'];
-
+const nonSecurePaths = [
+  '/auth/login',
+  '/auth/register',
+  '/payment/vnpay/return',
+];
 export const createJWT = (payload) => {
-  let key = process.env.JWT_SECRET;
-  let token = null;
   try {
-    token = jwt.sign(payload, key);
+    return jwt.sign(payload, process.env.JWT_SECRET);
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return null;
   }
-  return token;
 };
 
 export const verifyToken = (token) => {
-  const key = process.env.JWT_SECRET;
-  let decoded = null;
   try {
-    decoded = jwt.verify(token, key);
+    return jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return null;
   }
-  return decoded;
 };
 
+// Middleware bắt buộc phải có token
 export const checkUserJWT = (req, res, next) => {
-  if (nonSecurePath.includes(req.path)) return next();
-
-  let cookies = req.cookies;
-  let token = null;
-
-  // Lấy token từ cookie hoặc Authorization header
-  if (cookies && cookies.jwt) {
-    token = cookies.jwt;
-  } else if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer ')
-  ) {
-    token = req.headers.authorization.substring(7);
+  if (nonSecurePaths.includes(req.path)) {
+    return next();
   }
+  const token = req.cookies?.jwt;
+  if (!token) {
+    return res.status(401).json({ error: 'Vui lòng đăng nhập' });
+  }
+
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    return res.status(401).json({ error: 'Token không hợp lệ hoặc hết hạn' });
+  }
+
+  req.user = decoded;
+  next();
+};
+
+// Middleware tùy chọn - không bắt buộc phải có token
+export const optionalUserJWT = (req, res, next) => {
+  const token = req.cookies?.jwt;
 
   if (token) {
-    let decoded = verifyToken(token);
+    const decoded = verifyToken(token);
     if (decoded) {
       req.user = decoded;
-      next();
-    } else {
-      return res.status(401).json({
-        message: 'Không xác thực được người dùng. Vui lòng đăng nhập',
-      });
     }
-  } else {
-    return res.status(401).json({
-      message: 'Không xác thực được người dùng. Vui lòng đăng nhập',
-    });
   }
+
+  next(); // Tiếp tục dù có hoặc không có token
 };
 
-export const checkUserPermission = (req, res, next) => {
-  if (nonSecurePath.includes(req.path) || req.path === '/auth/me')
-    return next();
+export const checkUserPermission = (roles = []) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Vui lòng đăng nhập' });
+    }
 
-  //req.user dc gui tu middleware checkUserJWT nen co the dung duoc sau khi hoan thanh middleware checkUserJWT
-  if (req.user) {
-    let email = req.user.email;
-    let roles = req.user.role;
-    let currentURL = req.path;
-    if (!roles || roles.length === 0) {
-      return res.status(403).json({
-        message: 'Bạn không có quyền truy cập đến tài nguyên này... ',
-      });
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Bạn không có quyền truy cập' });
     }
-    if (roles === 'customer') {
-      next();
-    } else {
-      return res.status(403).json({
-        message: 'Bạn không có quyền truy cập đến tài nguyên này...',
-      });
-    }
-  } else {
-    return res.status(401).json({
-      message: 'Không xác thực được người dùng. Vui lòng đăng nhập',
-    });
-  }
+
+    next();
+  };
 };

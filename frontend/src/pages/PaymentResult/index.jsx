@@ -302,7 +302,7 @@ function PaymentResult() {
               <>
                 <button
                   className={cx('action-btn', 'primary')}
-                  onClick={() => navigate('/orders')}
+                  onClick={() => navigate(`/orders/${orderDetails.order_id}`)} // Sửa lại đường dẫn
                 >
                   <FontAwesomeIcon icon={faReceipt} />
                   Xem đơn hàng của tôi
@@ -336,7 +336,7 @@ function PaymentResult() {
 
             <button
               className={cx('action-btn', 'tertiary')}
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/')}
             >
               <FontAwesomeIcon icon={faHome} />
               Về trang chủ

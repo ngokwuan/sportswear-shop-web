@@ -17,7 +17,6 @@ const VNP_RETURN_URL =
 // Frontend URL for redirect
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-// Utility function to sort object - FIXED VERSION
 function sortObject(obj) {
   const sorted = {};
   const str = [];
@@ -52,79 +51,6 @@ function getClientIp(req) {
     req.ip
   );
 }
-
-// Tạo URL thanh toán
-// export const createPaymentUrl = async (req, res) => {
-//   try {
-//     process.env.TZ = 'Asia/Ho_Chi_Minh';
-
-//     const date = new Date();
-//     const createDate = moment(date).format('YYYYMMDDHHmmss');
-//     const ipAddr = getClientIp(req);
-//     const orderId = moment(date).format('DDHHmmss');
-
-//     const { amount, bankCode = '', language = 'vn', orderInfo } = req.body;
-
-//     // Validate required fields
-//     if (!amount || amount <= 0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Số tiền thanh toán không hợp lệ',
-//       });
-//     }
-
-//     let locale = language;
-//     if (locale === null || locale === '') {
-//       locale = 'vn';
-//     }
-
-//     const currCode = 'VND';
-//     let vnp_Params = {};
-
-//     vnp_Params['vnp_Version'] = '2.1.0';
-//     vnp_Params['vnp_Command'] = 'pay';
-//     vnp_Params['vnp_TmnCode'] = VNP_TMN_CODE;
-//     vnp_Params['vnp_Locale'] = locale;
-//     vnp_Params['vnp_CurrCode'] = currCode;
-//     vnp_Params['vnp_TxnRef'] = orderId;
-//     vnp_Params['vnp_OrderInfo'] =
-//       orderInfo || `Thanh toan cho ma GD: ${orderId}`;
-//     vnp_Params['vnp_OrderType'] = 'other';
-//     vnp_Params['vnp_Amount'] = amount * 100;
-//     vnp_Params['vnp_ReturnUrl'] = VNP_RETURN_URL;
-//     vnp_Params['vnp_IpAddr'] = ipAddr;
-//     vnp_Params['vnp_CreateDate'] = createDate;
-
-//     if (bankCode !== null && bankCode !== '') {
-//       vnp_Params['vnp_BankCode'] = bankCode;
-//     }
-
-//     vnp_Params = sortObject(vnp_Params);
-
-//     const signData = qs.stringify(vnp_Params, { encode: false });
-//     const hmac = crypto.createHmac('sha512', VNP_HASH_SECRET);
-//     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-//     vnp_Params['vnp_SecureHash'] = signed;
-
-//     const paymentUrl =
-//       VNP_URL + '?' + qs.stringify(vnp_Params, { encode: false });
-
-//     return res.status(200).json({
-//       success: true,
-//       data: {
-//         paymentUrl,
-//         orderId,
-//       },
-//     });
-//   } catch (error) {
-//     console.error('Create payment URL error:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Lỗi tạo URL thanh toán',
-//       error: error.message,
-//     });
-//   }
-// };
 
 export const createPaymentUrl = async (req, res) => {
   try {
@@ -213,68 +139,6 @@ export const createPaymentUrl = async (req, res) => {
   }
 };
 
-// Xử lý callback từ VNPay (cho API call)
-// export const vnpayReturn = async (req, res) => {
-//   try {
-//     console.log('VNPay return callback received:', req.query);
-
-//     let vnp_Params = { ...req.query }; // Create a copy to avoid modifying req.query
-//     const secureHash = vnp_Params['vnp_SecureHash'];
-
-//     delete vnp_Params['vnp_SecureHash'];
-//     delete vnp_Params['vnp_SecureHashType'];
-
-//     vnp_Params = sortObject(vnp_Params);
-
-//     const signData = qs.stringify(vnp_Params, { encode: false });
-//     const hmac = crypto.createHmac('sha512', VNP_HASH_SECRET);
-//     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-
-//     const vnpayOrderId = req.query['vnp_TxnRef']; // Use original req.query
-//     const responseCode = req.query['vnp_ResponseCode'];
-//     const amount = parseInt(req.query['vnp_Amount']) / 100;
-
-//     console.log('VNPay validation - SecureHash valid:', secureHash === signed);
-//     console.log('Response code:', responseCode);
-
-//     if (secureHash === signed) {
-//       if (responseCode === '00') {
-//         // Thanh toán thành công
-//         console.log('Payment successful for VNPay order:', vnpayOrderId);
-
-//         // Redirect to frontend success page
-//         return res.redirect(
-//           `${FRONTEND_URL}?status=success&vnpay_order_id=${vnpayOrderId}&amount=${amount}&response_code=${responseCode}`
-//         );
-//       } else {
-//         // Thanh toán thất bại
-//         console.log(
-//           'Payment failed for VNPay order:',
-//           vnpayOrderId,
-//           'Code:',
-//           responseCode
-//         );
-
-//         // Redirect to frontend failure page
-//         return res.redirect(
-//           `${FRONTEND_URL}?status=failed&vnpay_order_id=${vnpayOrderId}&response_code=${responseCode}`
-//         );
-//       }
-//     } else {
-//       console.log('Invalid signature in VNPay return');
-//       return res.redirect(
-//         `${FRONTEND_URL}?status=error&message=invalid_signature&response_code=97`
-//       );
-//     }
-//   } catch (error) {
-//     console.error('VNPay return error:', error);
-//     return res.redirect(
-//       `${FRONTEND_URL}?status=error&message=system_error&error=${encodeURIComponent(
-//         error.message
-//       )}`
-//     );
-//   }
-// };
 export const vnpayReturn = async (req, res) => {
   try {
     console.log('VNPay return callback received:', req.query);
@@ -324,20 +188,20 @@ export const vnpayReturn = async (req, res) => {
 
             console.log(`Order ${vnpayTxnRef} updated successfully`);
 
-            // Redirect với thông báo thành công
+            // FIXED: Redirect đến đúng route PaymentResult với đúng params
             return res.redirect(
-              `${FRONTEND_URL}?status=success&order_number=${vnpayTxnRef}&amount=${amount}`
+              `${FRONTEND_URL}/payment-result?status=success&vnpay_order_id=${vnpayTxnRef}&amount=${amount}&code=${responseCode}&message=success`
             );
           } else {
             console.error(`Order with order_number ${vnpayTxnRef} not found`);
             return res.redirect(
-              `${FRONTEND_URL}?status=error&message=order_not_found&order_number=${vnpayTxnRef}`
+              `${FRONTEND_URL}/payment-result?status=error&message=order_not_found&vnpay_order_id=${vnpayTxnRef}&code=01`
             );
           }
         } catch (dbError) {
           console.error('Database update error:', dbError);
           return res.redirect(
-            `${FRONTEND_URL}?status=error&message=database_error&order_number=${vnpayTxnRef}`
+            `${FRONTEND_URL}/payment-result?status=error&message=database_error&vnpay_order_id=${vnpayTxnRef}&code=99`
           );
         }
       } else {
@@ -366,19 +230,19 @@ export const vnpayReturn = async (req, res) => {
         }
 
         return res.redirect(
-          `${FRONTEND_URL}?status=failed&order_number=${vnpayTxnRef}&response_code=${responseCode}`
+          `${FRONTEND_URL}/payment-result?status=failed&vnpay_order_id=${vnpayTxnRef}&code=${responseCode}&message=payment_failed`
         );
       }
     } else {
       console.log('Invalid signature in VNPay return');
       return res.redirect(
-        `${FRONTEND_URL}?status=error&message=invalid_signature&response_code=97`
+        `${FRONTEND_URL}/payment-result?status=error&message=invalid_signature&code=97`
       );
     }
   } catch (error) {
     console.error('VNPay return error:', error);
     return res.redirect(
-      `${FRONTEND_URL}?status=error&message=system_error&error=${encodeURIComponent(
+      `${FRONTEND_URL}/payment-result?status=error&message=system_error&code=99&error=${encodeURIComponent(
         error.message
       )}`
     );

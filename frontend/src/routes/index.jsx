@@ -9,15 +9,19 @@ import Register from '../pages/Register';
 import Login from '../pages/Login';
 import ProductDetail from '../pages/ProductDetail';
 import PaymentResult from '../pages/PaymentResult';
+import OrderDetail from '../pages/OrderDetail';
+import Orders from '../pages/Orders'; // Import component Orders
 
 export const publicRoutes = [
   { path: '/register', component: Register, layout: AuthLayout },
   { path: '/login', component: Login, layout: AuthLayout },
   // { path: '/blogs', component: Blogs },
   { path: '/cart', component: Cart },
+  { path: '/orders/:orderId', component: OrderDetail },
+  { path: '/orders', component: Orders },
   { path: '/checkout', component: Checkout },
   { path: '/contact', component: Contact },
-  { path: '/product-detail', component: ProductDetail },
+  { path: '/products/:slugAndId', component: ProductDetail },
   { path: '/products', component: Products },
   { path: '/payment-result', component: PaymentResult },
   { path: '/', component: Home },
