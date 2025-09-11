@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from '../../../setup/axios';
@@ -12,36 +12,20 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Logo from '../../../components/Logo';
 import UserMenu from '../../../components/UserMenu';
+import { UserContext } from '../../../context/UserContext';
 
 const cx = classNames.bind(styles);
 
 function Header() {
   const [cartCount, setCartCount] = useState(0);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useContext(UserContext);
   const location = useLocation();
 
   const isHomePage = location.pathname === '/';
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get('/auth/me');
-        setUser(res.data);
-      } catch (error) {
-        console.log('Người dùng chưa được xác thực', error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
-
   const fetchCartCount = async () => {
     try {
       const response = await axios.get('/cart/count');
-
       setCartCount(response.data.count || 0);
     } catch (error) {
       console.error('Error fetching cart count:', error);
@@ -50,14 +34,15 @@ function Header() {
   };
 
   useEffect(() => {
-    if (user && !loading) {
-      fetchCartCount();
-    } else {
-      setCartCount(0);
+    if (!loading) {
+      if (user) {
+        fetchCartCount();
+      } else {
+        setCartCount(0); // guest
+      }
     }
   }, [user, loading]);
 
-  // Listen for cart update events from ProductCard or ProductDetail
   useEffect(() => {
     const handleCartUpdate = (event) => {
       if (event.detail && event.detail.action === 'add') {
@@ -68,21 +53,11 @@ function Header() {
     };
 
     window.addEventListener('cartUpdated', handleCartUpdate);
-
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
     };
   }, []);
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await axios.post('/auth/logout'); // cookie sẽ bị xóa ở server
-  //     localStorage.removeItem('user'); // nếu  còn lưu user ở localStorage
-  //     window.location.href = '/'; //
-  //   } catch (error) {
-  //     console.error('Logout error:', error);
-  //   }
-  // };
   return (
     <div className={cx('wrapper', { 'home-layout': isHomePage })}>
       {!isHomePage && (
@@ -104,15 +79,17 @@ function Header() {
 
       {/* Icons */}
       <div className={cx('nav-icons')}>
-        {user ? (
+        {!loading && user ? (
           <UserMenu user={user} />
         ) : (
-          <NavLink to="/login" className={cx('nav-link')}>
-            <button className={cx('icon-btn', 'login-btn')}>
-              <FontAwesomeIcon icon={faUserAlt} />
-              SIGN IN
-            </button>
-          </NavLink>
+          !loading && (
+            <NavLink to="/login" className={cx('nav-link')}>
+              <button className={cx('icon-btn', 'login-btn')}>
+                <FontAwesomeIcon icon={faUserAlt} />
+                SIGN IN
+              </button>
+            </NavLink>
+          )
         )}
 
         <NavLink to="/cart" className={cx('nav-link')}>

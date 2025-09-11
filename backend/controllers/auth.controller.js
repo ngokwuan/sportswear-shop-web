@@ -4,8 +4,6 @@ import User from '../models/users.model.js';
 import { getRoleByEmail } from '../services/jwt.service.js';
 dotenv.config();
 
-
-
 export const login = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
@@ -32,6 +30,7 @@ export const login = async (req, res) => {
         error: 'Mật khẩu không chính xác',
       });
     }
+
     const role = await getRoleByEmail(email);
     const payload = {
       id: existUser.id,
@@ -41,10 +40,14 @@ export const login = async (req, res) => {
     };
     const token = createJWT(payload);
 
-    //set cookie
-    if (isValidPassword) {
-      res.cookie('jwt', token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
-    }
+    const maxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000; // 30 days or 1 hour
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      maxAge: maxAge,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
+    });
+
     const responseData = {
       message: 'Đăng nhập thành công!',
       rememberMe: rememberMe || false,
@@ -80,26 +83,37 @@ export const logout = async (req, res) => {
     });
   }
 };
+
 export const me = async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(500).json({
-        error: 'Không tìm thấy thông tin người dùng',
+      return res.status(200).json({
+        message: 'Guest',
+        user: null,
+        role: 'guest',
       });
     }
-    const existUser = await User.findByPk(req.user.id, {
+
+    const user = await User.findByPk(req.user.id, {
       attributes: ['id', 'email', 'role', 'name'],
     });
-    if (!existUser) {
-      return res.status(404).json({ error: 'Người dùng không tồn tại ' });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
+
     return res.status(200).json({
-      message: 'Token hợp lệ',
-      ...existUser.toJSON(),
+      message: 'OK',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      role: user.role,
     });
   } catch (error) {
-    return res.status(500).json({
-      error: 'Có lỗi xảy ra khi xác thực',
-    });
+    console.error('Error in /auth/me:', error);
+    return res.status(500).json({ error: 'Có lỗi xảy ra khi xác thực' });
   }
 };

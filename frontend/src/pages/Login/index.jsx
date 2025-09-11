@@ -10,8 +10,8 @@ import { UserContext } from '../../context/UserContext';
 const cx = classNames.bind(styles);
 
 function Login() {
-  const { loginContext } = useContext(UserContext);
   const navigate = useNavigate();
+  const { refresh } = useContext(UserContext); // Sử dụng refresh từ context
 
   const [formData, setFormData] = useState({
     email: '',
@@ -33,85 +33,15 @@ function Login() {
     });
   };
 
-  // const submitLoginData = async (userData) => {
-  //   try {
-  //     setIsSubmitting(true);
-  //     const res = await axios.post('/auth/login', userData, {
-  //       withCredentials: true,
-  //     });
-
-  //     toast.success(res.data.message);
-  //     //success
-  //     let role = res.data.role;
-  //     let name = res.data.name;
-  //     let email = res.data.email;
-  //     let id = res.data.id;
-  //     let data = {
-  //       isAuthenticated: true,
-  //       token: res.data.accessToken,
-  //       account: { id, name, email, role },
-  //     };
-  //     loginContext(data);
-
-  //     setTimeout(() => {
-  //       navigate('/');
-  //     }, 1000);
-
-  //     return res.data;
-  //   } catch (error) {
-  //     console.error('Lỗi khi đăng nhập:', error);
-
-  //     if (error.response) {
-  //       const errorMessage =
-  //         error.response.data.error || 'Có lỗi xảy ra từ server';
-  //       toast.error(errorMessage);
-  //     } else if (error.request) {
-  //       toast.error(
-  //         'Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.'
-  //       );
-  //     } else {
-  //       toast.error('Có lỗi xảy ra: ' + error.message);
-  //     }
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-
   const submitLoginData = async (userData) => {
     try {
       setIsSubmitting(true);
-      const res = await axios.post('/auth/login', userData, {
-        withCredentials: true,
-      });
-
-      console.log('Full response:', res); // Debug log
-      console.log('Response data:', res.data); // Debug log
-      console.log('ID from response:', res.data.id); // Debug log
+      const res = await axios.post('/auth/login', userData);
 
       toast.success(res.data.message);
 
-      let id = res.data.id;
-      let role = res.data.role;
-      let name = res.data.name;
-      let email = res.data.email;
-
-      console.log('Extracted values:', { id, role, name, email }); // Debug log
-
-      let data = {
-        isAuthenticated: true,
-        token: res.data.accessToken,
-        account: { id, role, name, email },
-      };
-
-      console.log('Data to save in localStorage:', data); // Debug log
-
-      loginContext(data);
-
-      // Verify localStorage immediately after
-      setTimeout(() => {
-        const savedData = localStorage.getItem('user');
-        console.log('Data in localStorage:', JSON.parse(savedData));
-      }, 100);
+      // Quan trọng: Refresh user context sau khi login thành công
+      await refresh();
 
       setTimeout(() => {
         navigate('/');
@@ -119,11 +49,18 @@ function Login() {
 
       return res.data;
     } catch (error) {
-      // ... error handling
+      console.error('Login error:', error);
+      if (error.response?.data?.error) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Có lỗi xảy ra khi đăng nhập');
+      }
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 

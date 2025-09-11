@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,6 +14,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames/bind';
 import styles from './Checkout.module.scss';
+import { UserContext } from '../../context/UserContext';
+
 import { toast } from 'react-toastify';
 
 const cx = classNames.bind(styles);
@@ -32,7 +34,7 @@ function Checkout() {
   });
 
   const navigate = useNavigate();
-  const user = localStorage.getItem('user');
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     if (!user) {
@@ -69,7 +71,6 @@ function Checkout() {
           'error',
           'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại'
         );
-        localStorage.removeItem('user');
         navigate('/login');
       } else {
         showNotification('error', 'Không thể tải giỏ hàng. Vui lòng thử lại.');
@@ -138,183 +139,9 @@ function Checkout() {
     }, 0);
   };
 
-  // Tạo đơn hàng trong database trước khi thanh toán
-  //   const createOrder = async () => {
-  //     try {
-  //       const userData = JSON.parse(localStorage.getItem('user'));
-  //       if (!userData || !userData.account) {
-  //         throw new Error('Không tìm thấy thông tin người dùng');
-  //       }
-
-  //       const orderData = {
-  //         user_id: userData.account.id, // Lấy id từ account trong localStorage
-  //         items: cartItems.map((item) => ({
-  //           product_id: item.product_id,
-  //           quantity: item.quantity,
-  //           price: item.product?.sale_price || item.product?.price || 0,
-  //         })),
-  //         shipping_address: orderInfo.address.trim(),
-  //         phone: orderInfo.phone.replace(/\s/g, ''),
-  //         email: orderInfo.email.toLowerCase().trim(),
-  //         full_name: orderInfo.fullName.trim(),
-  //         total_amount: calculateTotal(),
-  //         status: 'pending',
-  //       };
-
-  //       console.log('Sending order data:', orderData); // Để debug
-
-  //       const response = await axios.post('/orders/create', orderData);
-
-  //       if (response.data.success) {
-  //         return response.data.data.order_id;
-  //       } else {
-  //         throw new Error(response.data.message || 'Tạo đơn hàng thất bại');
-  //       }
-  //     } catch (error) {
-  //       console.error('Create order error:', error);
-  //       throw error;
-  //     }
-  //   };
-
-  //   const handleVnPayment = async () => {
-  //     // Validate form trước khi thanh toán
-  //     if (!validateForm()) {
-  //       showNotification('error', 'Vui lòng điền đầy đủ thông tin giao hàng');
-  //       return;
-  //     }
-
-  //     if (!cartItems || cartItems.length === 0) {
-  //       showNotification('error', 'Giỏ hàng trống');
-  //       return;
-  //     }
-
-  //     setProcessing(true);
-
-  //     try {
-  //       const userData = JSON.parse(localStorage.getItem('user'));
-  //       if (!userData || !userData.isAuthenticated || !userData.account) {
-  //         toast.error('Vui lòng đăng nhập để thanh toán');
-  //         navigate('/login');
-  //         return;
-  //       }
-
-  //       const total = calculateTotal();
-  //       if (total <= 0) {
-  //         showNotification('error', 'Số tiền thanh toán không hợp lệ');
-  //         return;
-  //       }
-
-  //       // Bước 1: Tạo đơn hàng trong database
-  //       showNotification('info', 'Đang tạo đơn hàng...', 2000);
-  //       let orderId;
-
-  //       try {
-  //         orderId = await createOrder();
-  //         console.log('Order created successfully with ID:', orderId);
-  //       } catch (orderError) {
-  //         console.error('Failed to create order:', orderError);
-  //         showNotification('error', `Lỗi tạo đơn hàng: ${orderError.message}`);
-  //         return; // Dừng lại nếu tạo đơn hàng thất bại
-  //       }
-
-  //       // Bước 2: Tạo URL thanh toán VNPay
-  //       const paymentData = {
-  //         amount: Math.round(total),
-  //         orderInfo: `Thanh toan don hang #${orderId} - ${orderInfo.fullName}`, // Bỏ dấu để tránh lỗi encoding
-  //         language: 'vn',
-  //         bankCode: '',
-  //       };
-
-  //       console.log('Creating VNPay payment URL with data:', paymentData);
-  //       showNotification('info', 'Đang tạo liên kết thanh toán...', 2000);
-
-  //       try {
-  //         const response = await axios.post(
-  //           '/payment/create-payment-url',
-  //           paymentData
-  //         );
-
-  //         console.log('VNPay payment response:', response.data);
-
-  //         if (
-  //           response.data &&
-  //           response.data.success &&
-  //           response.data.data &&
-  //           response.data.data.paymentUrl
-  //         ) {
-  //           showNotification('success', 'Đang chuyển hướng đến VNPay...', 2000);
-
-  //           // Store order info for return page
-  //           sessionStorage.setItem(
-  //             'pending_order',
-  //             JSON.stringify({
-  //               order_id: orderId,
-  //               amount: total,
-  //               vnpay_order_id: response.data.data.orderId,
-  //             })
-  //           );
-
-  //           // Chuyển hướng đến trang thanh toán VNPay
-  //           setTimeout(() => {
-  //             window.location.href = response.data.data.paymentUrl;
-  //           }, 1000);
-
-  //           return; // Thành công, thoát function
-  //         } else {
-  //           // VNPay API trả về không thành công
-  //           const errorMessage =
-  //             response.data?.message ||
-  //             'VNPay không trả về URL thanh toán hợp lệ';
-  //           console.error('VNPay payment creation failed:', response.data);
-
-  //           // Hiển thị lỗi nhưng không rollback order vì đã tạo thành công
-  //           showNotification(
-  //             'error',
-  //             `Lỗi tạo liên kết thanh toán: ${errorMessage}. Đơn hàng đã được tạo với ID: ${orderId}`
-  //           );
-  //         }
-  //       } catch (vnpayError) {
-  //         console.error('VNPay API call failed:', vnpayError);
-
-  //         let errorMessage = 'Lỗi kết nối VNPay';
-
-  //         if (vnpayError.response) {
-  //           const status = vnpayError.response.status;
-  //           const data = vnpayError.response.data;
-
-  //           console.log('VNPay error response:', data);
-
-  //           if (status === 400) {
-  //             errorMessage = data.message || 'Thông tin thanh toán không hợp lệ';
-  //           } else if (status === 500) {
-  //             errorMessage = 'Lỗi server VNPay';
-  //           }
-  //         } else if (vnpayError.request) {
-  //           errorMessage =
-  //             'Không thể kết nối đến VNPay. Kiểm tra kết nối internet';
-  //         }
-
-  //         // Hiển thị lỗi VNPay nhưng thông báo đơn hàng đã tạo
-  //         showNotification(
-  //           'error',
-  //           `${errorMessage}. Đơn hàng #${orderId} đã được tạo. Bạn có thể thanh toán sau hoặc liên hệ hỗ trợ.`
-  //         );
-  //       }
-  //     } catch (generalError) {
-  //       console.error('General payment error:', generalError);
-  //       showNotification(
-  //         'error',
-  //         `Có lỗi không xác định: ${generalError.message}`
-  //       );
-  //     } finally {
-  //       setProcessing(false);
-  //     }
-  //   };
-
   const createOrder = async () => {
     try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (!userData || !userData.account) {
+      if (!user) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
@@ -331,7 +158,7 @@ function Checkout() {
       }
 
       const orderData = {
-        user_id: userData.account.id,
+        user_id: user.id,
         items: validItems.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
@@ -340,7 +167,7 @@ function Checkout() {
         shipping_address: orderInfo.address.trim(),
         phone: orderInfo.phone.replace(/\s/g, ''),
         email: orderInfo.email.toLowerCase().trim(),
-        full_name: orderInfo.fullName.trim(),
+        name: orderInfo.fullName.trim(),
         payment_method: 'vnpay',
       };
 
@@ -374,25 +201,18 @@ function Checkout() {
     }
   };
   const handleVnPayment = async () => {
-    if (!validateForm()) {
-      showNotification('error', 'Vui lòng điền đầy đủ thông tin giao hàng');
-      return;
-    }
-
-    if (!cartItems || cartItems.length === 0) {
-      showNotification('error', 'Giỏ hàng trống');
-      return;
-    }
-
-    setProcessing(true);
-
     try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (!userData || !userData.isAuthenticated || !userData.account) {
-        showNotification('error', 'Vui lòng đăng nhập để thanh toán');
-        navigate('/login');
+      if (!validateForm()) {
+        showNotification('error', 'Vui lòng điền đầy đủ thông tin giao hàng');
         return;
       }
+
+      if (!cartItems || cartItems.length === 0) {
+        showNotification('error', 'Giỏ hàng trống');
+        return;
+      }
+
+      setProcessing(true);
 
       const total = calculateTotal();
       if (total <= 0) {
@@ -459,12 +279,8 @@ function Checkout() {
           })
         );
 
-        // Chuyển hướng đến trang thanh toán VNPay
-        setTimeout(() => {
-          window.location.href = response.data.data.paymentUrl;
-        }, 1000);
-
-        return;
+        // Chuyển hướng đến VNPay
+        window.location.href = response.data.data.paymentUrl;
       } else {
         const errorMessage =
           response.data?.message || 'VNPay không trả về URL thanh toán hợp lệ';
@@ -489,7 +305,6 @@ function Checkout() {
           errorMessage = data.message || 'Thông tin thanh toán không hợp lệ';
         } else if (status === 401) {
           errorMessage = 'Phiên đăng nhập hết hạn';
-          localStorage.removeItem('user');
           setTimeout(() => navigate('/login'), 2000);
         } else if (status === 500) {
           errorMessage = 'Lỗi server, vui lòng thử lại sau';

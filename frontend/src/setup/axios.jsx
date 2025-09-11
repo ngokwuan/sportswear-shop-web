@@ -6,38 +6,31 @@ const instance = axios.create({
   withCredentials: true, // để cookie tự gửi
 });
 
-// Request interceptor
 instance.interceptors.request.use(
-  function (config) {
-    // Không cần set Authorization nếu token nằm trong HttpOnly cookie
-    return config;
-  },
-  function (error) {
-    return Promise.reject(error);
-  }
+  (config) => config,
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
 instance.interceptors.response.use(
-  function (response) {
-    return response;
-  },
-  function (err) {
+  (response) => response,
+  (err) => {
     const status = err.response?.status || 500;
+    const message = err.response?.data?.error || 'Có lỗi xảy ra';
+
     switch (status) {
-      case 401: {
-        toast.error('Unauthorized. Please login...');
-        return Promise.reject(err);
-      }
+      case 400:
+      case 401:
       case 403: {
-        toast.error("You don't have permission...");
-        return Promise.reject(err);
+        toast.error(message);
+        break;
       }
       default: {
-        return Promise.reject(err);
+        toast.error(message);
+        break;
       }
     }
+
+    return Promise.reject(err);
   }
 );
-
 export default instance;

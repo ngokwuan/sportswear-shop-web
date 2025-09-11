@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from '../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -9,9 +9,10 @@ import {
   faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { UserContext } from '../../context/UserContext';
 import classNames from 'classnames/bind';
 import styles from './Cart.module.scss';
-
+import { formatCurrency } from '../../utils/formatCurrency';
 const cx = classNames.bind(styles);
 
 function Cart() {
@@ -20,15 +21,21 @@ function Cart() {
   const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
 
-  const user = localStorage.getItem('user');
+  const { user, loading: userLoading } = useContext(UserContext);
 
   useEffect(() => {
+    // Chờ UserContext load xong
+    if (userLoading) return;
+
+    // Nếu không có user, chuyển đến trang login
     if (!user) {
       navigate('/login');
       return;
     }
+
+    // Nếu có user, fetch cart items
     fetchCartItems();
-  }, [user]);
+  }, [user, userLoading, navigate]);
 
   const fetchCartItems = async () => {
     try {
@@ -37,6 +44,11 @@ function Cart() {
       setCartItems(response.data);
     } catch (error) {
       console.error('Lỗi khi lấy giỏ hàng:', error);
+      if (error.response?.status === 401) {
+        // Token hết hạn hoặc không hợp lệ
+        navigate('/login');
+        return;
+      }
       setCartItems([]);
     } finally {
       setLoading(false);
@@ -59,8 +71,19 @@ function Cart() {
           item.id === cartId ? { ...item, quantity: newQuantity } : item
         )
       );
+
+      // Dispatch event để Header cập nhật cart count
+      window.dispatchEvent(
+        new CustomEvent('cartUpdated', {
+          detail: { action: 'update' },
+        })
+      );
     } catch (error) {
       console.error('Lỗi khi cập nhật số lượng:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
       alert('Không thể cập nhật số lượng sản phẩm');
     } finally {
       setUpdating(false);
@@ -80,8 +103,19 @@ function Cart() {
       setCartItems((prevItems) =>
         prevItems.filter((item) => item.id !== cartId)
       );
+
+      // Dispatch event để Header cập nhật cart count
+      window.dispatchEvent(
+        new CustomEvent('cartUpdated', {
+          detail: { action: 'remove' },
+        })
+      );
     } catch (error) {
       console.error('Lỗi khi xóa sản phẩm:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
       alert('Không thể xóa sản phẩm khỏi giỏ hàng');
     } finally {
       setUpdating(false);
@@ -99,11 +133,20 @@ function Cart() {
 
       if (response.data.success) {
         setCartItems([]);
-        // Hiển thị thông báo thành công
+        // Dispatch event để Header cập nhật cart count
+        window.dispatchEvent(
+          new CustomEvent('cartUpdated', {
+            detail: { action: 'clear' },
+          })
+        );
         alert(response.data.message);
       }
     } catch (error) {
       console.error('Lỗi khi xóa giỏ hàng:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
       alert('Không thể xóa giỏ hàng');
     } finally {
       setUpdating(false);
@@ -122,13 +165,19 @@ function Cart() {
     return price * item.quantity;
   };
 
-  if (loading) {
+  // Hiển thị loading khi đang check user authentication
+  if (userLoading || loading) {
     return (
       <div className={cx('loading')}>
         <div className={cx('spinner')}></div>
         <p>Đang tải giỏ hàng...</p>
       </div>
     );
+  }
+
+  // Nếu không có user, component sẽ redirect, nhưng để chắc chắn
+  if (!user) {
+    return null;
   }
 
   return (
@@ -225,10 +274,12 @@ function Cart() {
                     <div className={cx('col-price')}>
                       <div className={cx('price-info')}>
                         <span className={cx('current-price')}>
-                          {currentPrice}đ
+                          {formatCurrency(currentPrice)}
                         </span>
                         {oldPrice && (
-                          <span className={cx('old-price')}>{oldPrice}đ</span>
+                          <span className={cx('old-price')}>
+                            {formatCurrency(oldPrice)}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -259,7 +310,7 @@ function Cart() {
 
                     <div className={cx('col-total')}>
                       <span className={cx('subtotal')}>
-                        {calculateSubtotal(item).toFixed(2)}đ
+                        {formatCurrency(calculateSubtotal(item))}
                       </span>
                     </div>
 
@@ -283,7 +334,7 @@ function Cart() {
                 <h3>Tổng kết đơn hàng</h3>
                 <div className={cx('summary-row')}>
                   <span>Tạm tính ({cartItems.length} sản phẩm):</span>
-                  <span>{calculateTotal().toFixed(2)}đ</span>
+                  <span>{formatCurrency(calculateTotal())}</span>
                 </div>
                 <div className={cx('summary-row')}>
                   <span>Phí vận chuyển:</span>
@@ -292,7 +343,7 @@ function Cart() {
                 <hr />
                 <div className={cx('summary-row', 'total-row')}>
                   <strong>Tổng cộng:</strong>
-                  <strong>{calculateTotal().toFixed(2)}đ</strong>
+                  <strong>{formatCurrency(calculateTotal())}</strong>
                 </div>
                 <Link to="/checkout">
                   <button className={cx('checkout-btn')} disabled={updating}>

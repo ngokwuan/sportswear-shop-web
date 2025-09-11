@@ -12,7 +12,10 @@ export const getProduct = async (req, res) => {
 };
 export const getTrendingProduct = async (req, res) => {
   try {
-    const products = await Products.findAll({ order: [['star', 'DESC']] });
+    const products = await Products.findAll({
+      order: [['star', 'DESC']],
+      limit: 18,
+    });
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: 'Không lấy được sản phẩm' });
@@ -137,6 +140,7 @@ export const getNewProduct = async (req, res) => {
   try {
     const products = await Products.findAll({
       order: [['created_at', 'DESC']],
+      limit: 8,
     });
     res.json(products);
   } catch (error) {
@@ -144,6 +148,30 @@ export const getNewProduct = async (req, res) => {
   }
 };
 
+export const getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Products.findByPk(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy sản phẩm',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: product,
+    });
+  } catch (error) {
+    console.error('Error getting product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Không thể lấy thông tin sản phẩm',
+    });
+  }
+};
 export const createProduct = async (req, res) => {
   try {
     const {

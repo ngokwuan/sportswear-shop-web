@@ -21,7 +21,6 @@ function UserMenu({ user }) {
   const handleLogout = async () => {
     try {
       await axios.post('/auth/logout');
-      localStorage.removeItem('user');
       window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);

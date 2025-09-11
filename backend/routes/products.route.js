@@ -9,6 +9,7 @@ router.get('/price', controller.getPriceProduct);
 router.get('/size', controller.getSizeProduct);
 router.get('/trending', controller.getTrendingProduct);
 router.get('/new', controller.getNewProduct);
+router.get('/:id', controller.getProductById);
 
 router.use(checkUserJWT, checkUserPermission(['admin']));
 
