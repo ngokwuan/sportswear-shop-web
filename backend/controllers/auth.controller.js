@@ -40,12 +40,12 @@ export const login = async (req, res) => {
     };
     const token = createJWT(payload);
 
-    const maxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000; // 30 days or 1 hour
+    const maxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
     res.cookie('jwt', token, {
       httpOnly: true,
       maxAge: maxAge,
       sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      secure: process.env.NODE_ENV === 'production',
     });
 
     const responseData = {
@@ -95,7 +95,7 @@ export const me = async (req, res) => {
     }
 
     const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'email', 'role', 'name'],
+      attributes: ['id', 'email', 'role', 'name', 'avatar', 'phone', 'address'],
     });
 
     if (!user) {
@@ -107,8 +107,11 @@ export const me = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
+        avatar: user.avatar,
+        phone: user.phone,
         name: user.name,
         role: user.role,
+        address: user.address,
       },
       role: user.role,
     });

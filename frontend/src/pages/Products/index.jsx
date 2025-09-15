@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from '../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTh, faList } from '@fortawesome/free-solid-svg-icons';
+import {
+  faTh,
+  faList,
+  faChevronLeft,
+  faChevronRight,
+} from '@fortawesome/free-solid-svg-icons';
 import ProductCard from '../../components/ProductCard';
 import FilterSidebar from './FilterSidebar';
 import classNames from 'classnames/bind';
@@ -14,6 +19,10 @@ function Products() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('popularity');
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12); // Số sản phẩm mỗi trang
 
   // Filter states
   const [priceRange, setPriceRange] = useState([0, 5000]);
@@ -116,6 +125,67 @@ function Products() {
     sortBy,
   ]);
 
+  // Tính toán pagination
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredAndSortedProducts.slice(startIndex, endIndex);
+
+  // Reset về trang 1 khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategories, selectedBrands, selectedSizes, priceRange, sortBy]);
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Tạo array các số trang để hiển thị
+  const getPaginationNumbers = () => {
+    const delta = 2; // Số trang hiển thị bên trái và phải của trang hiện tại
+    const range = [];
+    const rangeWithDots = [];
+
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else if (totalPages > 1) {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
   // Filter handlers
   const handleCategoryChange = (categoryId) => {
     setSelectedCategories((prev) =>
@@ -187,8 +257,10 @@ function Products() {
             <div className={cx('results-info')}>
               <h2>Products</h2>
               <span>
-                Showing {filteredAndSortedProducts.length} of{' '}
-                {allProducts.length} Results
+                Showing{' '}
+                {Math.min(startIndex + 1, filteredAndSortedProducts.length)}-
+                {Math.min(endIndex, filteredAndSortedProducts.length)} of{' '}
+                {filteredAndSortedProducts.length} Results
               </span>
             </div>
 
@@ -225,8 +297,8 @@ function Products() {
           </div>
 
           <div className={cx('products-grid', viewMode)}>
-            {filteredAndSortedProducts.length > 0 ? (
-              filteredAndSortedProducts.map((product) => (
+            {currentProducts.length > 0 ? (
+              currentProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -246,13 +318,48 @@ function Products() {
             )}
           </div>
 
-          {filteredAndSortedProducts.length > 0 && (
+          {/* Pagination */}
+          {filteredAndSortedProducts.length > 0 && totalPages > 1 && (
             <div className={cx('pagination')}>
-              <button className={cx('page-btn', 'active')}>1</button>
-              <button className={cx('page-btn')}>2</button>
-              <button className={cx('page-btn')}>3</button>
-              <button className={cx('page-btn')}>...</button>
-              <button className={cx('page-btn')}>10</button>
+              {/* Previous button */}
+              <button
+                className={cx('page-btn', 'nav-btn', {
+                  disabled: currentPage === 1,
+                })}
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+              >
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </button>
+
+              {/* Page numbers */}
+              {getPaginationNumbers().map((page, index) => (
+                <React.Fragment key={index}>
+                  {page === '...' ? (
+                    <span className={cx('pagination-dots')}>...</span>
+                  ) : (
+                    <button
+                      className={cx('page-btn', {
+                        active: currentPage === page,
+                      })}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  )}
+                </React.Fragment>
+              ))}
+
+              {/* Next button */}
+              <button
+                className={cx('page-btn', 'nav-btn', {
+                  disabled: currentPage === totalPages,
+                })}
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                <FontAwesomeIcon icon={faChevronRight} />
+              </button>
             </div>
           )}
         </main>

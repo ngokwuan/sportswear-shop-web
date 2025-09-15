@@ -14,11 +14,11 @@ function Nav() {
     <div className={cx('wrapper', { 'home-layout': isHomePage })}>
       <div>
         <div className={cx('nav-menu')}>
-          <NavLink to="/" className={cx('nav-link', 'categories')}>
+          <NavLink to="/products" className={cx('nav-link', 'categories')}>
             BROWSE CATEGORIES ▼
           </NavLink>
           <NavLink to="/products" className={cx('nav-link')}>
-            Products ▼
+            Products
           </NavLink>
           <NavLink to="/blogs" className={cx('nav-link')}>
             Blogs

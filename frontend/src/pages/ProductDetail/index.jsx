@@ -26,8 +26,6 @@ function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [countdown, setCountdown] = useState({
@@ -50,14 +48,6 @@ function ProductDetail() {
         if (response.data && response.data.success) {
           const productData = response.data.data;
           setProduct(productData);
-
-          // Set default selections
-          if (productData.size) {
-            setSelectedSize(productData.size);
-          }
-          if (productData.color) {
-            setSelectedColor(productData.color);
-          }
 
           if (typeof productData.images === 'string') {
             try {
@@ -117,21 +107,17 @@ function ProductDetail() {
       setIsAddingToCart(true);
 
       const response = await axios.post('/cart/add', {
-        product_id: product.id,
+        productId: id,
         quantity: quantity,
-        size: selectedSize,
-        color: selectedColor,
       });
 
       if (response.data.success) {
-        // Dispatch event to update cart counter in header
         window.dispatchEvent(
           new CustomEvent('cartUpdated', {
             detail: { action: 'add', quantity: quantity },
           })
         );
 
-        // Show success message
         toast.success('Đã thêm sản phẩm vào giỏ hàng!');
       } else {
         throw new Error(response.data.message || 'Không thể thêm vào giỏ hàng');
@@ -208,10 +194,6 @@ function ProductDetail() {
     ? [product.featured_image]
     : [];
 
-  // Available sizes and colors (you might want to fetch these from a separate endpoint)
-  const availableSizes = product.sizes || ['S', 'M', 'L', 'XL'];
-  const availableColors = product.colors || ['Black', 'White', 'Gray'];
-
   return (
     <div className={cx('product-detail')}>
       <div className={cx('product-container')}>
@@ -222,11 +204,7 @@ function ProductDetail() {
               <span className={cx('discount-badge')}>-{discountPercent}%</span>
             )}
             <img
-              src={
-                productImages[selectedImage] ||
-                product.featured_image ||
-                '/placeholder-image.jpg'
-              }
+              src={productImages[selectedImage]}
               alt={product.name}
               onError={(e) => {
                 e.target.src =
@@ -311,43 +289,16 @@ function ProductDetail() {
 
           {/* Product Options */}
           <div className={cx('product-options')}>
-            {availableSizes.length > 0 && (
-              <div className={cx('option-group')}>
-                <label className={cx('option-label')}>SIZE</label>
-                <div className={cx('size-options')}>
-                  {availableSizes.map((size) => (
-                    <button
-                      key={size}
-                      className={cx('size-option', {
-                        active: selectedSize === size,
-                      })}
-                      onClick={() => setSelectedSize(size)}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
+            <div className={cx('option-group')}>
+              <label className={cx('option-label')}>SIZE</label>
+              <div className={cx('size-options', 'active')}>{product.size}</div>
+            </div>
+            <div className={cx('option-group')}>
+              <label className={cx('option-label')}>COLOR</label>
+              <div className={cx('color-options', 'active')}>
+                {product.color}
               </div>
-            )}
-
-            {availableColors.length > 0 && (
-              <div className={cx('option-group')}>
-                <label className={cx('option-label')}>COLOR</label>
-                <div className={cx('color-options')}>
-                  {availableColors.map((color) => (
-                    <button
-                      key={color}
-                      className={cx('color-option', {
-                        active: selectedColor === color,
-                      })}
-                      onClick={() => setSelectedColor(color)}
-                    >
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Quantity and Add to Cart */}

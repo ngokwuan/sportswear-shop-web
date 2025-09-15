@@ -10,13 +10,16 @@ import Login from '../pages/Login';
 import ProductDetail from '../pages/ProductDetail';
 import PaymentResult from '../pages/PaymentResult';
 import OrderDetail from '../pages/OrderDetail';
-import Orders from '../pages/Orders'; // Import component Orders
+import Orders from '../pages/Orders';
+import Profile from '../pages/Profile';
 
 export const publicRoutes = [
   { path: '/register', component: Register, layout: AuthLayout },
   { path: '/login', component: Login, layout: AuthLayout },
   // { path: '/blogs', component: Blogs },
   { path: '/cart', component: Cart },
+  { path: '/profile', component: Profile },
+
   { path: '/orders/:orderId', component: OrderDetail },
   { path: '/orders', component: Orders },
   { path: '/checkout', component: Checkout },
