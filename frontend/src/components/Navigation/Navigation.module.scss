@@ -6,7 +6,7 @@
   left: 0;
   display: flex;
   align-items: flex-start;
-  border-bottom: 1px solid #6b7280;
+  // border-bottom: 1px solid #6b7280;
   &.home-layout {
     border-top: 1px solid var(--text-light);
     border-bottom: none;
@@ -48,16 +48,13 @@
   border-bottom: 2px solid transparent;
   transition: all 0.2s ease;
   cursor: pointer;
+
+  &:hover,
   &:global(.active) {
-    background-color: #dc2626;
-    color: #fff;
-  }
-  &:hover {
     color: #dc2626;
   }
 }
 
 .categories {
-  padding: 8px 110px 8px 0;
-  background-color: #c1032f;
+  padding: 8px 155px 8px 0;
 }

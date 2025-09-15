@@ -1,5 +1,4 @@
 import { Cart, Product } from '../models/index.js';
-import { getUserByEmail } from './users.controller.js';
 
 export const addToCart = async (req, res) => {
   try {

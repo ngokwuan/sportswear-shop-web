@@ -15,8 +15,7 @@ import {
 import classNames from 'classnames/bind';
 import styles from './Checkout.module.scss';
 import { UserContext } from '../../context/UserContext';
-
-import { toast } from 'react-toastify';
+import { formatCurrency } from '../../utils/formatCurrency';
 
 const cx = classNames.bind(styles);
 
@@ -571,7 +570,7 @@ function Checkout() {
                         <div className={cx('price-info')}>
                           {hasDiscount && (
                             <span className={cx('original-price')}>
-                              {(originalPrice * item.quantity).toFixed(2)}đ
+                              {formatCurrency(originalPrice * item.quantity)}
                             </span>
                           )}
                           <span
@@ -580,7 +579,7 @@ function Checkout() {
                               hasDiscount ? 'sale-price' : ''
                             )}
                           >
-                            {(currentPrice * item.quantity).toFixed(2)}đ
+                            {formatCurrency(currentPrice * item.quantity)}
                           </span>
                         </div>
                       </div>
@@ -593,7 +592,7 @@ function Checkout() {
             <div className={cx('summary-calculations')}>
               <div className={cx('summary-row')}>
                 <span>Tạm tính:</span>
-                <span>{calculateTotal().toFixed(2)}đ</span>
+                <span>{formatCurrency(calculateTotal())}</span>
               </div>
               <div className={cx('summary-row')}>
                 <span>Phí vận chuyển:</span>
@@ -606,7 +605,7 @@ function Checkout() {
               <div className={cx('summary-row', 'total-row')}>
                 <span>Tổng cộng:</span>
                 <span className={cx('total-amount')}>
-                  {calculateTotal().toFixed(2)}đ
+                  {formatCurrency(calculateTotal())}
                 </span>
               </div>
             </div>

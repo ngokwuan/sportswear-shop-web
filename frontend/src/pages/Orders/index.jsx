@@ -14,6 +14,7 @@ import {
   faClipboardList,
 } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { toast } from 'react-toastify';
 
 const cx = classNames.bind(styles);
 
@@ -74,7 +75,9 @@ function Orders() {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    if (user) {
+    if (!user) {
+      return toast.error('Vui lòng đăng nhập');
+    } else {
       fetchOrders();
     }
   }, [user]);
