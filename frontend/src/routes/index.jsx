@@ -1,25 +1,27 @@
+//Client
 import AuthLayout from '../layouts/AuthLayout';
-import Home from '../pages/Home';
-import Products from '../pages/Products';
-import Blogs from '../pages/Blogs';
-import Checkout from '../pages/Checkout';
-import Cart from '../pages/Cart';
-import Contact from '../pages/Contact';
-import Register from '../pages/Register';
-import Login from '../pages/Login';
-import ProductDetail from '../pages/ProductDetail';
-import PaymentResult from '../pages/PaymentResult';
-import OrderDetail from '../pages/OrderDetail';
-import Orders from '../pages/Orders';
-import Profile from '../pages/Profile';
+import Home from '../pages/ClientPage/Home';
+import Products from '../pages/ClientPage/Products';
+import Blogs from '../pages/ClientPage/Blogs';
+import Checkout from '../pages/ClientPage/Checkout';
+import Cart from '../pages/ClientPage/Cart';
+import Contact from '../pages/ClientPage/Contact';
+import Register from '../pages/ClientPage/Register';
+import Login from '../pages/ClientPage/Login';
+import ProductDetail from '../pages/ClientPage/ProductDetail';
+import PaymentResult from '../pages/ClientPage/PaymentResult';
+import OrderDetail from '../pages/ClientPage/OrderDetail';
+import Orders from '../pages/ClientPage/Orders';
+import Profile from '../pages/ClientPage/Profile';
+//Admin
+import Dashboard from '../pages/AdminPages/DashBoard';
 
-export const publicRoutes = [
+export const ClientRoutes = [
   { path: '/register', component: Register, layout: AuthLayout },
   { path: '/login', component: Login, layout: AuthLayout },
   // { path: '/blogs', component: Blogs },
   { path: '/cart', component: Cart },
   { path: '/profile', component: Profile },
-
   { path: '/orders/:orderId', component: OrderDetail },
   { path: '/orders', component: Orders },
   { path: '/checkout', component: Checkout },
@@ -30,4 +32,4 @@ export const publicRoutes = [
   { path: '/', component: Home },
 ];
 
-export const privateRoutes = [];
+export const AdminRoutes = [{ path: '/admin/dashboard', component: Dashboard }];
