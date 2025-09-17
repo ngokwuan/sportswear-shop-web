@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './AdminLayout.module.scss';
+import Logo from '../../components/Logo';
 
 const cx = classNames.bind(styles);
 
@@ -65,7 +66,7 @@ function AdminLayout({ children }) {
           <button className={cx('toggle-btn')} onClick={toggleSidebar}>
             <span className={cx('hamburger')}></span>
           </button>
-          <h2 className={cx('logo')}>SportStore Admin</h2>
+          <Logo />
         </div>
         <div className={cx('header-right')}>
           <div className={cx('user-info')}>
