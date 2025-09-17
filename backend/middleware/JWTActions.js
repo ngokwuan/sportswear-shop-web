@@ -54,7 +54,7 @@ export const optionalUserJWT = (req, res, next) => {
     }
   }
 
-  next(); // Tiếp tục dù có hoặc không có token
+  next();
 };
 
 export const checkUserPermission = (roles = []) => {

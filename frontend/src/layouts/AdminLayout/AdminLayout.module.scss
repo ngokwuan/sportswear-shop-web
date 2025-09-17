@@ -13,7 +13,7 @@
   justify-content: space-between;
   align-items: center;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f7a8a8 0%, #e42929 100%);
   color: white;
   padding: 0 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -38,7 +38,7 @@
   font-size: 20px;
   font-weight: 700;
   color: white;
-  
+
   &::before {
     content: '⚽';
     margin-right: 8px;
@@ -170,12 +170,20 @@
     position: relative;
 
     &:hover {
-      background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+      background: linear-gradient(
+        90deg,
+        rgba(102, 126, 234, 0.1) 0%,
+        transparent 100%
+      );
       color: #667eea;
     }
 
     &.active {
-      background: linear-gradient(90deg, rgba(102, 126, 234, 0.15) 0%, transparent 100%);
+      background: linear-gradient(
+        90deg,
+        rgba(102, 126, 234, 0.15) 0%,
+        transparent 100%
+      );
       color: #667eea;
       border-right: 3px solid #667eea;
       font-weight: 600;
@@ -300,9 +308,21 @@
   animation: slideIn 0.3s ease forwards;
 }
 
-.nav-item:nth-child(1) { animation-delay: 0.1s; }
-.nav-item:nth-child(2) { animation-delay: 0.2s; }
-.nav-item:nth-child(3) { animation-delay: 0.3s; }
-.nav-item:nth-child(4) { animation-delay: 0.4s; }
-.nav-item:nth-child(5) { animation-delay: 0.5s; }
-.nav-item:nth-child(6) { animation-delay: 0.6s; }
+.nav-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.nav-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.nav-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.nav-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.nav-item:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.nav-item:nth-child(6) {
+  animation-delay: 0.6s;
+}

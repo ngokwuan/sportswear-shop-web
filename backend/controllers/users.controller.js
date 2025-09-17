@@ -1,10 +1,25 @@
-import slugify from 'slugify';
 import Users from '../models/users.model.js';
+import { Op } from 'sequelize';
 import { filterFields } from '../utils/filterFields.js';
 
 export const getUsers = async (req, res) => {
   try {
     const users = await Users.findAll();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Không lấy được người dùng' });
+  }
+};
+export const getUserTrash = async (req, res) => {
+  try {
+    const users = await Users.findAll({
+      where: {
+        deleted_at: {
+          [Op.ne]: null, // chỉ lấy user có deletedAt khác null
+        },
+      },
+      paranoid: false, // cho phép query cả record đã xoá
+    });
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: 'Không lấy được người dùng' });
@@ -47,14 +62,14 @@ export const getUserById = async (userId) => {
 
 export const createUsers = async (req, res) => {
   try {
-    const { fullName, email, password, phone } = req.body;
+    const { fullName, email, password, phone, role = 'customer' } = req.body;
 
     const newUser = await Users.create({
       name: fullName,
       email,
       password,
       phone,
-      role: 'customer',
+      role,
     });
 
     const { password: _, ...userWithoutPassword } = newUser.toJSON();

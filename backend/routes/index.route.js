@@ -5,7 +5,7 @@ import { cartRoute } from './cart.route.js';
 import { categoriesRoute } from './categories.route.js';
 import { orderRoute } from './orders.route.js';
 import { vnpayRoute } from './vnpay.route.js';
-import { checkUserJWT, checkUserPermission } from '../middleware/JWTActions.js';
+import { checkUserJWT } from '../middleware/JWTActions.js';
 
 export function mainRoute(app) {
   app.use('/auth', authRoute);
@@ -14,10 +14,5 @@ export function mainRoute(app) {
   app.use('/cart', cartRoute);
   app.use('/orders', checkUserJWT, orderRoute);
   app.use('/payment/vnpay', vnpayRoute);
-  app.use(
-    '/users',
-    checkUserJWT,
-    checkUserPermission(['customer', 'admin']),
-    userRoute
-  );
+  app.use('/users', checkUserJWT, userRoute);
 }

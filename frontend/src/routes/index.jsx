@@ -15,6 +15,8 @@ import Orders from '../pages/ClientPage/Orders';
 import Profile from '../pages/ClientPage/Profile';
 //Admin
 import Dashboard from '../pages/AdminPages/DashBoard';
+import Users from '../pages/AdminPages/Users';
+import UserTrash from '../pages/AdminPages/Users/UserTrash';
 
 export const ClientRoutes = [
   { path: '/register', component: Register, layout: AuthLayout },
@@ -32,4 +34,8 @@ export const ClientRoutes = [
   { path: '/', component: Home },
 ];
 
-export const AdminRoutes = [{ path: '/admin/dashboard', component: Dashboard }];
+export const AdminRoutes = [
+  { path: '/admin/dashboard', component: Dashboard },
+  { path: '/admin/users', component: Users },
+  { path: '/admin/users/trash', component: UserTrash },
+];

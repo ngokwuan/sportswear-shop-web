@@ -188,55 +188,6 @@ function Dashboard() {
             ))}
           </div>
         </div>
-
-        {/* Top Products */}
-        <div className={cx('content-card', 'products-card')}>
-          <div className={cx('card-header')}>
-            <h2 className={cx('card-title')}>Sản phẩm bán chạy</h2>
-            <button className={cx('view-all-btn')}>Xem tất cả</button>
-          </div>
-          <div className={cx('products-list')}>
-            {topProducts.map((product, index) => (
-              <div key={index} className={cx('product-item')}>
-                <div className={cx('product-info')}>
-                  <h4 className={cx('product-name')}>{product.name}</h4>
-                  <p className={cx('product-stats')}>
-                    Đã bán: {product.sold} | Doanh thu:{' '}
-                    {formatCurrency(product.revenue)}
-                  </p>
-                </div>
-                <div className={cx('product-trend')}>
-                  <span className={cx('trend-icon')}>
-                    {getTrendIcon(product.trend)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className={cx('quick-actions')}>
-        <h2 className={cx('section-title')}>Thao tác nhanh</h2>
-        <div className={cx('actions-grid')}>
-          <button className={cx('action-btn', 'add-product')}>
-            <span className={cx('action-icon')}>➕</span>
-            <span className={cx('action-text')}>Thêm sản phẩm mới</span>
-          </button>
-          <button className={cx('action-btn', 'view-orders')}>
-            <span className={cx('action-icon')}>📋</span>
-            <span className={cx('action-text')}>Quản lý đơn hàng</span>
-          </button>
-          <button className={cx('action-btn', 'manage-users')}>
-            <span className={cx('action-icon')}>👤</span>
-            <span className={cx('action-text')}>Quản lý khách hàng</span>
-          </button>
-          <button className={cx('action-btn', 'reports')}>
-            <span className={cx('action-icon')}>📊</span>
-            <span className={cx('action-text')}>Xem báo cáo</span>
-          </button>
-        </div>
       </div>
     </div>
   );
