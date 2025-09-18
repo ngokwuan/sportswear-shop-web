@@ -1,13 +1,29 @@
 import slugify from 'slugify';
 import Products from '../models/products.model.js';
 import { filterFields } from '../utils/filterFields.js';
-import { Sequelize } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
+
 export const getProduct = async (req, res) => {
   try {
     const products = await Products.findAll();
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: 'Không lấy được sản phẩm' });
+  }
+};
+export const getProductTrash = async (req, res) => {
+  try {
+    const products = await Products.findAll({
+      where: {
+        deleted_at: {
+          [Op.ne]: null,
+        },
+      },
+      paranoid: false,
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Không lấy được sản phẩm đã xóa ' });
   }
 };
 export const getTrendingProduct = async (req, res) => {

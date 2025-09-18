@@ -1,0 +1,428 @@
+.products-trash {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #666;
+  }
+}
+
+.content-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.content-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+
+  &.trash-card {
+    min-height: 600px;
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+
+  .header-left {
+    .card-title {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .back {
+        color: white;
+        text-decoration: none;
+        font-size: 24px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: translateX(-2px);
+        }
+      }
+
+      .count {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    .empty-trash-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+.empty-trash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  color: #6b7280;
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    color: #374151;
+  }
+
+  p {
+    margin: 0;
+    font-size: 16px;
+  }
+}
+
+.bulk-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .select-info {
+    display: flex;
+    align-items: center;
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+
+      input[type='checkbox'] {
+        opacity: 0;
+        position: absolute;
+      }
+
+      .checkmark {
+        width: 18px;
+        height: 18px;
+        background: white;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        margin-right: 8px;
+        position: relative;
+        transition: all 0.2s ease;
+
+        &::after {
+          content: '';
+          position: absolute;
+          left: 5px;
+          top: 2px;
+          width: 6px;
+          height: 10px;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+      }
+
+      input[type='checkbox']:checked ~ .checkmark {
+        background: #667eea;
+        border-color: #667eea;
+
+        &::after {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  .selected-actions {
+    display: flex;
+    gap: 12px;
+
+    .bulk-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &.restore-btn {
+        background: #dcfce7;
+        color: #166534;
+
+        &:hover {
+          background: #bbf7d0;
+          transform: translateY(-1px);
+        }
+      }
+
+      &.delete-btn {
+        background: #fee2e2;
+        color: #dc2626;
+
+        &:hover {
+          background: #fecaca;
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
+}
+
+.products-table {
+  overflow-x: auto;
+  white-space: nowrap;
+  .table-header {
+    display: grid;
+    grid-template-columns: 15px 20px 80px 110px 90px 70px 70px 80px 100px 100px 100px;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    align-items: center;
+  }
+
+  .table-row {
+    display: grid;
+    grid-template-columns: 15px 20px 80px 110px 90px 70px 70px 80px 100px 100px 100px;
+    gap: 16px;
+    padding: 16px 24px;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #f8fafc;
+    }
+
+    &.selected {
+      background: #eff6ff;
+      border-color: #dbeafe;
+    }
+
+    .select-col {
+      display: flex;
+      justify-content: center;
+
+      .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+
+        input[type='checkbox'] {
+          opacity: 0;
+          position: absolute;
+        }
+
+        .checkmark {
+          width: 18px;
+          height: 18px;
+          background: white;
+          border: 2px solid #d1d5db;
+          border-radius: 4px;
+          position: relative;
+          transition: all 0.2s ease;
+
+          &::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+          }
+        }
+
+        input[type='checkbox']:checked ~ .checkmark {
+          background: #667eea;
+          border-color: #667eea;
+
+          &::after {
+            opacity: 1;
+          }
+        }
+      }
+    }
+  }
+
+  .product-id {
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+  }
+
+  .product-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .product-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    white-space: normal; /* Cho phép xuống dòng */
+    overflow: visible; /* Không ẩn chữ */
+    text-overflow: unset;
+
+    &:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
+  .product-category {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4b5563;
+  }
+
+  .product-price,
+  .product-sale-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #16a34a;
+  }
+
+  .product-sale-price {
+    color: #dc2626;
+  }
+
+  .product-stock {
+    font-size: 13px;
+    color: #374151;
+  }
+
+  .product-brand {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .product-deleted {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  .product-actions {
+    display: flex;
+    gap: 8px;
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+
+      &.restore-btn {
+        background: #dcfce7;
+        color: #166534;
+
+        &:hover {
+          background: #bbf7d0;
+          transform: translateY(-1px);
+        }
+      }
+
+      &.force-delete-btn {
+        background: #fee2e2;
+        color: #dc2626;
+
+        &:hover {
+          background: #fecaca;
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
+}
