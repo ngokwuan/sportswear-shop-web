@@ -17,6 +17,10 @@ import Profile from '../pages/ClientPage/Profile';
 import Dashboard from '../pages/AdminPages/DashBoard';
 import Users from '../pages/AdminPages/Users';
 import UserTrash from '../pages/AdminPages/Users/UserTrash';
+import Categories from '../pages/AdminPages/Categories';
+import CategoriesTrash from '../pages/AdminPages/Categories/CategoriesTrash';
+import ProductsAdmin from '../pages/AdminPages/Products';
+import ProductTrash from '../pages/AdminPages/Products/ProductsTrash';
 
 export const ClientRoutes = [
   { path: '/register', component: Register, layout: AuthLayout },
@@ -38,4 +42,8 @@ export const AdminRoutes = [
   { path: '/admin/dashboard', component: Dashboard },
   { path: '/admin/users', component: Users },
   { path: '/admin/users/trash', component: UserTrash },
+  { path: '/admin/categories', component: Categories },
+  { path: '/admin/categories/trash', component: CategoriesTrash },
+  { path: '/admin/products', component: ProductsAdmin },
+  { path: '/admin/products/trash', component: ProductTrash },
 ];

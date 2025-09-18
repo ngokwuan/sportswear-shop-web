@@ -9,11 +9,18 @@ router.get('/price', controller.getPriceProduct);
 router.get('/size', controller.getSizeProduct);
 router.get('/trending', controller.getTrendingProduct);
 router.get('/new', controller.getNewProduct);
-router.get('/:id', controller.getProductById);
+router.get('/trash', controller.getProductTrash);
+router.get(
+  '/:id',
+  checkUserJWT,
+  checkUserPermission(['admin']),
+  controller.getProductById
+);
 
 router.use(checkUserJWT, checkUserPermission(['admin']));
 
 router.post('/', controller.createProduct);
+
 router.patch('/:id', controller.updateProduct);
 router.delete('/:id', controller.softDeleteProduct);
 router.patch('/:id/restore', controller.restoreProduct);

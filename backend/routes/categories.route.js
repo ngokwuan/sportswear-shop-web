@@ -6,6 +6,7 @@ router.get('/', controller.getCategories);
 
 router.use(checkUserJWT, checkUserPermission(['admin']));
 
+router.get('/trash', controller.getCategoriesTrash);
 router.post('/', controller.createCategories);
 router.patch('/:id', controller.updateCategories);
 router.delete('/:id', controller.softDeleteCategories);
