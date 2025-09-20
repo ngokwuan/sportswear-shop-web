@@ -1,6 +1,7 @@
 import Categories from '../models/categories.model.js';
 import slugify from 'slugify';
 import { filterFields } from '../utils/filterFields.js';
+import { Op } from 'sequelize';
 
 export const getCategories = async (req, res) => {
   try {
@@ -10,7 +11,21 @@ export const getCategories = async (req, res) => {
     res.status(500).json({ error: 'Không lấy được danh mục ' });
   }
 };
-
+export const getCategoriesTrash = async (req, res) => {
+  try {
+    const categories = await Categories.findAll({
+      where: {
+        deleted_at: {
+          [Op.ne]: null,
+        },
+      },
+      paranoid: false,
+    });
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ error: 'Không lấy được danh mục đã xóa ' });
+  }
+};
 export const createCategories = async (req, res) => {
   try {
     const { name, description } = req.body;

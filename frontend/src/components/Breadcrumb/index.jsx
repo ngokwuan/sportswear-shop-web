@@ -1,4 +1,6 @@
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from '../../setup/axios';
 import classNames from 'classnames/bind';
 import styles from './Breadcrumb.module.scss';
 
@@ -6,28 +8,49 @@ const cx = classNames.bind(styles);
 
 function Breadcrumb() {
   const location = useLocation();
-  const pathnames = location.pathname.split('/').filter((x) => x);
+  const params = useParams();
+
+  let pathnames = location.pathname.split('/').filter((x) => x);
+
+  const formatPathname = (value) => {
+    // Nếu có dấu "_", cắt bỏ phần từ dấu "_" trở về sau (bao gồm cả dấu "_")
+    if (value.includes('_')) {
+      value = value.split('_')[0];
+    }
+
+    // Chuyển dấu gạch ngang thành khoảng trắng và viết hoa chữ cái đầu
+    return value
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   return (
-    <div className={cx('breadcrumb')}>
-      <Link to="/" className={cx('link')}>
+    <nav className={cx('breadcrumb')} aria-label="breadcrumb">
+      <Link to="/" className={cx('link', 'home')}>
         Home
       </Link>
       {pathnames.map((value, index) => {
         const to = `/${pathnames.slice(0, index + 1).join('/')}`;
         const isLast = index === pathnames.length - 1;
+        const displayName = formatPathname(value);
+
         return (
-          <span key={to}>
-            {' / '}
+          <span key={to} className={cx('breadcrumb-item')}>
+            <span className={cx('separator')}> / </span>
             {isLast ? (
-              <span className={cx('current')}>{value}</span>
+              <span className={cx('current')} aria-current="page">
+                {displayName}
+              </span>
             ) : (
-              <Link to={to}>{value}</Link>
+              <Link to={to} className={cx('link')}>
+                {displayName}
+              </Link>
             )}
           </span>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
