@@ -4,7 +4,8 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import axios from '../../../setup/axios';
 import styles from './Products.module.scss';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 const cx = classNames.bind(styles);
 
 function Products() {
@@ -76,7 +77,6 @@ function Products() {
   const handleCreateProduct = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     const requiredFields = [
       'name',
       'description',
@@ -217,110 +217,106 @@ function Products() {
   }
 
   return (
-    <div className={cx('products')}>
-      <div className={cx('content-grid')}>
-        <div className={cx('content-card', 'products-card')}>
-          <div className={cx('card-header')}>
-            <div className={cx('header-left')}>
-              <h2 className={cx('card-title')}>Danh sách sản phẩm</h2>
-              <p className={cx('subtitle')}>Quản lý sản phẩm trong hệ thống</p>
-            </div>
-
-            <div className={cx('header-actions')}>
-              <Link
-                to="/admin/products/trash"
-                className={cx('trash-link')}
-                title="Xem thùng rác"
-              >
-                🗑️ Thùng rác
-              </Link>
-              <button
-                className={cx('create-btn')}
-                onClick={() => setShowCreateModal(true)}
-              >
-                + Thêm sản phẩm
-              </button>
-            </div>
-          </div>
-
-          <div className={cx('products-table')}>
-            <div className={cx('table-header')}>
-              <span>ID</span>
-              <span>Hình ảnh</span>
-              <span>Tên sản phẩm</span>
-              <span>Danh mục</span>
-              <span>Giá</span>
-              <span>Giá KM</span>
-              <span>Số lượng</span>
-              <span>Thương hiệu</span>
-              <span>Ngày tạo</span>
-              <span>Thao tác</span>
-            </div>
-
-            {products.length === 0 ? (
-              <div className={cx('no-data')}>
-                <p>Không có sản phẩm nào</p>
-              </div>
-            ) : (
-              products.map((product) => (
-                <div key={product.id} className={cx('table-row')}>
-                  <span className={cx('product-id')}>#{product.id}</span>
-                  <div className={cx('product-image')}>
-                    <img
-                      src={product.featured_image}
-                      alt={product.name}
-                      onError={(e) => {
-                        e.target.src = '/placeholder-image.jpg';
-                      }}
-                    />
-                  </div>
-                  <span className={cx('product-name')} title={product.name}>
-                    {product.name?.length > 12
-                      ? `${product.name.substring(0, 12)}...`
-                      : product.name || 'Không có tên'}
-                  </span>
-                  <span className={cx('product-category')}>
-                    {getCategoryName(product.category_id).length > 10
-                      ? `${getCategoryName(product.category_id).substring(
-                          0,
-                          10
-                        )}...`
-                      : getCategoryName(product.category_id)}
-                  </span>
-                  <span className={cx('product-price')}>
-                    {formatPrice(product.price)}
-                  </span>
-                  <span className={cx('product-sale-price')}>
-                    {product.sale_price ? formatPrice(product.sale_price) : '-'}
-                  </span>
-                  <span className={cx('product-stock')}>
-                    {product.stock_quantity}
-                  </span>
-                  <span className={cx('product-brand')}>{product.brand}</span>
-                  <span className={cx('product-created')}>
-                    {formatDate(product.created_at)}
-                  </span>
-                  <div className={cx('product-actions')}>
-                    <button
-                      className={cx('action-btn', 'edit-btn')}
-                      onClick={() => handleEditProduct(product)}
-                      title="Chỉnh sửa"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className={cx('action-btn', 'delete-btn')}
-                      onClick={() => handleDeleteProduct(product.id)}
-                      title="Chuyển vào thùng rác"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+    <div className={cx('content-card', 'products-card')}>
+      <div className={cx('card-header')}>
+        <div className={cx('header-left')}>
+          <h2 className={cx('card-title')}>Danh sách sản phẩm</h2>
+          <p className={cx('subtitle')}>Quản lý sản phẩm trong hệ thống</p>
         </div>
+
+        <div className={cx('header-actions')}>
+          <Link
+            to="/admin/products/trash"
+            className={cx('trash-link')}
+            title="Xem thùng rác"
+          >
+            🗑️ Thùng rác
+          </Link>
+          <button
+            className={cx('create-btn')}
+            onClick={() => setShowCreateModal(true)}
+          >
+            + Thêm sản phẩm
+          </button>
+        </div>
+      </div>
+
+      <div className={cx('products-table')}>
+        <div className={cx('table-header')}>
+          <span>ID</span>
+          <span>Hình ảnh</span>
+          <span>Tên sản phẩm</span>
+          <span>Danh mục</span>
+          <span>Giá</span>
+          <span>Giá KM</span>
+          <span>Số lượng</span>
+          <span>Thương hiệu</span>
+          <span>Ngày tạo</span>
+          <span>Thao tác</span>
+        </div>
+
+        {products.length === 0 ? (
+          <div className={cx('no-data')}>
+            <p>Không có sản phẩm nào</p>
+          </div>
+        ) : (
+          products.map((product) => (
+            <div key={product.id} className={cx('table-row')}>
+              <span className={cx('product-id')}>#{product.id}</span>
+              <div className={cx('product-image')}>
+                <img
+                  src={product.featured_image}
+                  alt={product.name}
+                  onError={(e) => {
+                    e.target.src = '/placeholder-image.jpg';
+                  }}
+                />
+              </div>
+              <span className={cx('product-name')} title={product.name}>
+                {product.name?.length > 12
+                  ? `${product.name.substring(0, 12)}...`
+                  : product.name || 'Không có tên'}
+              </span>
+              <span className={cx('product-category')}>
+                {getCategoryName(product.category_id).length > 10
+                  ? `${getCategoryName(product.category_id).substring(
+                      0,
+                      10
+                    )}...`
+                  : getCategoryName(product.category_id)}
+              </span>
+              <span className={cx('product-price')}>
+                {formatPrice(product.price)}
+              </span>
+              <span className={cx('product-sale-price')}>
+                {product.sale_price ? formatPrice(product.sale_price) : '-'}
+              </span>
+              <span className={cx('product-stock')}>
+                {product.stock_quantity}
+              </span>
+              <span className={cx('product-brand')}>{product.brand}</span>
+              <span className={cx('product-created')}>
+                {formatDate(product.created_at)}
+              </span>
+              <div className={cx('product-actions')}>
+                <button
+                  className={cx('action-btn', 'edit-btn')}
+                  onClick={() => handleEditProduct(product)}
+                  title="Chỉnh sửa"
+                >
+                  <FontAwesomeIcon icon={faEdit}></FontAwesomeIcon>
+                </button>
+                <button
+                  className={cx('action-btn', 'delete-btn')}
+                  onClick={() => handleDeleteProduct(product.id)}
+                  title="Chuyển vào thùng rác"
+                >
+                  <FontAwesomeIcon icon={faTrash}></FontAwesomeIcon>
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Create Product Modal */}

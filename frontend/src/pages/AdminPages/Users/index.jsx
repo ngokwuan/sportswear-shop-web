@@ -4,7 +4,8 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import axios from '../../../setup/axios';
 import styles from './Users.module.scss';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 const cx = classNames.bind(styles);
 
 function Users() {
@@ -19,7 +20,6 @@ function Users() {
     phone: '',
   });
 
-  // Fetch users from API
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -57,24 +57,20 @@ function Users() {
       const response = await axios.post('/users', newUser);
 
       if (response.data.user) {
-        // Add new user to the list
         setUsers((prevUsers) => [...prevUsers, response.data.user]);
         toast.success('Thêm người dùng thành công!');
-
-        // Reset form and close modal
         setNewUser({ fullName: '', email: '', password: '', phone: '' });
         setShowCreateModal(false);
       }
     } catch (error) {
       console.error('Error creating user:', error);
-      // Error đã được handle trong axios interceptor
     }
   };
 
   const handleEditUser = (user) => {
     setEditingUser({
       ...user,
-      name: user.name || '', // Ensure name field exists
+      name: user.name || '',
       phone: user.phone || '',
       address: user.address || '',
     });
@@ -101,7 +97,6 @@ function Users() {
       );
 
       if (response.data.user) {
-        // Update user in the list
         setUsers((prevUsers) =>
           prevUsers.map((user) =>
             user.id === editingUser.id ? response.data.user : user
@@ -113,7 +108,6 @@ function Users() {
       }
     } catch (error) {
       console.error('Error updating user:', error);
-      // Error đã được handle trong axios interceptor
     }
   };
 
@@ -124,12 +118,10 @@ function Users() {
       try {
         await axios.delete(`/users/${userId}`);
 
-        // Remove user from the list
         setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
         toast.success('Đã chuyển người dùng vào thùng rác!');
       } catch (error) {
         console.error('Error deleting user:', error);
-        // Error đã được handle trong axios interceptor
       }
     }
   };
@@ -143,90 +135,86 @@ function Users() {
   }
 
   return (
-    <div className={cx('users')}>
-      {/* Users Management */}
-      <div className={cx('content-grid')}>
-        <div className={cx('content-card', 'users-card')}>
-          <div className={cx('card-header')}>
-            <div className={cx('header-left')}>
-              <h2 className={cx('card-title')}>Danh sách người dùng</h2>
-              <p className={cx('subtitle')}>
-                Quản lý tài khoản người dùng trong hệ thống
-              </p>
-            </div>
-
-            <div className={cx('header-actions')}>
-              <Link
-                to="/admin/users/trash"
-                className={cx('trash-link')}
-                title="Xem thùng rác"
-              >
-                🗑️ Thùng rác
-              </Link>
-              <button
-                className={cx('create-btn')}
-                onClick={() => setShowCreateModal(true)}
-              >
-                + Thêm người dùng
-              </button>
-            </div>
-          </div>
-
-          <div className={cx('users-table')}>
-            <div className={cx('table-header')}>
-              <span>ID</span>
-              <span>Tên</span>
-              <span>Email</span>
-              <span>Điện thoại</span>
-              <span>Vai trò</span>
-              <span>Ngày tạo</span>
-              <span>Thao tác</span>
-            </div>
-
-            {users.length === 0 ? (
-              <div className={cx('no-data')}>
-                <p>Không có người dùng nào</p>
-              </div>
-            ) : (
-              users.map((user) => (
-                <div key={user.id} className={cx('table-row')}>
-                  <span className={cx('user-id')}>#{user.id}</span>
-                  <span className={cx('user-name')}>{user.name}</span>
-                  <span className={cx('user-email')}>{user.email}</span>
-                  <span className={cx('user-phone')}>
-                    {user.phone || 'Chưa có'}
-                  </span>
-                  <span className={cx('user-role')}>
-                    <span
-                      className={cx('role-badge', getRoleBadgeClass(user.role))}
-                    >
-                      {user.role}
-                    </span>
-                  </span>
-                  <span className={cx('user-created')}>
-                    {formatDate(user.created_at)}
-                  </span>
-                  <div className={cx('user-actions')}>
-                    <button
-                      className={cx('action-btn', 'edit-btn')}
-                      onClick={() => handleEditUser(user)}
-                      title="Chỉnh sửa"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className={cx('action-btn', 'delete-btn')}
-                      onClick={() => handleDeleteUser(user.id)}
-                      title="Chuyển vào thùng rác"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+    <div className={cx('content-card', 'users-card')}>
+      <div className={cx('card-header')}>
+        <div className={cx('header-left')}>
+          <h2 className={cx('card-title')}>Danh sách người dùng</h2>
+          <p className={cx('subtitle')}>
+            Quản lý tài khoản người dùng trong hệ thống
+          </p>
         </div>
+
+        <div className={cx('header-actions')}>
+          <Link
+            to="/admin/users/trash"
+            className={cx('trash-link')}
+            title="Xem thùng rác"
+          >
+            <FontAwesomeIcon icon={faTrash}></FontAwesomeIcon>
+            Thùng rác
+          </Link>
+          <button
+            className={cx('create-btn')}
+            onClick={() => setShowCreateModal(true)}
+          >
+            + Thêm người dùng
+          </button>
+        </div>
+      </div>
+
+      <div className={cx('users-table')}>
+        <div className={cx('table-header')}>
+          <span>ID</span>
+          <span>Tên</span>
+          <span>Email</span>
+          <span>Điện thoại</span>
+          <span>Vai trò</span>
+          <span>Ngày tạo</span>
+          <span>Thao tác</span>
+        </div>
+
+        {users.length === 0 ? (
+          <div className={cx('no-data')}>
+            <p>Không có người dùng nào</p>
+          </div>
+        ) : (
+          users.map((user) => (
+            <div key={user.id} className={cx('table-row')}>
+              <span className={cx('user-id')}>#{user.id}</span>
+              <span className={cx('user-name')}>{user.name}</span>
+              <span className={cx('user-email')}>{user.email}</span>
+              <span className={cx('user-phone')}>
+                {user.phone || 'Chưa có'}
+              </span>
+              <span className={cx('user-role')}>
+                <span
+                  className={cx('role-badge', getRoleBadgeClass(user.role))}
+                >
+                  {user.role}
+                </span>
+              </span>
+              <span className={cx('user-created')}>
+                {formatDate(user.created_at)}
+              </span>
+              <div className={cx('user-actions')}>
+                <button
+                  className={cx('action-btn', 'edit-btn')}
+                  onClick={() => handleEditUser(user)}
+                  title="Chỉnh sửa"
+                >
+                  <FontAwesomeIcon icon={faEdit}></FontAwesomeIcon>
+                </button>
+                <button
+                  className={cx('action-btn', 'delete-btn')}
+                  onClick={() => handleDeleteUser(user.id)}
+                  title="Chuyển vào thùng rác"
+                >
+                  <FontAwesomeIcon icon={faTrash}></FontAwesomeIcon>
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Create User Modal */}

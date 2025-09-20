@@ -1,32 +1,17 @@
-.user-trash {
-  padding: 20px;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-
-  .loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 400px;
-    font-size: 18px;
-    color: #666;
-  }
-}
-
-.content-grid {
-  max-width: 1200px;
-  margin: 0 auto;
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 18px;
+  color: #666;
 }
 
 .content-card {
   background: white;
-  border-radius: 12px;
+
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   overflow: hidden;
-
-  &.trash-card {
-    border-top: 4px solid #ff6b6b;
-  }
 }
 
 .card-header {
@@ -146,7 +131,7 @@
     width: 18px;
     background-color: white;
     border: 2px solid #ddd;
-    border-radius: 3px;
+
     transition: all 0.2s;
 
     &::after {
@@ -169,7 +154,7 @@
 .bulk-btn {
   padding: 8px 16px;
   border: none;
-  border-radius: 6px;
+
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -222,7 +207,7 @@
 .users-table {
   .table-header {
     display: grid;
-    grid-template-columns: 50px 80px 1fr 1fr 120px 100px 140px 120px;
+    grid-template-columns: 20px 20px 1fr 1fr 120px 100px 120px 120px;
     gap: 12px;
     padding: 16px 24px;
     background: #f8f9fa;
@@ -234,7 +219,7 @@
 
   .table-row {
     display: grid;
-    grid-template-columns: 50px 80px 1fr 1fr 120px 100px 140px 120px;
+    grid-template-columns: 20px 20px 1fr 1fr 120px 100px 120px 120px;
     gap: 12px;
     padding: 16px 24px;
     border-bottom: 1px solid #f0f0f0;
@@ -284,7 +269,7 @@
   .user-role {
     .role-badge {
       padding: 4px 8px;
-      border-radius: 12px;
+
       font-size: 12px;
       font-weight: 500;
       text-transform: capitalize;
@@ -389,7 +374,7 @@
       display: block;
       padding: 16px;
       border: 1px solid #eee;
-      border-radius: 8px;
+
       margin-bottom: 12px;
       background: white;
 

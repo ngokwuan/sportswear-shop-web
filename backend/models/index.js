@@ -5,6 +5,7 @@ import Cart from './cart.model.js';
 import Order from './orders.model.js';
 import OrderItem from './order-items.model.js';
 import Review from './reviews.model.js';
+import Blog from './blogs.model.js';
 
 // User associations
 User.hasMany(Cart, { foreignKey: 'user_id', as: 'cartItems' });
@@ -36,4 +37,23 @@ OrderItem.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 Review.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 Review.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
-export { User, Category, Product, Cart, Order, OrderItem, Review };
+User.hasMany(Blog, {
+  foreignKey: 'author_id',
+  as: 'blogs',
+});
+
+Blog.belongsTo(User, {
+  foreignKey: 'author_id',
+  as: 'author',
+});
+
+Category.hasMany(Blog, {
+  foreignKey: 'category_id',
+  as: 'blogs',
+});
+
+Blog.belongsTo(Category, {
+  foreignKey: 'category_id',
+  as: 'category',
+});
+export { User, Category, Product, Cart, Order, OrderItem, Review, Blog };

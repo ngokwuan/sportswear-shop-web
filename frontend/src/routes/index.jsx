@@ -2,7 +2,7 @@
 import AuthLayout from '../layouts/AuthLayout';
 import Home from '../pages/ClientPage/Home';
 import Products from '../pages/ClientPage/Products';
-import Blogs from '../pages/ClientPage/Blogs';
+// import Blogs from '../pages/ClientPage/Blogs';
 import Checkout from '../pages/ClientPage/Checkout';
 import Cart from '../pages/ClientPage/Cart';
 import Contact from '../pages/ClientPage/Contact';
@@ -14,14 +14,16 @@ import OrderDetail from '../pages/ClientPage/OrderDetail';
 import Orders from '../pages/ClientPage/Orders';
 import Profile from '../pages/ClientPage/Profile';
 //Admin
-import Dashboard from '../pages/AdminPages/DashBoard';
+import Dashboard from '../pages/AdminPages/Dashboard';
 import Users from '../pages/AdminPages/Users';
 import UserTrash from '../pages/AdminPages/Users/UserTrash';
 import Categories from '../pages/AdminPages/Categories';
 import CategoriesTrash from '../pages/AdminPages/Categories/CategoriesTrash';
 import ProductsAdmin from '../pages/AdminPages/Products';
 import ProductTrash from '../pages/AdminPages/Products/ProductsTrash';
-
+import OrdersAdmin from '../pages/AdminPages/Orders';
+import Blogs from '../pages/AdminPages/Blogs';
+import BlogsTrash from '../pages/AdminPages/Blogs/BlogTrash';
 export const ClientRoutes = [
   { path: '/register', component: Register, layout: AuthLayout },
   { path: '/login', component: Login, layout: AuthLayout },
@@ -46,4 +48,7 @@ export const AdminRoutes = [
   { path: '/admin/categories/trash', component: CategoriesTrash },
   { path: '/admin/products', component: ProductsAdmin },
   { path: '/admin/products/trash', component: ProductTrash },
+  { path: '/admin/orders', component: OrdersAdmin },
+  { path: '/admin/blogs', component: Blogs },
+  { path: '/admin/blogs/trash', component: BlogsTrash },
 ];

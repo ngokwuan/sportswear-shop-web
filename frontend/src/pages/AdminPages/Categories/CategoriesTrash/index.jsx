@@ -4,6 +4,13 @@ import { toast } from 'react-toastify';
 import axios from '../../../../setup/axios';
 import styles from './CategoriesTrash.module.scss';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBroom,
+  faTrashCan,
+  faTrashRestore,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
 
@@ -204,151 +211,148 @@ function CategoriesTrash() {
 
   if (loading) {
     return (
-      <div className={cx('categories-trash')}>
+      <div className={cx('content-card')}>
         <div className={cx('loading')}>Đang tải...</div>
       </div>
     );
   }
 
   return (
-    <div className={cx('categories-trash')}>
-      <div className={cx('content-grid')}>
-        <div className={cx('content-card', 'trash-card')}>
-          <div className={cx('card-header')}>
-            <div className={cx('header-left')}>
-              <h2 className={cx('card-title')}>
-                <Link to="/admin/categories" className={cx('back')}>
-                  {'<'}
-                </Link>
-                Thùng rác danh mục
-                <span className={cx('count')}>
-                  ({trashedCategories.length})
-                </span>
-              </h2>
-              <p className={cx('subtitle')}>
-                Quản lý các danh mục đã bị xóa mềm
-              </p>
+    <div className={cx('content-card', 'trash-card')}>
+      <div className={cx('card-header')}>
+        <div className={cx('header-left')}>
+          <h2 className={cx('card-title')}>
+            <Link to="/admin/categories" className={cx('back')}>
+              {'<'}
+            </Link>
+            Thùng rác danh mục
+            <span className={cx('count')}>({trashedCategories.length})</span>
+          </h2>
+          <p className={cx('subtitle')}>Quản lý các danh mục đã bị xóa mềm</p>
+        </div>
+
+        {trashedCategories.length > 0 && (
+          <div className={cx('header-actions')}>
+            <button
+              className={cx('action-btn', 'empty-trash-btn')}
+              onClick={handleEmptyTrash}
+              title="Dọn sạch thùng rác"
+            >
+              <FontAwesomeIcon icon={faBroom} />
+              Dọn sạch thùng rác
+            </button>
+          </div>
+        )}
+      </div>
+
+      {trashedCategories.length === 0 ? (
+        <div className={cx('empty-trash')}>
+          <div className={cx('empty-icon')}>
+            <FontAwesomeIcon icon={faTrashCan} />
+          </div>
+          <h3>Thùng rác trống</h3>
+          <p>Không có danh mục nào trong thùng rác</p>
+        </div>
+      ) : (
+        <>
+          {/* Bulk Actions */}
+          <div className={cx('bulk-actions')}>
+            <div className={cx('select-info')}>
+              <label className={cx('checkbox-wrapper')}>
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
+                <span className={cx('checkmark')}></span>
+                Chọn tất cả ({selectedCategories.length}/
+                {trashedCategories.length})
+              </label>
             </div>
 
-            {trashedCategories.length > 0 && (
-              <div className={cx('header-actions')}>
+            {selectedCategories.length > 0 && (
+              <div className={cx('selected-actions')}>
                 <button
-                  className={cx('action-btn', 'empty-trash-btn')}
-                  onClick={handleEmptyTrash}
-                  title="Dọn sạch thùng rác"
+                  className={cx('bulk-btn', 'restore-btn')}
+                  onClick={handleRestoreSelected}
                 >
-                  🧹 Dọn sạch thùng rác
+                  <FontAwesomeIcon icon={faTrashRestore} /> Khôi phục (
+                  {selectedCategories.length})
+                </button>
+                <button
+                  className={cx('bulk-btn', 'delete-btn')}
+                  onClick={handleForceDeleteSelected}
+                >
+                  <FontAwesomeIcon icon={faXmark} /> Xóa vĩnh viễn (
+                  {selectedCategories.length})
                 </button>
               </div>
             )}
           </div>
 
-          {trashedCategories.length === 0 ? (
-            <div className={cx('empty-trash')}>
-              <div className={cx('empty-icon')}>🗑️</div>
-              <h3>Thùng rác trống</h3>
-              <p>Không có danh mục nào trong thùng rác</p>
+          {/* Categories Table */}
+          <div className={cx('categories-table')}>
+            <div className={cx('table-header')}>
+              <span className={cx('select-col')}></span>
+              <span>ID</span>
+              <span>Tên danh mục</span>
+              <span>Slug</span>
+              <span>Mô tả</span>
+              <span>Ngày xóa</span>
+              <span>Thao tác</span>
             </div>
-          ) : (
-            <>
-              {/* Bulk Actions */}
-              <div className={cx('bulk-actions')}>
-                <div className={cx('select-info')}>
+
+            {trashedCategories.map((category) => (
+              <div
+                key={category.id}
+                className={cx('table-row', {
+                  selected: selectedCategories.includes(category.id),
+                })}
+              >
+                <div className={cx('select-col')}>
                   <label className={cx('checkbox-wrapper')}>
                     <input
                       type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAll}
+                      checked={selectedCategories.includes(category.id)}
+                      onChange={() => handleSelectCategory(category.id)}
                     />
                     <span className={cx('checkmark')}></span>
-                    Chọn tất cả ({selectedCategories.length}/
-                    {trashedCategories.length})
                   </label>
                 </div>
 
-                {selectedCategories.length > 0 && (
-                  <div className={cx('selected-actions')}>
-                    <button
-                      className={cx('bulk-btn', 'restore-btn')}
-                      onClick={handleRestoreSelected}
-                    >
-                      🔄 Khôi phục ({selectedCategories.length})
-                    </button>
-                    <button
-                      className={cx('bulk-btn', 'delete-btn')}
-                      onClick={handleForceDeleteSelected}
-                    >
-                      ❌ Xóa vĩnh viễn ({selectedCategories.length})
-                    </button>
-                  </div>
-                )}
-              </div>
+                <span className={cx('category-id')}>#{category.id}</span>
+                <span className={cx('category-name')}>{category.name}</span>
+                <span className={cx('category-slug')}>{category.slug}</span>
+                <span className={cx('category-description')}>
+                  {category.description.length > 50
+                    ? `${category.description.substring(0, 50)}...`
+                    : category.description}
+                </span>
+                <span className={cx('category-deleted')}>
+                  {formatDate(category.deleted_at)}
+                </span>
 
-              {/* Categories Table */}
-              <div className={cx('categories-table')}>
-                <div className={cx('table-header')}>
-                  <span className={cx('select-col')}></span>
-                  <span>ID</span>
-                  <span>Tên danh mục</span>
-                  <span>Slug</span>
-                  <span>Mô tả</span>
-                  <span>Ngày xóa</span>
-                  <span>Thao tác</span>
-                </div>
-
-                {trashedCategories.map((category) => (
-                  <div
-                    key={category.id}
-                    className={cx('table-row', {
-                      selected: selectedCategories.includes(category.id),
-                    })}
+                <div className={cx('category-actions')}>
+                  <button
+                    className={cx('action-btn', 'restore-btn')}
+                    onClick={() => handleRestoreCategory(category.id)}
+                    title="Khôi phục danh mục"
                   >
-                    <div className={cx('select-col')}>
-                      <label className={cx('checkbox-wrapper')}>
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category.id)}
-                          onChange={() => handleSelectCategory(category.id)}
-                        />
-                        <span className={cx('checkmark')}></span>
-                      </label>
-                    </div>
-
-                    <span className={cx('category-id')}>#{category.id}</span>
-                    <span className={cx('category-name')}>{category.name}</span>
-                    <span className={cx('category-slug')}>{category.slug}</span>
-                    <span className={cx('category-description')}>
-                      {category.description.length > 50
-                        ? `${category.description.substring(0, 50)}...`
-                        : category.description}
-                    </span>
-                    <span className={cx('category-deleted')}>
-                      {formatDate(category.deleted_at)}
-                    </span>
-
-                    <div className={cx('category-actions')}>
-                      <button
-                        className={cx('action-btn', 'restore-btn')}
-                        onClick={() => handleRestoreCategory(category.id)}
-                        title="Khôi phục danh mục"
-                      >
-                        🔄
-                      </button>
-                      <button
-                        className={cx('action-btn', 'force-delete-btn')}
-                        onClick={() => handleForceDeleteCategory(category.id)}
-                        title="Xóa vĩnh viễn"
-                      >
-                        ❌
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                    <FontAwesomeIcon icon={faTrashRestore} />
+                  </button>
+                  <button
+                    className={cx('action-btn', 'force-delete-btn')}
+                    onClick={() => handleForceDeleteCategory(category.id)}
+                    title="Xóa vĩnh viễn"
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                </div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

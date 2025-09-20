@@ -4,6 +4,8 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import axios from '../../../setup/axios';
 import styles from './Categories.module.scss';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
 
@@ -135,91 +137,87 @@ function Categories() {
 
   if (loading) {
     return (
-      <div className={cx('categories')}>
+      <div className={cx('content-card')}>
         <div className={cx('loading')}>Đang tải...</div>
       </div>
     );
   }
 
   return (
-    <div className={cx('categories')}>
-      {/* Categories Management */}
-      <div className={cx('content-grid')}>
-        <div className={cx('content-card', 'categories-card')}>
-          <div className={cx('card-header')}>
-            <div className={cx('header-left')}>
-              <h2 className={cx('card-title')}>Danh sách danh mục</h2>
-              <p className={cx('subtitle')}>
-                Quản lý danh mục sản phẩm trong hệ thống
-              </p>
-            </div>
-
-            <div className={cx('header-actions')}>
-              <Link
-                to="/admin/categories/trash"
-                className={cx('trash-link')}
-                title="Xem thùng rác"
-              >
-                🗑️ Thùng rác
-              </Link>
-              <button
-                className={cx('create-btn')}
-                onClick={() => setShowCreateModal(true)}
-              >
-                + Thêm danh mục
-              </button>
-            </div>
-          </div>
-
-          <div className={cx('categories-table')}>
-            <div className={cx('table-header')}>
-              <span>ID</span>
-              <span>Tên danh mục</span>
-              <span>Slug</span>
-              <span>Mô tả</span>
-              <span>Ngày tạo</span>
-              <span>Thao tác</span>
-            </div>
-
-            {categories.length === 0 ? (
-              <div className={cx('no-data')}>
-                <p>Không có danh mục nào</p>
-              </div>
-            ) : (
-              categories.map((category) => (
-                <div key={category.id} className={cx('table-row')}>
-                  <span className={cx('category-id')}>#{category.id}</span>
-                  <span className={cx('category-name')}>{category.name}</span>
-                  <span className={cx('category-slug')}>{category.slug}</span>
-                  <span className={cx('category-description')}>
-                    {category.description.length > 50
-                      ? `${category.description.substring(0, 50)}...`
-                      : category.description}
-                  </span>
-                  <span className={cx('category-created')}>
-                    {formatDate(category.created_at)}
-                  </span>
-                  <div className={cx('category-actions')}>
-                    <button
-                      className={cx('action-btn', 'edit-btn')}
-                      onClick={() => handleEditCategory(category)}
-                      title="Chỉnh sửa"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className={cx('action-btn', 'delete-btn')}
-                      onClick={() => handleDeleteCategory(category.id)}
-                      title="Chuyển vào thùng rác"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+    <div className={cx('content-card', 'categories-card')}>
+      <div className={cx('card-header')}>
+        <div className={cx('header-left')}>
+          <h2 className={cx('card-title')}>Danh sách danh mục</h2>
+          <p className={cx('subtitle')}>
+            Quản lý danh mục sản phẩm trong hệ thống
+          </p>
         </div>
+
+        <div className={cx('header-actions')}>
+          <Link
+            to="/admin/categories/trash"
+            className={cx('trash-link')}
+            title="Xem thùng rác"
+          >
+            <FontAwesomeIcon icon={faTrash} />
+            Thùng rác
+          </Link>
+          <button
+            className={cx('create-btn')}
+            onClick={() => setShowCreateModal(true)}
+          >
+            + Thêm danh mục
+          </button>
+        </div>
+      </div>
+
+      <div className={cx('categories-table')}>
+        <div className={cx('table-header')}>
+          <span>ID</span>
+          <span>Tên danh mục</span>
+          <span>Slug</span>
+          <span>Mô tả</span>
+          <span>Ngày tạo</span>
+          <span>Thao tác</span>
+        </div>
+
+        {categories.length === 0 ? (
+          <div className={cx('no-data')}>
+            <p>Không có danh mục nào</p>
+          </div>
+        ) : (
+          categories.map((category) => (
+            <div key={category.id} className={cx('table-row')}>
+              <span className={cx('category-id')}>#{category.id}</span>
+              <span className={cx('category-name')}>{category.name}</span>
+              <span className={cx('category-slug')}>{category.slug}</span>
+              <span className={cx('category-description')}>
+                {category.description.length > 50
+                  ? `${category.description.substring(0, 50)}...`
+                  : category.description}
+              </span>
+              <span className={cx('category-created')}>
+                {formatDate(category.created_at)}
+              </span>
+              <div className={cx('category-actions')}>
+                <button
+                  className={cx('action-btn', 'edit-btn')}
+                  onClick={() => handleEditCategory(category)}
+                  title="Chỉnh sửa"
+                >
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>
+                <button
+                  className={cx('action-btn', 'delete-btn')}
+                  onClick={() => handleDeleteCategory(category.id)}
+                  title="Chuyển vào thùng rác"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Create Category Modal */}

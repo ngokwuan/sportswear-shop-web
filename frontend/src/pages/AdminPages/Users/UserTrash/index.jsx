@@ -4,7 +4,13 @@ import { toast } from 'react-toastify';
 import axios from '../../../../setup/axios';
 import styles from './UserTrash.module.scss';
 import { Link } from 'react-router-dom';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBroom,
+  faTrashCan,
+  faTrashRestore,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
 const cx = classNames.bind(styles);
 
 function UserTrash() {
@@ -13,7 +19,6 @@ function UserTrash() {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
 
-  // Fetch trashed users from API
   const fetchTrashedUsers = async () => {
     try {
       setLoading(true);
@@ -45,7 +50,6 @@ function UserTrash() {
     return role === 'admin' ? 'admin-badge' : 'customer-badge';
   };
 
-  // Handle single user selection
   const handleSelectUser = (userId) => {
     setSelectedUsers((prev) => {
       if (prev.includes(userId)) {
@@ -56,7 +60,6 @@ function UserTrash() {
     });
   };
 
-  // Handle select all users
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedUsers([]);
@@ -66,19 +69,16 @@ function UserTrash() {
     setSelectAll(!selectAll);
   };
 
-  // Update selectAll state when selectedUsers changes
   useEffect(() => {
     setSelectAll(
       selectedUsers.length === trashedUsers.length && trashedUsers.length > 0
     );
   }, [selectedUsers, trashedUsers]);
 
-  // Restore single user
   const handleRestoreUser = async (userId) => {
     try {
       await axios.patch(`/users/${userId}/restore`);
       toast.success('Khôi phục người dùng thành công!');
-      // Remove restored user from trash list
       setTrashedUsers((prev) => prev.filter((user) => user.id !== userId));
       setSelectedUsers((prev) => prev.filter((id) => id !== userId));
     } catch (error) {
@@ -87,7 +87,6 @@ function UserTrash() {
     }
   };
 
-  // Force delete single user
   const handleForceDeleteUser = async (userId) => {
     if (
       window.confirm(
@@ -97,7 +96,6 @@ function UserTrash() {
       try {
         await axios.delete(`/users/${userId}/force`);
         toast.success('Xóa vĩnh viễn người dùng thành công!');
-        // Remove deleted user from trash list
         setTrashedUsers((prev) => prev.filter((user) => user.id !== userId));
         setSelectedUsers((prev) => prev.filter((id) => id !== userId));
       } catch (error) {
@@ -106,8 +104,6 @@ function UserTrash() {
       }
     }
   };
-
-  // Restore multiple selected users
   const handleRestoreSelected = async () => {
     if (selectedUsers.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một người dùng');
@@ -126,7 +122,6 @@ function UserTrash() {
         toast.success(
           `Khôi phục ${selectedUsers.length} người dùng thành công!`
         );
-        // Remove restored users from trash list
         setTrashedUsers((prev) =>
           prev.filter((user) => !selectedUsers.includes(user.id))
         );
@@ -138,7 +133,6 @@ function UserTrash() {
     }
   };
 
-  // Force delete multiple selected users
   const handleForceDeleteSelected = async () => {
     if (selectedUsers.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một người dùng');
@@ -157,7 +151,6 @@ function UserTrash() {
         toast.success(
           `Xóa vĩnh viễn ${selectedUsers.length} người dùng thành công!`
         );
-        // Remove deleted users from trash list
         setTrashedUsers((prev) =>
           prev.filter((user) => !selectedUsers.includes(user.id))
         );
@@ -169,7 +162,6 @@ function UserTrash() {
     }
   };
 
-  // Empty entire trash
   const handleEmptyTrash = async () => {
     if (trashedUsers.length === 0) {
       toast.warning('Thùng rác đã trống');
@@ -204,150 +196,144 @@ function UserTrash() {
   }
 
   return (
-    <div className={cx('user-trash')}>
-      <div className={cx('content-grid')}>
-        <div className={cx('content-card', 'trash-card')}>
-          <div className={cx('card-header')}>
-            <div className={cx('header-left')}>
-              <h2 className={cx('card-title')}>
-                <Link to="/admin/users" className={cx('back')}>
-                  {'<'}
-                </Link>
-                Thùng rác người dùng
-                <span className={cx('count')}>({trashedUsers.length})</span>
-              </h2>
-              <p className={cx('subtitle')}>
-                Quản lý các người dùng đã bị xóa mềm
-              </p>
+    <div className={cx('content-card', 'trash-card')}>
+      <div className={cx('card-header')}>
+        <div className={cx('header-left')}>
+          <h2 className={cx('card-title')}>
+            <Link to="/admin/users" className={cx('back')}>
+              {'<'}
+            </Link>
+            Thùng rác người dùng
+            <span className={cx('count')}>({trashedUsers.length})</span>
+          </h2>
+          <p className={cx('subtitle')}>Quản lý các người dùng đã bị xóa mềm</p>
+        </div>
+
+        {trashedUsers.length > 0 && (
+          <div className={cx('header-actions')}>
+            <button
+              className={cx('action-btn', 'empty-trash-btn')}
+              onClick={handleEmptyTrash}
+              title="Dọn sạch thùng rác"
+            >
+              <FontAwesomeIcon icon={faBroom}></FontAwesomeIcon>
+              Dọn sạch thùng rác
+            </button>
+          </div>
+        )}
+      </div>
+
+      {trashedUsers.length === 0 ? (
+        <div className={cx('empty-trash')}>
+          <div className={cx('empty-icon')}>
+            <FontAwesomeIcon icon={faTrashCan}></FontAwesomeIcon>
+          </div>
+          <h3>Thùng rác trống</h3>
+          <p>Không có người dùng nào trong thùng rác</p>
+        </div>
+      ) : (
+        <>
+          {/* Bulk Actions */}
+          <div className={cx('bulk-actions')}>
+            <div className={cx('select-info')}>
+              <label className={cx('checkbox-wrapper')}>
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
+                <span className={cx('checkmark')}></span>
+                Chọn tất cả ({selectedUsers.length}/{trashedUsers.length})
+              </label>
             </div>
 
-            {trashedUsers.length > 0 && (
-              <div className={cx('header-actions')}>
+            {selectedUsers.length > 0 && (
+              <div className={cx('selected-actions')}>
                 <button
-                  className={cx('action-btn', 'empty-trash-btn')}
-                  onClick={handleEmptyTrash}
-                  title="Dọn sạch thùng rác"
+                  className={cx('bulk-btn', 'restore-btn')}
+                  onClick={handleRestoreSelected}
                 >
-                  🧹 Dọn sạch thùng rác
+                  🔄 Khôi phục ({selectedUsers.length})
+                </button>
+                <button
+                  className={cx('bulk-btn', 'delete-btn')}
+                  onClick={handleForceDeleteSelected}
+                >
+                  Xóa vĩnh viễn ({selectedUsers.length})
                 </button>
               </div>
             )}
           </div>
 
-          {trashedUsers.length === 0 ? (
-            <div className={cx('empty-trash')}>
-              <div className={cx('empty-icon')}>🗑️</div>
-              <h3>Thùng rác trống</h3>
-              <p>Không có người dùng nào trong thùng rác</p>
+          {/* Users Table */}
+          <div className={cx('users-table')}>
+            <div className={cx('table-header')}>
+              <span className={cx('select-col')}></span>
+              <span>ID</span>
+              <span>Tên</span>
+              <span>Email</span>
+              <span>Điện thoại</span>
+              <span>Vai trò</span>
+              <span>Ngày xóa</span>
+              <span>Thao tác</span>
             </div>
-          ) : (
-            <>
-              {/* Bulk Actions */}
-              <div className={cx('bulk-actions')}>
-                <div className={cx('select-info')}>
+
+            {trashedUsers.map((user) => (
+              <div
+                key={user.id}
+                className={cx('table-row', {
+                  selected: selectedUsers.includes(user.id),
+                })}
+              >
+                <div className={cx('select-col')}>
                   <label className={cx('checkbox-wrapper')}>
                     <input
                       type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAll}
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={() => handleSelectUser(user.id)}
                     />
                     <span className={cx('checkmark')}></span>
-                    Chọn tất cả ({selectedUsers.length}/{trashedUsers.length})
                   </label>
                 </div>
 
-                {selectedUsers.length > 0 && (
-                  <div className={cx('selected-actions')}>
-                    <button
-                      className={cx('bulk-btn', 'restore-btn')}
-                      onClick={handleRestoreSelected}
-                    >
-                      🔄 Khôi phục ({selectedUsers.length})
-                    </button>
-                    <button
-                      className={cx('bulk-btn', 'delete-btn')}
-                      onClick={handleForceDeleteSelected}
-                    >
-                      ❌ Xóa vĩnh viễn ({selectedUsers.length})
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Users Table */}
-              <div className={cx('users-table')}>
-                <div className={cx('table-header')}>
-                  <span className={cx('select-col')}></span>
-                  <span>ID</span>
-                  <span>Tên</span>
-                  <span>Email</span>
-                  <span>Điện thoại</span>
-                  <span>Vai trò</span>
-                  <span>Ngày xóa</span>
-                  <span>Thao tác</span>
-                </div>
-
-                {trashedUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className={cx('table-row', {
-                      selected: selectedUsers.includes(user.id),
-                    })}
+                <span className={cx('user-id')}>#{user.id}</span>
+                <span className={cx('user-name')}>{user.name}</span>
+                <span className={cx('user-email')}>{user.email}</span>
+                <span className={cx('user-phone')}>
+                  {user.phone || 'Chưa có'}
+                </span>
+                <span className={cx('user-role')}>
+                  <span
+                    className={cx('role-badge', getRoleBadgeClass(user.role))}
                   >
-                    <div className={cx('select-col')}>
-                      <label className={cx('checkbox-wrapper')}>
-                        <input
-                          type="checkbox"
-                          checked={selectedUsers.includes(user.id)}
-                          onChange={() => handleSelectUser(user.id)}
-                        />
-                        <span className={cx('checkmark')}></span>
-                      </label>
-                    </div>
+                    {user.role}
+                  </span>
+                </span>
+                <span className={cx('user-deleted')}>
+                  {formatDate(user.deleted_at)}
+                </span>
 
-                    <span className={cx('user-id')}>#{user.id}</span>
-                    <span className={cx('user-name')}>{user.name}</span>
-                    <span className={cx('user-email')}>{user.email}</span>
-                    <span className={cx('user-phone')}>
-                      {user.phone || 'Chưa có'}
-                    </span>
-                    <span className={cx('user-role')}>
-                      <span
-                        className={cx(
-                          'role-badge',
-                          getRoleBadgeClass(user.role)
-                        )}
-                      >
-                        {user.role}
-                      </span>
-                    </span>
-                    <span className={cx('user-deleted')}>
-                      {formatDate(user.deleted_at)}
-                    </span>
-
-                    <div className={cx('user-actions')}>
-                      <button
-                        className={cx('action-btn', 'restore-btn')}
-                        onClick={() => handleRestoreUser(user.id)}
-                        title="Khôi phục người dùng"
-                      >
-                        🔄
-                      </button>
-                      <button
-                        className={cx('action-btn', 'force-delete-btn')}
-                        onClick={() => handleForceDeleteUser(user.id)}
-                        title="Xóa vĩnh viễn"
-                      >
-                        ❌
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <div className={cx('user-actions')}>
+                  <button
+                    className={cx('action-btn', 'restore-btn')}
+                    onClick={() => handleRestoreUser(user.id)}
+                    title="Khôi phục người dùng"
+                  >
+                    <FontAwesomeIcon icon={faTrashRestore}></FontAwesomeIcon>
+                  </button>
+                  <button
+                    className={cx('action-btn', 'force-delete-btn')}
+                    onClick={() => handleForceDeleteUser(user.id)}
+                    title="Xóa vĩnh viễn"
+                  >
+                    <FontAwesomeIcon icon={faXmark}></FontAwesomeIcon>
+                  </button>
+                </div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
