@@ -15,20 +15,42 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Cấu hình CORS
+// app.use(
+//   cors({
+//     origin: [
+//       'http://localhost:3000',
+//       'http://localhost:5173',
+//       'https://sportswear-shop-web-1.onrender.com',
+//     ], // Các port frontend có thể chạy
+//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+//     credentials: true,
+//   })
+// );
+
+// //config cookie-parser
+// app.use(cookieParser());
 app.use(
   cors({
     origin: [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://sportswear-shop-web-1.onrender.com',
-    ], // Các port frontend có thể chạy
+      'https://sportswear-shop-web-1.onrender.com', // Đảm bảo URL này chính xác
+    ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
+    // Thêm các header cần thiết
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Set-Cookie'],
   })
 );
 
-//config cookie-parser
-app.use(cookieParser());
+// Thêm cấu hình cookie parser với options
+app.use(
+  cookieParser({
+    sameSite: 'none', // Cho phép cross-site cookies
+    secure: true, // Chỉ gửi qua HTTPS
+  })
+);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

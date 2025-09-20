@@ -2,9 +2,17 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 // Vite sử dụng import.meta.env thay vì process.env
+// const instance = axios.create({
+//   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+//   withCredentials: true, // để cookie tự gửi
+// });
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-  withCredentials: true, // để cookie tự gửi
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
 });
 
 instance.interceptors.request.use(
