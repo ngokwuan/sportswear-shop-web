@@ -15,18 +15,55 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Cấu hình CORS
+// app.use(
+//   cors({
+//     origin: [
+//       'http://localhost:3000',
+//       'http://localhost:5173',
+//       'https://sportswear-shop-web-1.onrender.com',
+//     ], // Các port frontend có thể chạy
+//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+//     credentials: true,
+//   })
+// );
+
+// Enhanced CORS configuration
 app.use(
   cors({
     origin: [
       'http://localhost:3000',
       'http://localhost:5173',
       'https://sportswear-shop-web-1.onrender.com',
-    ], // Các port frontend có thể chạy
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'Cookie',
+    ],
     credentials: true,
+    optionsSuccessStatus: 200, // Một số legacy browsers (IE11, các phiên bản cũ) sẽ gặp sự cố với 204
+    preflightContinue: false,
   })
 );
 
+// Explicitly handle preflight OPTIONS requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header(
+    'Access-Control-Allow-Methods',
+    'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+  );
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie'
+  );
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
 //config cookie-parser
 app.use(cookieParser());
 
