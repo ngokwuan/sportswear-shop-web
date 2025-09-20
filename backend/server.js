@@ -8,73 +8,69 @@ import { mainRoute } from './routes/index.route.js';
 import * as db from './config/database.js';
 import cookieParser from 'cookie-parser';
 import sequelize from './config/database.js';
-//Connect db
+
+// Connect db
 db.connectDB();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Cấu hình CORS
-// app.use(
-//   cors({
-//     origin: [
-//       'http://localhost:3000',
-//       'http://localhost:5173',
-//       'https://sportswear-shop-web-1.onrender.com',
-//     ], // Các port frontend có thể chạy
-//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-//     credentials: true,
-//   })
-// );
-
-// //config cookie-parser
-// app.use(cookieParser());
-app.use(
-  cors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://sportswear-shop-web-1.onrender.com', // Đảm bảo URL này chính xác
-    ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
-    // Thêm các header cần thiết
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['Set-Cookie'],
-  })
-);
-
-// Thêm cấu hình cookie parser với options
-app.use(
-  cookieParser({
-    sameSite: 'none', // Cho phép cross-site cookies
-    secure: true, // Chỉ gửi qua HTTPS
-  })
-);
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, '../frontend/public')));
 
-// Xử lý middleware từ form
-app.use(
-  express.urlencoded({
-    extended: true,
-  })
-);
+// CORS chỉ cần cho development
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    cors({
+      origin: ['http://localhost:5173', 'http://localhost:3000'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+      credentials: true,
+    })
+  );
+}
 
-// Xử lý dữ liệu gửi lên dạng JSON
+// Config cookie-parser (đơn giản hóa)
+app.use(cookieParser());
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Middleware override lại phương thức gửi lên
 app.use(methodOverride('_method'));
 
-mainRoute(app);
-app.use((req, res) => {
-  return res.send('404 Not found');
-});
-//update schema
-// sequelize.sync({ alter: true });
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
+
+// API Routes với prefix /api
+app.use('/api', mainRoute);
+
+// Serve static files from React build trong production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files từ frontend/dist
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+  // Catch all handler cho React Router
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+  });
+} else {
+  // Development: serve public files
+  app.use(express.static(path.join(__dirname, '../frontend/public')));
+
+  app.use((req, res) => {
+    return res
+      .status(404)
+      .send('404 Not found - API should be prefixed with /api');
+  });
+}
+
 app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log(
+      'Serving React app from:',
+      path.join(__dirname, '../frontend/dist')
+    );
+  }
 });
