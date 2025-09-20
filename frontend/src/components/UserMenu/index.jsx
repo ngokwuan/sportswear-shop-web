@@ -7,10 +7,10 @@ import {
   faBox,
   faIdCard,
 } from '@fortawesome/free-solid-svg-icons';
-// import Tippy from 'tippy.js';
+
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
-import 'tippy.js/themes/light.css'; // theme sáng
+import 'tippy.js/themes/light.css';
 import axios from '../../setup/axios';
 import classNames from 'classnames/bind';
 import styles from './UserMenu.module.scss';

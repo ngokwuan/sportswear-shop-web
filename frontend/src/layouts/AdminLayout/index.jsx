@@ -1,51 +1,64 @@
 import classNames from 'classnames/bind';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './AdminLayout.module.scss';
 import Logo from '../../components/Logo';
+import { UserContext } from '../../context/UserContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faTachometerAlt,
+  faUsers,
+  faBoxOpen,
+  faFolder,
+  faShoppingCart,
+  faPenToSquare,
+  faBars,
+  faUser,
+} from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
 
 function AdminLayout({ children }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
+  const { user } = useContext(UserContext);
 
   const menuItems = [
     {
       title: 'Dashboard',
-      icon: '📊',
-      path: '/admin',
+      icon: faTachometerAlt,
+      path: '/admin/dashboard',
       key: 'dashboard',
     },
     {
       title: 'Users',
-      icon: '👥',
+      icon: faUsers,
       path: '/admin/users',
       key: 'users',
     },
     {
       title: 'Products',
-      icon: '🏃‍♂️',
+      icon: faBoxOpen,
       path: '/admin/products',
       key: 'products',
     },
     {
       title: 'Categories',
-      icon: '📂',
+      icon: faFolder,
       path: '/admin/categories',
       key: 'categories',
     },
     {
       title: 'Orders',
-      icon: '📦',
+      icon: faShoppingCart,
       path: '/admin/orders',
       key: 'orders',
     },
     {
       title: 'Blog',
-      icon: '📝',
-      path: '/admin/blog',
+      icon: faPenToSquare,
+      path: '/admin/blogs',
       key: 'blog',
     },
   ];
@@ -64,14 +77,20 @@ function AdminLayout({ children }) {
       <div className={cx('header')}>
         <div className={cx('header-left')}>
           <button className={cx('toggle-btn')} onClick={toggleSidebar}>
-            <span className={cx('hamburger')}></span>
+            <FontAwesomeIcon icon={faBars} />
           </button>
           <Logo />
         </div>
         <div className={cx('header-right')}>
           <div className={cx('user-info')}>
-            <span className={cx('welcome')}>Welcome, Admin</span>
-            <div className={cx('avatar')}>👤</div>
+            {user ? (
+              <span className={cx('welcome')}>Welcome, {user.name}</span>
+            ) : (
+              <span className={cx('welcome')}>Welcome, Admin</span>
+            )}
+            <div className={cx('avatar')}>
+              <FontAwesomeIcon icon={faUser} />
+            </div>
           </div>
         </div>
       </div>
@@ -89,7 +108,9 @@ function AdminLayout({ children }) {
                       active: isActiveRoute(item.path),
                     })}
                   >
-                    <span className={cx('nav-icon')}>{item.icon}</span>
+                    <span className={cx('nav-icon')}>
+                      <FontAwesomeIcon icon={item.icon} />
+                    </span>
                     <span className={cx('nav-text')}>{item.title}</span>
                   </Link>
                 </li>

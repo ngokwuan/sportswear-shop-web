@@ -4,6 +4,13 @@ import { toast } from 'react-toastify';
 import axios from '../../../../setup/axios';
 import styles from './ProductTrash.module.scss';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBroom,
+  faTrashCan,
+  faTrashRestore,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
 
@@ -14,24 +21,10 @@ function ProductTrash() {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
 
-  // Fetch trashed products from API
-  //   const fetchTrashedProducts = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const response = await axios.get('/products/trash');
-  //       setTrashedProducts(response.data);
-  //     } catch (error) {
-  //       console.error('Error fetching trashed products:', error);
-  //       toast.error('Không thể tải danh sách thùng rác');
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
   const fetchTrashedProducts = async () => {
     try {
       setLoading(true);
       const response = await axios.get('/products/trash');
-      console.log('Trashed products data:', response.data); // Debug này
       setTrashedProducts(response.data);
     } catch (error) {
       console.error('Error fetching trashed products:', error);
@@ -40,7 +33,7 @@ function ProductTrash() {
       setLoading(false);
     }
   };
-  // Fetch categories for display
+
   const fetchCategories = async () => {
     try {
       const response = await axios.get('/categories');
@@ -77,7 +70,6 @@ function ProductTrash() {
     return category ? category.name : 'N/A';
   };
 
-  // Handle single product selection
   const handleSelectProduct = (productId) => {
     setSelectedProducts((prev) => {
       if (prev.includes(productId)) {
@@ -88,7 +80,6 @@ function ProductTrash() {
     });
   };
 
-  // Handle select all products
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedProducts([]);
@@ -98,7 +89,6 @@ function ProductTrash() {
     setSelectAll(!selectAll);
   };
 
-  // Update selectAll state when selectedProducts changes
   useEffect(() => {
     setSelectAll(
       selectedProducts.length === trashedProducts.length &&
@@ -106,12 +96,10 @@ function ProductTrash() {
     );
   }, [selectedProducts, trashedProducts]);
 
-  // Restore single product
   const handleRestoreProduct = async (productId) => {
     try {
       await axios.patch(`/products/${productId}/restore`);
       toast.success('Khôi phục sản phẩm thành công!');
-      // Remove restored product from trash list
       setTrashedProducts((prev) =>
         prev.filter((product) => product.id !== productId)
       );
@@ -122,7 +110,6 @@ function ProductTrash() {
     }
   };
 
-  // Force delete single product
   const handleForceDeleteProduct = async (productId) => {
     if (
       window.confirm(
@@ -132,7 +119,6 @@ function ProductTrash() {
       try {
         await axios.delete(`/products/${productId}/force`);
         toast.success('Xóa vĩnh viễn sản phẩm thành công!');
-        // Remove deleted product from trash list
         setTrashedProducts((prev) =>
           prev.filter((product) => product.id !== productId)
         );
@@ -144,7 +130,6 @@ function ProductTrash() {
     }
   };
 
-  // Restore multiple selected products
   const handleRestoreSelected = async () => {
     if (selectedProducts.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một sản phẩm');
@@ -165,7 +150,6 @@ function ProductTrash() {
         toast.success(
           `Khôi phục ${selectedProducts.length} sản phẩm thành công!`
         );
-        // Remove restored products from trash list
         setTrashedProducts((prev) =>
           prev.filter((product) => !selectedProducts.includes(product.id))
         );
@@ -177,7 +161,6 @@ function ProductTrash() {
     }
   };
 
-  // Force delete multiple selected products
   const handleForceDeleteSelected = async () => {
     if (selectedProducts.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một sản phẩm');
@@ -198,7 +181,6 @@ function ProductTrash() {
         toast.success(
           `Xóa vĩnh viễn ${selectedProducts.length} sản phẩm thành công!`
         );
-        // Remove deleted products from trash list
         setTrashedProducts((prev) =>
           prev.filter((product) => !selectedProducts.includes(product.id))
         );
@@ -210,7 +192,6 @@ function ProductTrash() {
     }
   };
 
-  // Empty entire trash
   const handleEmptyTrash = async () => {
     if (trashedProducts.length === 0) {
       toast.warning('Thùng rác đã trống');
@@ -240,181 +221,184 @@ function ProductTrash() {
 
   if (loading) {
     return (
-      <div className={cx('products-trash')}>
+      <div className={cx('content-card')}>
         <div className={cx('loading')}>Đang tải...</div>
       </div>
     );
   }
 
   return (
-    <div className={cx('products-trash')}>
-      <div className={cx('content-grid')}>
-        <div className={cx('content-card', 'trash-card')}>
-          <div className={cx('card-header')}>
-            <div className={cx('header-left')}>
-              <h2 className={cx('card-title')}>
-                <Link to="/admin/products" className={cx('back')}>
-                  {'<'}
-                </Link>
-                Thùng rác sản phẩm
-                <span className={cx('count')}>({trashedProducts.length})</span>
-              </h2>
-              <p className={cx('subtitle')}>
-                Quản lý các sản phẩm đã bị xóa mềm
-              </p>
+    <div className={cx('content-card', 'trash-card')}>
+      <div className={cx('card-header')}>
+        <div className={cx('header-left')}>
+          <h2 className={cx('card-title')}>
+            <Link to="/admin/products" className={cx('back')}>
+              {'<'}
+            </Link>
+            Thùng rác sản phẩm
+            <span className={cx('count')}>({trashedProducts.length})</span>
+          </h2>
+          <p className={cx('subtitle')}>Quản lý các sản phẩm đã bị xóa mềm</p>
+        </div>
+
+        {trashedProducts.length > 0 && (
+          <div className={cx('header-actions')}>
+            <button
+              className={cx('action-btn', 'empty-trash-btn')}
+              onClick={handleEmptyTrash}
+              title="Dọn sạch thùng rác"
+            >
+              <FontAwesomeIcon icon={faBroom} />
+              Dọn sạch thùng rác
+            </button>
+          </div>
+        )}
+      </div>
+
+      {trashedProducts.length === 0 ? (
+        <div className={cx('empty-trash')}>
+          <div className={cx('empty-icon')}>
+            <FontAwesomeIcon icon={faTrashCan} />
+          </div>
+          <h3>Thùng rác trống</h3>
+          <p>Không có sản phẩm nào trong thùng rác</p>
+        </div>
+      ) : (
+        <>
+          {/* Bulk Actions */}
+          <div className={cx('bulk-actions')}>
+            <div className={cx('select-info')}>
+              <label className={cx('checkbox-wrapper')}>
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
+                <span className={cx('checkmark')}></span>
+                Chọn tất cả ({selectedProducts.length}/{trashedProducts.length})
+              </label>
             </div>
 
-            {trashedProducts.length > 0 && (
-              <div className={cx('header-actions')}>
+            {selectedProducts.length > 0 && (
+              <div className={cx('selected-actions')}>
                 <button
-                  className={cx('action-btn', 'empty-trash-btn')}
-                  onClick={handleEmptyTrash}
-                  title="Dọn sạch thùng rác"
+                  className={cx('bulk-btn', 'restore-btn')}
+                  onClick={handleRestoreSelected}
                 >
-                  🧹 Dọn sạch thùng rác
+                  <FontAwesomeIcon icon={faTrashRestore} /> Khôi phục (
+                  {selectedProducts.length})
+                </button>
+                <button
+                  className={cx('bulk-btn', 'delete-btn')}
+                  onClick={handleForceDeleteSelected}
+                >
+                  <FontAwesomeIcon icon={faXmark} /> Xóa vĩnh viễn (
+                  {selectedProducts.length})
                 </button>
               </div>
             )}
           </div>
 
-          {trashedProducts.length === 0 ? (
-            <div className={cx('empty-trash')}>
-              <div className={cx('empty-icon')}>🗑️</div>
-              <h3>Thùng rác trống</h3>
-              <p>Không có sản phẩm nào trong thùng rác</p>
+          {/* Products Table */}
+          <div className={cx('products-table')}>
+            <div className={cx('table-header')}>
+              <span className={cx('select-col')}></span>
+              <span>ID</span>
+              <span>Hình ảnh</span>
+              <span>Tên sản phẩm</span>
+              <span>Danh mục</span>
+              <span>Giá</span>
+              <span>Giá KM</span>
+              <span>Số lượng</span>
+              <span>Thương hiệu</span>
+              <span>Ngày xóa</span>
+              <span>Thao tác</span>
             </div>
-          ) : (
-            <>
-              {/* Bulk Actions */}
-              <div className={cx('bulk-actions')}>
-                <div className={cx('select-info')}>
+
+            {trashedProducts.map((product) => (
+              <div
+                key={product.id}
+                className={cx('table-row', {
+                  selected: selectedProducts.includes(product.id),
+                })}
+              >
+                <div className={cx('select-col')}>
                   <label className={cx('checkbox-wrapper')}>
-                    <input
-                      type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAll}
-                    />
-                    <span className={cx('checkmark')}></span>
-                    Chọn tất cả ({selectedProducts.length}/
-                    {trashedProducts.length})
-                  </label>
-                </div>
-
-                {selectedProducts.length > 0 && (
-                  <div className={cx('selected-actions')}>
-                    <button
-                      className={cx('bulk-btn', 'restore-btn')}
-                      onClick={handleRestoreSelected}
-                    >
-                      🔄 Khôi phục ({selectedProducts.length})
-                    </button>
-                    <button
-                      className={cx('bulk-btn', 'delete-btn')}
-                      onClick={handleForceDeleteSelected}
-                    >
-                      ❌ Xóa vĩnh viễn ({selectedProducts.length})
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Products Table */}
-              <div className={cx('products-table')}>
-                <div className={cx('table-header')}>
-                  <span className={cx('select-col')}>#</span>
-                  <span>ID</span>
-                  <span>Hình ảnh</span>
-                  <span>Tên sản phẩm</span>
-                  <span>Danh mục</span>
-                  <span>Giá</span>
-                  <span>Giá KM</span>
-                  <span>Số lượng</span>
-                  <span>Thương hiệu</span>
-                  <span>Ngày xóa</span>
-                  <span>Thao tác</span>
-                </div>
-
-                {trashedProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className={cx('table-row', {
-                      selected: selectedProducts.includes(product.id),
-                    })}
-                  >
                     <input
                       type="checkbox"
                       checked={selectedProducts.includes(product.id)}
                       onChange={() => handleSelectProduct(product.id)}
                     />
-                    <span className={cx('product-id')}>#{product.id}</span>
+                    <span className={cx('checkmark')}></span>
+                  </label>
+                </div>
 
-                    <div className={cx('product-image')}>
-                      <img
-                        src={product.featured_image}
-                        alt={product.name}
-                        onError={(e) => {
-                          e.target.src = '/placeholder-image.jpg';
-                        }}
-                      />
-                    </div>
+                <span className={cx('product-id')}>#{product.id}</span>
 
-                    <span className={cx('product-name')} title={product.name}>
-                      {product.name?.length > 10
-                        ? `${product.name.substring(0, 10)}...`
-                        : product.name}
-                    </span>
-                    <span className={cx('product-category')}>
-                      {getCategoryName(product.category_id).length > 10
-                        ? `${getCategoryName(product.category_id).substring(
-                            0,
-                            10
-                          )}...`
-                        : getCategoryName(product.category_id)}
-                    </span>
+                <div className={cx('product-image')}>
+                  <img
+                    src={product.featured_image}
+                    alt={product.name}
+                    onError={(e) => {
+                      e.target.src = '/placeholder-image.jpg';
+                    }}
+                  />
+                </div>
 
-                    <span className={cx('product-price')}>
-                      {formatPrice(product.price)}
-                    </span>
+                <span className={cx('product-name')} title={product.name}>
+                  {product.name?.length > 10
+                    ? `${product.name.substring(0, 10)}...`
+                    : product.name}
+                </span>
 
-                    <span className={cx('product-sale-price')}>
-                      {product.sale_price
-                        ? formatPrice(product.sale_price)
-                        : '-'}
-                    </span>
+                <span className={cx('product-category')}>
+                  {getCategoryName(product.category_id).length > 10
+                    ? `${getCategoryName(product.category_id).substring(
+                        0,
+                        10
+                      )}...`
+                    : getCategoryName(product.category_id)}
+                </span>
 
-                    <span className={cx('product-stock')}>
-                      {product.stock_quantity}
-                    </span>
+                <span className={cx('product-price')}>
+                  {formatPrice(product.price)}
+                </span>
 
-                    <span className={cx('product-brand')}>{product.brand}</span>
+                <span className={cx('product-sale-price')}>
+                  {product.sale_price ? formatPrice(product.sale_price) : '-'}
+                </span>
 
-                    <span className={cx('product-deleted')}>
-                      {formatDate(product.deleted_at)}
-                    </span>
+                <span className={cx('product-stock')}>
+                  {product.stock_quantity}
+                </span>
 
-                    <div className={cx('product-actions')}>
-                      <button
-                        className={cx('action-btn', 'restore-btn')}
-                        onClick={() => handleRestoreProduct(product.id)}
-                        title="Khôi phục sản phẩm"
-                      >
-                        🔄
-                      </button>
-                      <button
-                        className={cx('action-btn', 'force-delete-btn')}
-                        onClick={() => handleForceDeleteProduct(product.id)}
-                        title="Xóa vĩnh viễn"
-                      >
-                        ❌
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <span className={cx('product-brand')}>{product.brand}</span>
+
+                <span className={cx('product-deleted')}>
+                  {formatDate(product.deleted_at)}
+                </span>
+
+                <div className={cx('product-actions')}>
+                  <button
+                    className={cx('action-btn', 'restore-btn')}
+                    onClick={() => handleRestoreProduct(product.id)}
+                    title="Khôi phục sản phẩm"
+                  >
+                    <FontAwesomeIcon icon={faTrashRestore} />
+                  </button>
+                  <button
+                    className={cx('action-btn', 'force-delete-btn')}
+                    onClick={() => handleForceDeleteProduct(product.id)}
+                    title="Xóa vĩnh viễn"
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                </div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
