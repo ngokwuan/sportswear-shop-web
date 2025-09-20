@@ -15,52 +15,35 @@ db.connectDB();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// CORS configuration - ĐẶT ĐẦU TIÊN TRƯỚC TẤT CẢ middleware khác
-const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://sportswear-shop-web-1.onrender.com',
-    // Thêm domain chính nếu cần
-    'https://sportswear-shop-web.onrender.com',
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Origin',
-    'X-Requested-With',
-    'Content-Type',
-    'Accept',
-    'Authorization',
-    'Cookie',
-    'Set-Cookie',
-  ],
-  exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 200, // Một số legacy browsers (IE11, various SmartTVs) choke on 204
-};
-
-app.use(cors(corsOptions));
-
-// Handle preflight OPTIONS requests explicitly
-app.options('*', cors(corsOptions));
-
-// Additional manual CORS headers (backup)
+// MANUAL CORS MIDDLEWARE - ĐẶT ĐẦU TIÊN TRƯỚC TẤT CẢ
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  console.log('Request from origin:', origin, 'to:', req.url);
+  console.log('=== CORS DEBUG ===');
+  console.log('Request Method:', req.method);
+  console.log('Request URL:', req.url);
+  console.log('Origin:', origin);
+  console.log('User-Agent:', req.headers['user-agent']);
 
-  // Nếu origin trong danh sách cho phép
+  // Danh sách origins được phép
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
     'https://sportswear-shop-web-1.onrender.com',
-    'https://sportswear-shop-web.onrender.com',
   ];
 
-  if (allowedOrigins.includes(origin)) {
+  // Luôn set CORS headers
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    console.log('✓ Origin allowed:', origin);
+  } else if (!origin) {
+    // Cho phép requests không có origin (Postman, mobile apps)
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('✓ No origin - allowing all');
+  } else {
+    console.log('✗ Origin not allowed:', origin);
   }
 
+  // Set tất cả CORS headers cần thiết
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader(
     'Access-Control-Allow-Methods',
@@ -68,15 +51,24 @@ app.use((req, res, next) => {
   );
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Origin,X-Requested-With,Content-Type,Accept,Authorization,Cookie'
+    'Origin,X-Requested-With,Content-Type,Accept,Authorization,Cookie,Cache-Control'
   );
   res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
+  res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight for 24 hours
 
-  // Log để debug
-  console.log('CORS headers set for:', req.method, req.url);
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    console.log('✓ Handling OPTIONS preflight request');
+    res.setHeader('Content-Length', '0');
+    return res.status(204).end();
+  }
 
+  console.log('=== END CORS DEBUG ===\n');
   next();
 });
+
+// Không dùng cors package để tránh xung đột
+// app.use(cors(corsOptions));
 
 //config cookie-parser
 app.use(cookieParser());
