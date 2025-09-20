@@ -10,7 +10,7 @@ const getBaseURL = () => {
 
   // Production: URL của backend trên Render
   return (
-    import.meta.env.VITE_API_URL || 'https://your-backend-app.onrender.com'
+    import.meta.env.VITE_API_URL || 'https://sportswear-shop-web.onrender.com'
   );
 };
 

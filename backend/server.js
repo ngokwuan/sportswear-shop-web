@@ -19,10 +19,7 @@ const __dirname = path.dirname(__filename);
 
 // Allowed origins cho CORS
 const getAllowedOrigins = () => {
-  const origins = [
-    'http://localhost:3000',
-    'http://localhost:5173', // Vite dev server
-  ];
+  const origins = ['http://localhost:3000', 'http://localhost:5173'];
 
   // Production origins
   if (process.env.NODE_ENV === 'production') {
@@ -31,8 +28,7 @@ const getAllowedOrigins = () => {
       origins.push(process.env.FRONTEND_URL);
     }
     // Hoặc hardcode nếu biết trước
-    origins.push('https://your-frontend-app.netlify.app');
-    origins.push('https://your-frontend-app.vercel.app');
+    origins.push('https://sportswear-shop-web.netlify.app');
   }
 
   return origins;
