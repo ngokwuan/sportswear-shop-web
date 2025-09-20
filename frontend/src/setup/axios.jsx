@@ -1,67 +1,27 @@
-// import axios from 'axios';
-// import { toast } from 'react-toastify';
-
-// const instance = axios.create({
-//   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-//   withCredentials: true,
-//   headers: {
-//     'Content-Type': 'application/json',
-//     Accept: 'application/json',
-//   },
-// });
-
-// instance.interceptors.request.use(
-//   (config) => config,
-//   (error) => Promise.reject(error)
-// );
-
-// instance.interceptors.response.use(
-//   (response) => response,
-//   (err) => {
-//     const status = err.response?.status || 500;
-//     const message = err.response?.data?.error || 'Có lỗi xảy ra';
-
-//     switch (status) {
-//       case 400:
-//       case 401:
-//       case 403: {
-//         toast.error(message);
-//         break;
-//       }
-//       default: {
-//         toast.error(message);
-//         break;
-//       }
-//     }
-
-//     return Promise.reject(err);
-//   }
-// );
-
-// export default instance;
-
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-// Cấu hình cho same domain deployment
+// Cấu hình cho separate deployment
 const getBaseURL = () => {
   // Development
   if (import.meta.env.DEV) {
-    return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    return import.meta.env.VITE_API_URL || 'http://localhost:3000';
   }
 
-  // Production: same domain với /api prefix
-  return '/api';
+  // Production: URL của backend trên Render
+  return (
+    import.meta.env.VITE_API_URL || 'https://your-backend-app.onrender.com'
+  );
 };
 
 const instance = axios.create({
   baseURL: getBaseURL(),
-  withCredentials: true, // Quan trọng: để gửi cookie
+  withCredentials: true, // Quan trọng: để gửi cookie cross-origin
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  timeout: 10000, // 10s timeout
+  timeout: 15000, // 15s timeout cho cross-origin
 });
 
 console.log('API Base URL:', getBaseURL());
