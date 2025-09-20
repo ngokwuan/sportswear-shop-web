@@ -28,7 +28,8 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://sportswear-shop-web-1.onrender.com',
+    'https://sportswear-shop-web-1.onrender.com', // frontend
+    'https://sportswear-shop-web.onrender.com', // nếu cần
   ];
 
   // Luôn set CORS headers
@@ -67,8 +68,34 @@ app.use((req, res, next) => {
   next();
 });
 
-// Không dùng cors package để tránh xung đột
-// app.use(cors(corsOptions));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://sportswear-shop-web-1.onrender.com', // frontend
+  'https://sportswear-shop-web.onrender.com', // nếu cần
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow requests with no origin (e.g. Postman, mobile)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  exposedHeaders: ['Set-Cookie'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+};
+
+app.use(cors(corsOptions)); // đặt trước app.use(express.json()) và trước routes
+
+// nếu vẫn muốn giữ debug logs, có thể log origin trước cors
+app.use((req, res, next) => {
+  console.log('CORS origin:', req.headers.origin);
+  next();
+});
 
 //config cookie-parser
 app.use(cookieParser());
