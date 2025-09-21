@@ -1,4 +1,4 @@
-import './GlobalStyles.module.scss';
+import './GlobalStyles.scss';
 import React from 'react';
 function GlobalStyles({ children }) {
   return React.Children.only(children);
