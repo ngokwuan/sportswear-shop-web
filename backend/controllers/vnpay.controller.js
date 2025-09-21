@@ -9,7 +9,7 @@ const VNP_HASH_SECRET = process.env.VNP_HASH_SECRET || '';
 const VNP_URL = process.env.VNP_URL;
 const VNP_API = process.env.VNP_API;
 const VNP_RETURN_URL = process.env.VNP_RETURN_URL;
-const FRONTEND_URL = process.env.FRONTEND_URL;
+const FRONTEND_URL_RS = process.env.FRONTEND_URL_RS;
 
 function sortObject(obj) {
   const sorted = {};
@@ -151,7 +151,7 @@ export const vnpayReturnRedirect = async (req, res) => {
     if (secureHash !== signed) {
       console.log('Invalid signature in VNPay return');
       return res.redirect(
-        `${FRONTEND_URL}?status=error&message=invalid_signature`
+        `${FRONTEND_URL_RS}?status=error&message=invalid_signature`
       );
     }
 
@@ -214,7 +214,7 @@ export const vnpayReturnRedirect = async (req, res) => {
         if (responseCode === '00') {
           console.log('Payment successful for VNPay order:', vnpayOrderId);
           return res.redirect(
-            `${FRONTEND_URL}?status=success&order_id=${order.id}&order_number=${vnpayOrderId}&amount=${amount}&payment_status=${order.payment_status}`
+            `${FRONTEND_URL_RS}?status=success&order_id=${order.id}&order_number=${vnpayOrderId}&amount=${amount}&payment_status=${order.payment_status}`
           );
         } else {
           console.log(
@@ -224,13 +224,13 @@ export const vnpayReturnRedirect = async (req, res) => {
             responseCode
           );
           return res.redirect(
-            `${FRONTEND_URL}?status=failed&order_id=${order.id}&order_number=${vnpayOrderId}&code=${responseCode}`
+            `${FRONTEND_URL_RS}?status=failed&order_id=${order.id}&order_number=${vnpayOrderId}&code=${responseCode}`
           );
         }
       } else {
         console.log('Order not found:', vnpayOrderId);
         return res.redirect(
-          `${FRONTEND_URL}?status=error&message=order_not_found&order_number=${vnpayOrderId}`
+          `${FRONTEND_URL_RS}?status=error&message=order_not_found&order_number=${vnpayOrderId}`
         );
       }
     } catch (dbError) {
@@ -238,17 +238,17 @@ export const vnpayReturnRedirect = async (req, res) => {
 
       if (responseCode === '00') {
         return res.redirect(
-          `${FRONTEND_URL}?status=success&order_number=${vnpayOrderId}&amount=${amount}`
+          `${FRONTEND_URL_RS}?status=success&order_number=${vnpayOrderId}&amount=${amount}`
         );
       } else {
         return res.redirect(
-          `${FRONTEND_URL}?status=failed&order_number=${vnpayOrderId}&code=${responseCode}`
+          `${FRONTEND_URL_RS}?status=failed&order_number=${vnpayOrderId}&code=${responseCode}`
         );
       }
     }
   } catch (error) {
     console.error('VNPay return redirect error:', error);
-    return res.redirect(`${FRONTEND_URL}?status=error&message=system_error`);
+    return res.redirect(`${FRONTEND_URL_RS}?status=error&message=system_error`);
   }
 };
 export const vnpayIpn = async (req, res) => {

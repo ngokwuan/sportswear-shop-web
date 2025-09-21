@@ -17,7 +17,12 @@ const port = process.env.PORT || 3000;
 // Cấu hình CORS
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'], // Các port frontend có thể chạy
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://sportswear-shop-web.netlify.app',
+      'https://sportswear-shop-web.onrender.com',
+    ], // Các port frontend có thể chạy
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   })
