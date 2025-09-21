@@ -15,13 +15,12 @@ db.connectDB();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// CORS configuration - ĐẶT ĐẦU TIÊN TRƯỚC TẤT CẢ middleware khác
 const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://sportswear-shop-web-1.onrender.com',
-    // Thêm domain chính nếu cần
+    'https://sportswear-shop-web.netlify.app',
+
     'https://sportswear-shop-web.onrender.com',
   ],
   credentials: true,
@@ -36,7 +35,7 @@ const corsOptions = {
     'Set-Cookie',
   ],
   exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 200, // Một số legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
@@ -53,7 +52,7 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://sportswear-shop-web-1.onrender.com',
+    'https://sportswear-shop-web.netlify.app',
     'https://sportswear-shop-web.onrender.com',
   ];
 
