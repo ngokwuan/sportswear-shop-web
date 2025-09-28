@@ -37,7 +37,6 @@
   font-size: 16px;
   height: 40px;
 
-  // Border right ngắn
   &::after {
     content: '';
     display: block;
@@ -45,7 +44,7 @@
     right: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 20px; // Độ dài border
+    height: 20px;
     width: 0;
     border-right: 2px solid #6b7280;
   }
@@ -64,7 +63,6 @@
   height: 40px;
   padding-left: 16px;
 
-  // Border left ngắn
   &::before {
     content: '';
     display: block;
@@ -72,7 +70,7 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 20px; // Độ dài border
+    height: 20px;
     width: 0;
     border-left: 2px solid #6b7280;
   }

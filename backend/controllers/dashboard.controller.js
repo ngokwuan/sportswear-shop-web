@@ -1,4 +1,3 @@
-// controllers/dashboard.controller.js
 import {
   User,
   Product,
@@ -9,25 +8,20 @@ import {
 } from '../models/index.js';
 import { Op, Sequelize } from 'sequelize';
 
-// Lấy thống kê tổng quan
 export const getDashboardStats = async (req, res) => {
   try {
-    // Lấy tổng số users
     const totalUsers = await User.count();
     const totalActiveUsers = await User.count({
       where: { deleted_at: null },
     });
 
-    // Lấy tổng số products
     const totalProducts = await Product.count();
     const totalActiveProducts = await Product.count({
       where: { deleted_at: null },
     });
 
-    // Lấy tổng số orders
     const totalOrders = await Order.count();
 
-    // Lấy tổng doanh thu
     const revenueResult = await Order.findOne({
       attributes: [
         [Sequelize.fn('SUM', Sequelize.col('total_amount')), 'total_revenue'],
@@ -38,13 +32,11 @@ export const getDashboardStats = async (req, res) => {
     });
     const totalRevenue = revenueResult?.dataValues?.total_revenue || 0;
 
-    // Lấy tổng số blogs
     const totalBlogs = await Blog.count();
     const publishedBlogs = await Blog.count({
       where: { status: 'published' },
     });
 
-    // Thống kê theo tháng này
     const currentMonth = new Date();
     const startOfMonth = new Date(
       currentMonth.getFullYear(),
@@ -60,7 +52,6 @@ export const getDashboardStats = async (req, res) => {
       59
     );
 
-    // Tháng trước
     const lastMonth = new Date(
       currentMonth.getFullYear(),
       currentMonth.getMonth() - 1,
@@ -75,7 +66,6 @@ export const getDashboardStats = async (req, res) => {
       59
     );
 
-    // Users tháng này vs tháng trước
     const usersThisMonth = await User.count({
       where: {
         created_at: {
@@ -92,7 +82,6 @@ export const getDashboardStats = async (req, res) => {
       },
     });
 
-    // Orders tháng này vs tháng trước
     const ordersThisMonth = await Order.count({
       where: {
         created_at: {
@@ -109,7 +98,6 @@ export const getDashboardStats = async (req, res) => {
       },
     });
 
-    // Doanh thu tháng này vs tháng trước
     const revenueThisMonth = await Order.findOne({
       attributes: [
         [Sequelize.fn('SUM', Sequelize.col('total_amount')), 'revenue'],
@@ -134,7 +122,6 @@ export const getDashboardStats = async (req, res) => {
       },
     });
 
-    // Tính phần trăm thay đổi
     const calculateGrowthRate = (current, previous) => {
       if (previous === 0) return current > 0 ? 100 : 0;
       return Math.round(((current - previous) / previous) * 100);
@@ -180,7 +167,6 @@ export const getDashboardStats = async (req, res) => {
   }
 };
 
-// Lấy đơn hàng gần đây
 export const getRecentOrders = async (req, res) => {
   try {
     const { limit = 4 } = req.query;
@@ -202,7 +188,7 @@ export const getRecentOrders = async (req, res) => {
               attributes: ['id', 'name', 'featured_image'],
             },
           ],
-          limit: 1, // Chỉ lấy 1 sản phẩm đầu tiên để hiển thị
+          limit: 1,
         },
       ],
       order: [['created_at', 'DESC']],

@@ -30,16 +30,15 @@
   .sale-badge {
     background-color: var(--primary-color);
     top: 10px;
-    z-index: 3; // Cao hơn new-badge
+    z-index: 3;
   }
 
   .new-badge {
     background-color: #059669;
-    top: 50px; // Đặt xuống dưới sale-badge
+    top: 50px;
     z-index: 2;
   }
 
-  // Khi chỉ có new badge (không có sale), đưa new badge lên trên
   &:not(:has(.sale-badge)) .new-badge {
     top: 10px;
   }
@@ -137,7 +136,6 @@
       display: block;
     }
 
-    // Container cho rating và size tag
     .product-rating-size {
       display: flex;
       justify-content: space-between;
@@ -149,10 +147,9 @@
     .product-rating {
       display: flex;
       gap: 2px;
-      flex-shrink: 0; // Không cho rating bị co lại
+      flex-shrink: 0;
     }
 
-    // Style cho size tag
     .size-tag {
       background-color: #f0f0f0;
       color: #666;
@@ -161,10 +158,9 @@
       font-size: 12px;
       font-weight: 500;
       white-space: nowrap;
-      flex-shrink: 0; // Không cho size tag bị co lại
+      flex-shrink: 0;
     }
 
-    // Đảm bảo star rating không bị ảnh hưởng
     .star {
       color: #ddd;
       font-size: 14px;

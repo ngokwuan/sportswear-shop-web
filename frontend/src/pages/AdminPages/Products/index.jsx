@@ -28,7 +28,6 @@ function Products() {
     featuredImage: '',
   });
 
-  // Fetch products from API
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -42,7 +41,6 @@ function Products() {
     }
   };
 
-  // Fetch categories for dropdown
   const fetchCategories = async () => {
     try {
       const response = await axios.get('/categories');
@@ -114,7 +112,6 @@ function Products() {
         ]);
         toast.success('Thêm sản phẩm thành công!');
 
-        // Reset form and close modal
         setNewProduct({
           name: '',
           description: '',

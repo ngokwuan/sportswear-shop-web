@@ -4,7 +4,7 @@ export const getRoleByEmail = async (email) => {
   const user = await User.findOne({
     where: { email },
     attributes: ['role'],
-    raw: true, // Thêm dòng này để trả về plain object
+    raw: true,
   });
   return user ? user.role : null;
 };

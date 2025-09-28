@@ -13,12 +13,10 @@ function Breadcrumb() {
   let pathnames = location.pathname.split('/').filter((x) => x);
 
   const formatPathname = (value) => {
-    // Nếu có dấu "_", cắt bỏ phần từ dấu "_" trở về sau (bao gồm cả dấu "_")
     if (value.includes('_')) {
       value = value.split('_')[0];
     }
 
-    // Chuyển dấu gạch ngang thành khoảng trắng và viết hoa chữ cái đầu
     return value
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

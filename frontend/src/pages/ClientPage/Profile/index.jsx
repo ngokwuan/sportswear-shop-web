@@ -52,7 +52,6 @@ function Profile() {
       console.log('User ID:', user.id);
       console.log('Form Data being sent:', formData);
 
-      // Chỉ gửi dữ liệu cần thiết (không bao gồm email)
       const updateData = {
         name: formData.name,
         phone: formData.phone,
@@ -68,13 +67,11 @@ function Profile() {
       console.log('Response Data:', response.data);
 
       if (response.status === 200 && response.data) {
-        // Cập nhật UserContext với dữ liệu mới từ server
         if (updateUser && response.data.user) {
           console.log('Updating user context with:', response.data.user);
           updateUser(response.data.user);
         }
 
-        // Cập nhật local formData với dữ liệu từ server
         setFormData({
           name: response.data.user.name || '',
           email: response.data.user.email || '',
@@ -113,7 +110,6 @@ function Profile() {
   };
 
   const handleCancel = () => {
-    // Reset form data to original user data
     if (user) {
       setFormData({
         name: user.name || '',

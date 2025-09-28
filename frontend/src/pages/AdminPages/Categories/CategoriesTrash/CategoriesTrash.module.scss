@@ -69,7 +69,6 @@
   }
 }
 
-// Empty trash state
 .empty-trash {
   text-align: center;
   padding: 80px 20px;
@@ -93,7 +92,6 @@
   }
 }
 
-// Bulk actions
 .bulk-actions {
   padding: 16px 24px;
   background: #f8f9fa;
@@ -163,7 +161,6 @@
   }
 }
 
-// Action buttons
 .action-btn,
 .bulk-btn {
   padding: 8px 16px;
@@ -217,7 +214,6 @@
   font-size: 13px;
 }
 
-// Table styles
 .categories-table {
   .table-header {
     display: grid;
@@ -318,7 +314,6 @@
   }
 }
 
-// Responsive design
 @media (max-width: 1024px) {
   .categories-table {
     .table-header,

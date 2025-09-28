@@ -46,8 +46,8 @@ function UserMenu({ user }) {
       content={renderMenu()}
       placement="bottom-end"
       theme="light"
-      interactive //de co the clickclick
-      delay={[0, 700]} //delay toc do hien thi
+      interactive
+      delay={[0, 700]}
       appendTo={document.body}
     >
       <button className={cx('icon-btn', 'login-btn', 'user-info')}>

@@ -3,7 +3,6 @@ import moment from 'moment';
 import qs from 'qs';
 import axios from 'axios';
 import { Order, Cart } from '../models/index.js';
-// Cấu hình VNPay - bạn nên lưu trong file .env
 const VNP_TMN_CODE = process.env.VNP_TMN_CODE || '';
 const VNP_HASH_SECRET = process.env.VNP_HASH_SECRET || '';
 const VNP_URL = process.env.VNP_URL;
@@ -52,7 +51,6 @@ export const createPaymentUrl = async (req, res) => {
     const createDate = moment(date).format('YYYYMMDDHHmmss');
     const ipAddr = getClientIp(req);
 
-    // Sử dụng order_number từ request (được truyền từ frontend)
     const {
       amount,
       bankCode = '',
@@ -176,7 +174,6 @@ export const vnpayReturnRedirect = async (req, res) => {
             newOrderStatus = 'cancelled';
           }
 
-          // Update the order
           const [updatedRowsCount] = await Order.update(
             {
               payment_status: newPaymentStatus,
@@ -188,7 +185,6 @@ export const vnpayReturnRedirect = async (req, res) => {
             }
           );
 
-          // Clear cart if payment successful
           if (responseCode === '00') {
             try {
               const deletedCount = await Cart.destroy({
@@ -202,7 +198,6 @@ export const vnpayReturnRedirect = async (req, res) => {
             }
           }
 
-          // Verify the update
           const verifyOrder = await Order.findOne({
             where: { order_number: vnpayOrderId },
           });
@@ -210,7 +205,6 @@ export const vnpayReturnRedirect = async (req, res) => {
           console.log('Order already processed by IPN - no update needed');
         }
 
-        // Redirect with appropriate status
         if (responseCode === '00') {
           console.log('Payment successful for VNPay order:', vnpayOrderId);
           return res.redirect(
@@ -255,7 +249,7 @@ export const vnpayIpn = async (req, res) => {
   try {
     let vnp_Params = { ...req.query };
     const secureHash = vnp_Params['vnp_SecureHash'];
-    const orderId = vnp_Params['vnp_TxnRef']; // Đây là order_number
+    const orderId = vnp_Params['vnp_TxnRef'];
     const rspCode = vnp_Params['vnp_ResponseCode'];
     const amount = parseInt(vnp_Params['vnp_Amount']) / 100;
 
@@ -267,16 +261,13 @@ export const vnpayIpn = async (req, res) => {
     const hmac = crypto.createHmac('sha512', VNP_HASH_SECRET);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-    // Kiểm tra chữ ký
     if (secureHash !== signed) {
-      console.log('❌ Invalid signature in VNPay IPN');
+      console.log(' Invalid signature in VNPay IPN');
       return res.status(200).json({
         RspCode: '97',
         Message: 'Checksum failed',
       });
     }
-
-    // Tìm order trong database
 
     const order = await Order.findOne({
       where: { order_number: orderId },
@@ -289,7 +280,6 @@ export const vnpayIpn = async (req, res) => {
       });
     }
 
-    // Kiểm tra số tiền
     const orderAmount = parseFloat(order.total_amount);
 
     if (Math.abs(orderAmount - amount) > 0.01) {
@@ -299,8 +289,6 @@ export const vnpayIpn = async (req, res) => {
       });
     }
 
-    // Kiểm tra trạng thái thanh toán hiện tại
-
     if (order.payment_status !== 'pending') {
       return res.status(200).json({
         RspCode: '02',
@@ -308,7 +296,6 @@ export const vnpayIpn = async (req, res) => {
       });
     }
 
-    // Cập nhật trạng thái thanh toán dựa trên response code
     let newPaymentStatus;
     let newOrderStatus;
 
@@ -333,12 +320,10 @@ export const vnpayIpn = async (req, res) => {
 
     console.log('Updated rows count:', updatedRowsCount);
 
-    // Verify the update
     const updatedOrder = await Order.findOne({
       where: { order_number: orderId },
     });
 
-    // Clear cart if payment successful
     if (rspCode === '00') {
       try {
         const deletedCount = await Cart.destroy({
@@ -442,7 +427,6 @@ export const queryTransaction = async (req, res) => {
   }
 };
 
-// Hoàn tiền
 export const refund = async (req, res) => {
   try {
     process.env.TZ = 'Asia/Ho_Chi_Minh';

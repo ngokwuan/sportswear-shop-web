@@ -48,7 +48,6 @@
   }
 }
 
-// Trash link
 .trash-link {
   padding: 8px 16px;
   background: #6c757d;
@@ -71,7 +70,6 @@
   }
 }
 
-// Create button
 .create-btn {
   padding: 10px 20px;
   background: var(--bg-add);
@@ -90,7 +88,6 @@
   }
 }
 
-// Filters Section
 .filters-section {
   padding: 24px;
   border-bottom: 1px solid #eee;
@@ -198,14 +195,13 @@
   }
 }
 
-// Blogs Table
 .blogs-table {
   overflow-x: auto;
 }
 
 .table-header {
   display: grid;
-  grid-template-columns: 2fr 150px 150px 120px 100px 140px 120px;
+  grid-template-columns: 80px 150px 150px 120px 100px 140px;
   gap: 16px;
   padding: 16px 24px;
   background: #f8f9fa;
@@ -218,7 +214,7 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 150px 150px 120px 100px 140px 120px;
+  grid-template-columns: 80px 150px 150px 120px 100px 140px;
   gap: 16px;
   padding: 16px 24px;
   border-bottom: 1px solid #f0f0f0;
@@ -291,7 +287,6 @@
   color: #666;
 }
 
-// Status Badges
 .status-badge {
   display: inline-block;
   padding: 4px 8px;
@@ -317,7 +312,6 @@
   }
 }
 
-// Actions
 .blog-actions {
   display: flex;
   gap: 8px;
@@ -363,7 +357,6 @@
   }
 }
 
-// Pagination
 .pagination {
   display: flex;
   justify-content: center;
@@ -401,7 +394,6 @@
   font-weight: 500;
 }
 
-// No Data
 .no-data {
   padding: 60px 20px;
   text-align: center;
@@ -413,7 +405,6 @@
   }
 }
 
-// Modal styles
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -525,7 +516,6 @@
   }
 }
 
-// View Modal Styles
 .view-content {
   padding: 24px;
   max-height: 70vh;
@@ -651,11 +641,10 @@
   white-space: nowrap;
 }
 
-// Responsive design
 @media (max-width: 1024px) {
   .table-header,
   .table-row {
-    grid-template-columns: 2fr 130px 130px 100px 80px 120px 100px;
+    grid-template-columns: 80px 150px 150px 120px 100px 140px;
     gap: 12px;
     padding: 12px 16px;
     font-size: 13px;

@@ -44,7 +44,6 @@
   }
 }
 
-// Trash link
 .trash-link {
   padding: 8px 16px;
   background: #6c757d;
@@ -67,7 +66,6 @@
   }
 }
 
-// Create button
 .create-btn {
   padding: 10px 20px;
   background: var(--bg-add);
@@ -86,7 +84,6 @@
   }
 }
 
-// Table styles
 .categories-table {
   .table-header {
     display: grid;
@@ -185,7 +182,6 @@
   }
 }
 
-// No data state
 .no-data {
   padding: 60px 20px;
   text-align: center;
@@ -197,7 +193,6 @@
   }
 }
 
-// Modal styles
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -339,7 +334,6 @@
   }
 }
 
-// Responsive design
 @media (max-width: 1024px) {
   .categories-table {
     .table-header,

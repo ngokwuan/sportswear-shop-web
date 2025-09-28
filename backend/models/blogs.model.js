@@ -1,4 +1,3 @@
-// models/Blog.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
@@ -72,10 +71,7 @@ const Blog = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    is_featured: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
+
     deleted_at: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -85,18 +81,10 @@ const Blog = sequelize.define(
     tableName: 'blogs',
     timestamps: true,
     underscored: true,
-    paranoid: true, // Soft delete
+    paranoid: true,
     deletedAt: 'deleted_at',
     hooks: {
       beforeCreate: (blog) => {
-        if (!blog.slug) {
-          blog.slug = blog.title
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .trim('-');
-        }
         if (blog.status === 'published' && !blog.published_at) {
           blog.published_at = new Date();
         }
@@ -112,5 +100,4 @@ const Blog = sequelize.define(
   }
 );
 
-// Associations will be defined in models/index.js
 export default Blog;

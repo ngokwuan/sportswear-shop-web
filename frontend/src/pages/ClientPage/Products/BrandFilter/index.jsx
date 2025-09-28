@@ -11,10 +11,8 @@ function BrandFilter({ selectedBrands, onBrandChange }) {
   useEffect(() => {
     const fetchBrand = async () => {
       try {
-        // Sửa endpoint để phù hợp với database structure
         const response = await axios.get('/products');
         if (response.data && response.data.length > 0) {
-          // Extract unique brands from products và đếm số lượng
           const brandCounts = response.data.reduce((acc, product) => {
             if (product.brand) {
               acc[product.brand] = (acc[product.brand] || 0) + 1;

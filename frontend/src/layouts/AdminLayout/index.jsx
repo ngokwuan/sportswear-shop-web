@@ -15,8 +15,13 @@ import {
   faPenToSquare,
   faBars,
   faUser,
+  faSignOutAlt,
+  faBox,
+  faIdCard,
 } from '@fortawesome/free-solid-svg-icons';
-
+import axios from '../../setup/axios';
+import Tippy from '@tippyjs/react';
+import { NavLink } from 'react-router-dom';
 const cx = classNames.bind(styles);
 
 function AdminLayout({ children }) {
@@ -70,7 +75,28 @@ function AdminLayout({ children }) {
   const isActiveRoute = (path) => {
     return location.pathname === path;
   };
+  const handleLogout = async () => {
+    try {
+      await axios.post('/auth/logout');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
+  const renderMenu = () => (
+    <div className={cx('dropdown')}>
+      <NavLink to="/profile" className={cx('dropdown-item')}>
+        <FontAwesomeIcon icon={faIdCard} /> Thông tin của tôi
+      </NavLink>
+      <NavLink to="/orders" className={cx('dropdown-item')}>
+        <FontAwesomeIcon icon={faBox} /> Đơn hàng của tôi
+      </NavLink>
+      <button onClick={handleLogout} className={cx('dropdown-item')}>
+        <FontAwesomeIcon icon={faSignOutAlt} /> Đăng xuất
+      </button>
+    </div>
+  );
   return (
     <div className={cx('wrapper')}>
       {/* Admin Header */}
@@ -82,16 +108,25 @@ function AdminLayout({ children }) {
           <Logo />
         </div>
         <div className={cx('header-right')}>
-          <div className={cx('user-info')}>
-            {user ? (
-              <span className={cx('welcome')}>Welcome, {user.name}</span>
-            ) : (
-              <span className={cx('welcome')}>Welcome, Admin</span>
-            )}
-            <div className={cx('avatar')}>
-              <FontAwesomeIcon icon={faUser} />
+          <Tippy
+            content={renderMenu()}
+            placement="bottom-end"
+            theme="light"
+            interactive
+            delay={[0, 700]}
+            appendTo={document.body}
+          >
+            <div className={cx('user-info')}>
+              {user ? (
+                <span className={cx('welcome')}>Welcome, {user.name}</span>
+              ) : (
+                <span className={cx('welcome')}>Welcome, Admin</span>
+              )}
+              <div className={cx('avatar')}>
+                <FontAwesomeIcon icon={faUser} />
+              </div>
             </div>
-          </div>
+          </Tippy>
         </div>
       </div>
 

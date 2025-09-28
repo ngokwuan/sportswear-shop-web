@@ -25,7 +25,6 @@ function BlogsTrash() {
   });
   const [pagination, setPagination] = useState({});
 
-  // Fetch trashed blogs
   const fetchTrashedBlogs = async () => {
     try {
       setLoading(true);
@@ -84,7 +83,6 @@ function BlogsTrash() {
     );
   };
 
-  // Handle single blog selection
   const handleSelectBlog = (blogId) => {
     setSelectedBlogs((prev) => {
       if (prev.includes(blogId)) {
@@ -95,7 +93,6 @@ function BlogsTrash() {
     });
   };
 
-  // Handle select all blogs
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedBlogs([]);
@@ -105,14 +102,12 @@ function BlogsTrash() {
     setSelectAll(!selectAll);
   };
 
-  // Update selectAll state when selectedBlogs changes
   useEffect(() => {
     setSelectAll(
       selectedBlogs.length === trashedBlogs.length && trashedBlogs.length > 0
     );
   }, [selectedBlogs, trashedBlogs]);
 
-  // Restore single blog
   const handleRestoreBlog = async (blogId) => {
     try {
       const response = await axios.post(`/blogs/${blogId}/restore`);
@@ -130,7 +125,6 @@ function BlogsTrash() {
     }
   };
 
-  // Force delete single blog
   const handleForceDeleteBlog = async (blogId) => {
     if (
       window.confirm(
@@ -154,7 +148,6 @@ function BlogsTrash() {
     }
   };
 
-  // Restore multiple selected blogs
   const handleRestoreSelected = async () => {
     if (selectedBlogs.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một bài viết');
@@ -171,7 +164,6 @@ function BlogsTrash() {
           selectedBlogs.map((blogId) => axios.post(`/blogs/${blogId}/restore`))
         );
         toast.success(`Khôi phục ${selectedBlogs.length} bài viết thành công!`);
-        // Remove restored blogs from trash list
         setTrashedBlogs((prev) =>
           prev.filter((blog) => !selectedBlogs.includes(blog.id))
         );
@@ -183,7 +175,6 @@ function BlogsTrash() {
     }
   };
 
-  // Force delete multiple selected blogs
   const handleForceDeleteSelected = async () => {
     if (selectedBlogs.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một bài viết');
@@ -202,7 +193,6 @@ function BlogsTrash() {
         toast.success(
           `Xóa vĩnh viễn ${selectedBlogs.length} bài viết thành công!`
         );
-        // Remove deleted blogs from trash list
         setTrashedBlogs((prev) =>
           prev.filter((blog) => !selectedBlogs.includes(blog.id))
         );
@@ -214,7 +204,6 @@ function BlogsTrash() {
     }
   };
 
-  // Empty entire trash
   const handleEmptyTrash = async () => {
     if (trashedBlogs.length === 0) {
       toast.warning('Thùng rác đã trống');

@@ -9,8 +9,6 @@ import styles from './OrderDetail.module.scss';
 import { formatCurrency } from '../../../utils/formatCurrency';
 const cx = classNames.bind(styles);
 
-// Utility function để format tiền tệ
-
 function OrderDetail() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -110,7 +108,7 @@ function OrderDetail() {
                 src={item.product.featured_image}
                 alt={item.product.name}
                 onError={(e) => {
-                  e.target.src = '/images/default-product.jpg'; // Fallback image
+                  e.target.src = '/images/default-product.jpg';
                 }}
               />
               <div className={cx('product-info')}>

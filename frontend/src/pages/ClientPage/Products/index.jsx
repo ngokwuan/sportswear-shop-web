@@ -20,17 +20,14 @@ function Products() {
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('popularity');
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12); // Số sản phẩm mỗi trang
+  const [itemsPerPage] = useState(12);
 
-  // Filter states
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
 
-  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -38,11 +35,10 @@ function Products() {
         if (response.data && response.data.length > 0) {
           setAllProducts(response.data);
 
-          // Set initial price range based on ACTUAL prices (sale_price hoặc price)
           const actualPrices = response.data.map((product) => {
             return product.sale_price || product.price || 0;
           });
-          const min = 0; // Luôn bắt đầu từ 0
+          const min = 0;
           const max = Math.max(...actualPrices);
           setPriceRange([min, max]);
         }
@@ -57,38 +53,31 @@ function Products() {
     fetchProducts();
   }, []);
 
-  // Filter và sort products
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...allProducts];
 
-    // Filter by categories
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((product) =>
         selectedCategories.includes(product.category_id)
       );
     }
 
-    // Filter by brands
     if (selectedBrands.length > 0) {
       filtered = filtered.filter((product) =>
         selectedBrands.includes(product.brand)
       );
     }
 
-    // Filter by sizes
     if (selectedSizes.length > 0) {
       filtered = filtered.filter((product) =>
         selectedSizes.includes(product.size)
       );
     }
-
-    // Filter by price range - sử dụng giá thực tế (sale_price hoặc price)
     filtered = filtered.filter((product) => {
       const actualPrice = product.sale_price || product.price || 0;
       return actualPrice >= priceRange[0] && actualPrice <= priceRange[1];
     });
 
-    // Sort products
     switch (sortBy) {
       case 'price-low':
         filtered.sort((a, b) => {
@@ -125,21 +114,17 @@ function Products() {
     sortBy,
   ]);
 
-  // Tính toán pagination
   const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = filteredAndSortedProducts.slice(startIndex, endIndex);
 
-  // Reset về trang 1 khi filter thay đổi
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategories, selectedBrands, selectedSizes, priceRange, sortBy]);
 
-  // Pagination handlers
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    // Scroll to top when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -155,9 +140,8 @@ function Products() {
     }
   };
 
-  // Tạo array các số trang để hiển thị
   const getPaginationNumbers = () => {
-    const delta = 2; // Số trang hiển thị bên trái và phải của trang hiện tại
+    const delta = 2;
     const range = [];
     const rangeWithDots = [];
 
@@ -186,7 +170,6 @@ function Products() {
     return rangeWithDots;
   };
 
-  // Filter handlers
   const handleCategoryChange = (categoryId) => {
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
@@ -217,7 +200,6 @@ function Products() {
     setSelectedCategories([]);
     setSelectedBrands([]);
     setSelectedSizes([]);
-    // Reset to original price range dựa trên giá thực tế
     if (allProducts.length > 0) {
       const actualPrices = allProducts.map((product) => {
         return product.sale_price || product.price || 0;
@@ -318,10 +300,8 @@ function Products() {
             )}
           </div>
 
-          {/* Pagination */}
           {filteredAndSortedProducts.length > 0 && totalPages > 1 && (
             <div className={cx('pagination')}>
-              {/* Previous button */}
               <button
                 className={cx('page-btn', 'nav-btn', {
                   disabled: currentPage === 1,
@@ -332,7 +312,6 @@ function Products() {
                 <FontAwesomeIcon icon={faChevronLeft} />
               </button>
 
-              {/* Page numbers */}
               {getPaginationNumbers().map((page, index) => (
                 <React.Fragment key={index}>
                   {page === '...' ? (
@@ -350,7 +329,6 @@ function Products() {
                 </React.Fragment>
               ))}
 
-              {/* Next button */}
               <button
                 className={cx('page-btn', 'nav-btn', {
                   disabled: currentPage === totalPages,

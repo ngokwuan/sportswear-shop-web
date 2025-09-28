@@ -49,7 +49,6 @@ export const getBrandProduct = async (req, res) => {
       order: [['brand', 'ASC']],
     });
 
-    // convert chuỗi id thành mảng số
     const result = brands.map((b) => ({
       brand: b.brand,
       product_ids: b
@@ -99,10 +98,8 @@ export const getPriceProduct = async (req, res) => {
   try {
     const { minPrice = 0, maxPrice = 999999 } = req.query;
 
-    // Lấy tất cả sản phẩm để tính min/max price thực tế
     const allProducts = await Products.findAll();
 
-    // Tính giá thực tế (ưu tiên sale_price nếu có, không thì dùng price)
     const actualPrices = allProducts.map((product) => {
       return product.sale_price || product.price || 0;
     });
@@ -110,7 +107,6 @@ export const getPriceProduct = async (req, res) => {
     const minPriceFromDB = Math.min(...actualPrices);
     const maxPriceFromDB = Math.max(...actualPrices);
 
-    // Lọc sản phẩm theo khoảng giá được yêu cầu
     const products = await Products.findAll({
       where: {
         [Sequelize.Op.or]: [
@@ -138,7 +134,6 @@ export const getPriceProduct = async (req, res) => {
         min: Number(minPrice),
         max: Number(maxPrice),
       },
-      // Thêm thông tin về min/max price thực tế từ database
       actualPriceRange: {
         min_price: minPriceFromDB,
         max_price: maxPriceFromDB,

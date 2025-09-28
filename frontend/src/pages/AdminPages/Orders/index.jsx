@@ -39,7 +39,6 @@ function Orders() {
     { value: 'failed', label: 'Thất bại' },
   ];
 
-  // Fetch orders from API
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -133,7 +132,7 @@ function Orders() {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
-      page: 1, // Reset to first page when filter changes
+      page: 1,
     }));
   };
 
@@ -166,7 +165,6 @@ function Orders() {
       });
 
       if (response.data.success) {
-        // Update order in the list
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.id === editingOrder.id

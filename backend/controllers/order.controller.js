@@ -16,7 +16,6 @@ export const createOrder = async (req, res) => {
       payment_method = 'vnpay',
     } = req.body;
 
-    // Validate required fields
     if (!user_id || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
@@ -31,7 +30,6 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Kiểm tra user tồn tại
     const user = await User.findByPk(user_id);
     if (!user) {
       return res.status(404).json({
@@ -40,7 +38,6 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Generate unique order number
     const generateOrderNumber = () => {
       const timestamp = Date.now();
       const random = Math.floor(Math.random() * 1000)
@@ -51,7 +48,6 @@ export const createOrder = async (req, res) => {
 
     const orderNumber = generateOrderNumber();
 
-    // Lấy thông tin chi tiết sản phẩm và tính tổng tiền
     let subtotal = 0;
     const orderItems = [];
 
@@ -65,7 +61,6 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      // Kiểm tra tồn kho (nếu có field stock)
       if (product.stock && product.stock < item.quantity) {
         await transaction.rollback();
         return res.status(400).json({
@@ -87,15 +82,13 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Tính phí vận chuyển (mặc định 30000 theo model)
-    const shippingFee = 0; // Miễn phí vận chuyển theo checkout component
+    const shippingFee = 0;
     const totalAmount = subtotal + shippingFee;
 
-    // Tạo đơn hàng với order_number
     const order = await Order.create(
       {
         user_id,
-        order_number: orderNumber, // Add this line
+        order_number: orderNumber,
         customer_name: name,
         customer_email: email,
         customer_phone: phone,
@@ -111,7 +104,6 @@ export const createOrder = async (req, res) => {
       { transaction }
     );
 
-    // Tạo order items
     const orderItemsWithOrderId = orderItems.map((item) => ({
       ...item,
       order_id: order.id,
@@ -119,7 +111,6 @@ export const createOrder = async (req, res) => {
 
     await OrderItem.bulkCreate(orderItemsWithOrderId, { transaction });
 
-    // Cập nhật stock sản phẩm (nếu có)
     for (const item of items) {
       const product = await Product.findByPk(item.product_id);
       if (product.stock !== null && product.stock !== undefined) {
@@ -132,7 +123,6 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // Clear user's cart after successful order creation
     await Cart.destroy({
       where: { user_id },
       transaction,
@@ -140,7 +130,6 @@ export const createOrder = async (req, res) => {
 
     await transaction.commit();
 
-    // Trả về thông tin đơn hàng
     const createdOrder = await Order.findByPk(order.id, {
       include: [
         {
@@ -177,7 +166,7 @@ export const createOrder = async (req, res) => {
     });
   }
 };
-// Lấy danh sách đơn hàng của user
+
 export const getUserOrders = async (req, res) => {
   try {
     const { user_id } = req.params;
@@ -232,7 +221,6 @@ export const getUserOrders = async (req, res) => {
   }
 };
 
-// Lấy chi tiết đơn hàng
 export const getOrderById = async (req, res) => {
   try {
     const { order_id } = req.params;
@@ -292,7 +280,6 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-// Cập nhật trạng thái thanh toán
 export const updatePaymentStatus = async (req, res) => {
   try {
     const { order_id } = req.params;
@@ -308,7 +295,6 @@ export const updatePaymentStatus = async (req, res) => {
 
     const updateData = { payment_status };
 
-    // Nếu thanh toán thành công, cập nhật status đơn hàng
     if (payment_status === 'paid') {
       updateData.status = 'processing';
     } else if (payment_status === 'failed') {
@@ -331,7 +317,7 @@ export const updatePaymentStatus = async (req, res) => {
     });
   }
 };
-// Cập nhật trạng thái đơn hàng
+
 export const updateOrderStatus = async (req, res) => {
   try {
     const { order_id } = req.params;
@@ -381,7 +367,6 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
-// Hủy đơn hàng
 export const cancelOrder = async (req, res) => {
   const transaction = await sequelize.transaction();
 
@@ -406,7 +391,6 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    // Chỉ cho phép hủy đơn hàng ở trạng thái pending hoặc processing
     if (!['pending', 'processing'].includes(order.status)) {
       return res.status(400).json({
         success: false,
@@ -414,7 +398,6 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    // Hoàn trả stock sản phẩm
     for (const item of order.items) {
       const product = await Product.findByPk(item.product_id);
       if (product && product.stock !== null) {
@@ -427,7 +410,6 @@ export const cancelOrder = async (req, res) => {
       }
     }
 
-    // Cập nhật trạng thái đơn hàng
     await order.update(
       {
         status: 'cancelled',
@@ -453,7 +435,6 @@ export const cancelOrder = async (req, res) => {
   }
 };
 
-// Lấy tất cả đơn hàng (admin)
 export const getAllOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10, status, payment_status, search } = req.query;

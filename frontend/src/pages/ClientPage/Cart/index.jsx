@@ -24,16 +24,13 @@ function Cart() {
   const { user, loading: userLoading } = useContext(UserContext);
 
   useEffect(() => {
-    // Chờ UserContext load xong
     if (userLoading) return;
 
-    // Nếu không có user, chuyển đến trang login
     if (!user) {
       navigate('/login');
       return;
     }
 
-    // Nếu có user, fetch cart items
     fetchCartItems();
   }, [user, userLoading, navigate]);
 
@@ -45,7 +42,6 @@ function Cart() {
     } catch (error) {
       console.error('Lỗi khi lấy giỏ hàng:', error);
       if (error.response?.status === 401) {
-        // Token hết hạn hoặc không hợp lệ
         navigate('/login');
         return;
       }
@@ -65,14 +61,12 @@ function Cart() {
         quantity: newQuantity,
       });
 
-      // Update local state
       setCartItems((prevItems) =>
         prevItems.map((item) =>
           item.id === cartId ? { ...item, quantity: newQuantity } : item
         )
       );
 
-      // Dispatch event để Header cập nhật cart count
       window.dispatchEvent(
         new CustomEvent('cartUpdated', {
           detail: { action: 'update' },
@@ -99,12 +93,10 @@ function Cart() {
       setUpdating(true);
       await axios.delete(`/cart/remove/${cartId}`);
 
-      // Update local state
       setCartItems((prevItems) =>
         prevItems.filter((item) => item.id !== cartId)
       );
 
-      // Dispatch event để Header cập nhật cart count
       window.dispatchEvent(
         new CustomEvent('cartUpdated', {
           detail: { action: 'remove' },
@@ -133,7 +125,6 @@ function Cart() {
 
       if (response.data.success) {
         setCartItems([]);
-        // Dispatch event để Header cập nhật cart count
         window.dispatchEvent(
           new CustomEvent('cartUpdated', {
             detail: { action: 'clear' },
@@ -165,7 +156,6 @@ function Cart() {
     return price * item.quantity;
   };
 
-  // Hiển thị loading khi đang check user authentication
   if (userLoading || loading) {
     return (
       <div className={cx('loading')}>
@@ -175,7 +165,6 @@ function Cart() {
     );
   }
 
-  // Nếu không có user, component sẽ redirect, nhưng để chắc chắn
   if (!user) {
     return null;
   }

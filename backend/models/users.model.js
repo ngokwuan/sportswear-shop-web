@@ -60,7 +60,6 @@ const User = sequelize.define(
   }
 );
 
-// Hash password before saving
 User.beforeCreate(async (user) => {
   if (user.password) {
     user.password = await bcrypt.hash(user.password, 12);
@@ -73,7 +72,6 @@ User.beforeUpdate(async (user) => {
   }
 });
 
-// Instance method to check password
 User.prototype.checkPassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };

@@ -38,7 +38,7 @@ function Header() {
       if (user) {
         fetchCartCount();
       } else {
-        setCartCount(0); // guest
+        setCartCount(0);
       }
     }
   }, [user, loading]);

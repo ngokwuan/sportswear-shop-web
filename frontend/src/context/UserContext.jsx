@@ -3,7 +3,7 @@ import axios from '../setup/axios';
 export const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // null = guest, object = logged-in
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {

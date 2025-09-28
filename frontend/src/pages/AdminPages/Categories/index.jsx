@@ -19,7 +19,6 @@ function Categories() {
     description: '',
   });
 
-  // Fetch categories from API
   const fetchCategories = async () => {
     try {
       setLoading(true);
@@ -53,20 +52,17 @@ function Categories() {
       const response = await axios.post('/categories', newCategory);
 
       if (response.data.newCategories) {
-        // Add new category to the list
         setCategories((prevCategories) => [
           ...prevCategories,
           response.data.newCategories,
         ]);
         toast.success('Thêm danh mục thành công!');
 
-        // Reset form and close modal
         setNewCategory({ name: '', description: '' });
         setShowCreateModal(false);
       }
     } catch (error) {
       console.error('Error creating category:', error);
-      // Error đã được handle trong axios interceptor
     }
   };
 
@@ -98,7 +94,6 @@ function Categories() {
       );
 
       if (response.data.category) {
-        // Update category in the list
         setCategories((prevCategories) =>
           prevCategories.map((category) =>
             category.id === editingCategory.id
@@ -112,7 +107,6 @@ function Categories() {
       }
     } catch (error) {
       console.error('Error updating category:', error);
-      // Error đã được handle trong axios interceptor
     }
   };
 
@@ -123,14 +117,12 @@ function Categories() {
       try {
         await axios.delete(`/categories/${categoryId}`);
 
-        // Remove category from the list
         setCategories((prevCategories) =>
           prevCategories.filter((category) => category.id !== categoryId)
         );
         toast.success('Đã chuyển danh mục vào thùng rác!');
       } catch (error) {
         console.error('Error deleting category:', error);
-        // Error đã được handle trong axios interceptor
       }
     }
   };

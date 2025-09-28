@@ -1,9 +1,8 @@
 .wrapper {
   width: 100%;
-  margin-top: auto; // Push footer to bottom if using flexbox layout
+  margin-top: auto;
 }
 
-// Container & Grid
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -51,7 +50,6 @@
   align-items: center;
 }
 
-// Main Footer
 .footer-main {
   background-color: #1a1a1a;
   color: #ffffff;
@@ -59,7 +57,6 @@
   padding-top: 20px;
 }
 
-// Logo & Brand
 .footer-brand {
   display: flex;
   align-items: center;
@@ -94,7 +91,6 @@
   margin-bottom: 1.5rem;
 }
 
-// Footer Titles
 .footer-title {
   color: #ffffff;
   font-weight: 600;
@@ -104,7 +100,6 @@
   letter-spacing: 0.5px;
 }
 
-// Footer Links
 .footer-links {
   list-style: none;
   padding: 0;
@@ -127,7 +122,6 @@
   }
 }
 
-// Social Links
 .social-links {
   display: flex;
   gap: 1rem;
@@ -156,7 +150,6 @@
   }
 }
 
-// Newsletter
 .newsletter-text {
   color: #a8a8a8;
   font-size: 0.9rem;
@@ -206,7 +199,6 @@
   }
 }
 
-// Payment Methods
 .payment-methods {
   margin-top: 2rem;
 }
@@ -243,7 +235,6 @@
   }
 }
 
-// Footer Bottom
 .footer-bottom {
   background-color: #0d1117;
   border-top: 1px solid #2a2a2a;
@@ -273,7 +264,6 @@
   }
 }
 
-// Responsive Design
 @media (max-width: 991px) {
   .col-lg-4,
   .col-lg-2 {

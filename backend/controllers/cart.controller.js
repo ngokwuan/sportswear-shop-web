@@ -20,7 +20,6 @@ export const addToCart = async (req, res) => {
       });
     }
 
-    // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
     const existingCartItem = await Cart.findOne({
       where: {
         user_id: userId,
@@ -30,11 +29,9 @@ export const addToCart = async (req, res) => {
 
     let cartItem;
     if (existingCartItem) {
-      // Nếu đã có, cập nhật số lượng
       existingCartItem.quantity += parseInt(quantity);
       cartItem = await existingCartItem.save();
     } else {
-      // Nếu chưa có, tạo mới
       cartItem = await Cart.create({
         user_id: userId,
         product_id: productId,
@@ -98,7 +95,6 @@ export const getCart = async (req, res) => {
 
 export const getCountCart = async (req, res) => {
   try {
-    // Sử dụng optionalUserJWT middleware để endpoint này không yêu cầu bắt buộc phải đăng nhập
     const userId = req.user?.id;
 
     if (!userId) {
@@ -140,7 +136,6 @@ export const updateCartItem = async (req, res) => {
       });
     }
 
-    // Tìm cart item và đảm bảo nó thuộc về user hiện tại
     const cartItem = await Cart.findOne({
       where: {
         id: cartId,
@@ -155,7 +150,6 @@ export const updateCartItem = async (req, res) => {
       });
     }
 
-    // Cập nhật số lượng
     cartItem.quantity = parseInt(quantity);
     await cartItem.save();
 
@@ -185,7 +179,6 @@ export const removeFromCart = async (req, res) => {
       });
     }
 
-    // Tìm và xóa cart item, đảm bảo nó thuộc về user hiện tại
     const deletedRows = await Cart.destroy({
       where: {
         id: cart_id,

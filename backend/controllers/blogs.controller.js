@@ -1,28 +1,24 @@
-// controllers/blog.controller.js
 import { Blog, User, Category } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { Op } from 'sequelize';
+import slugify from 'slugify';
 
-// Tạo bài viết mới
 export const createBlog = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
     const {
       title,
-      slug,
+
       excerpt,
       content,
       featured_image,
       category_id,
       status = 'draft',
-      tags = [],
       meta_title,
       meta_description,
-      is_featured = false,
     } = req.body;
 
-    // Validate required fields
     if (!title || !content) {
       return res.status(400).json({
         success: false,
@@ -30,7 +26,6 @@ export const createBlog = async (req, res) => {
       });
     }
 
-    // Get author_id from authenticated user
     const author_id = req.user?.id;
     if (!author_id) {
       return res.status(401).json({
@@ -39,7 +34,6 @@ export const createBlog = async (req, res) => {
       });
     }
 
-    // Check if user exists and is admin
     const author = await User.findByPk(author_id);
     if (!author) {
       return res.status(404).json({
@@ -48,7 +42,6 @@ export const createBlog = async (req, res) => {
       });
     }
 
-    // Check if category exists (if provided)
     if (category_id) {
       const category = await Category.findByPk(category_id);
       if (!category) {
@@ -59,39 +52,19 @@ export const createBlog = async (req, res) => {
       }
     }
 
-    // Generate slug if not provided
-    let finalSlug = slug;
-    if (!finalSlug) {
-      finalSlug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim('-');
-    }
-
-    // Check slug uniqueness
-    const existingBlog = await Blog.findOne({ where: { slug: finalSlug } });
-    if (existingBlog) {
-      finalSlug += `-${Date.now()}`;
-    }
-
     const blogData = {
       title,
-      slug: finalSlug,
+      slug: slugify(title, { lower: true }),
       excerpt,
       content,
       featured_image,
       author_id,
       category_id,
       status,
-      tags: Array.isArray(tags) ? tags : [],
       meta_title: meta_title || title,
       meta_description: meta_description || excerpt,
-      is_featured,
     };
 
-    // Set published_at if status is published
     if (status === 'published') {
       blogData.published_at = new Date();
     }
@@ -100,7 +73,6 @@ export const createBlog = async (req, res) => {
 
     await transaction.commit();
 
-    // Fetch the created blog with associations
     const createdBlog = await Blog.findByPk(blog.id, {
       include: [
         {
@@ -132,7 +104,6 @@ export const createBlog = async (req, res) => {
   }
 };
 
-// Lấy danh sách tất cả bài viết (admin)
 export const getAllBlogs = async (req, res) => {
   try {
     const {
@@ -142,7 +113,6 @@ export const getAllBlogs = async (req, res) => {
       category_id,
       author_id,
       search,
-      is_featured,
     } = req.query;
 
     const offset = (page - 1) * limit;
@@ -151,8 +121,6 @@ export const getAllBlogs = async (req, res) => {
     if (status) whereCondition.status = status;
     if (category_id) whereCondition.category_id = category_id;
     if (author_id) whereCondition.author_id = author_id;
-    if (is_featured !== undefined)
-      whereCondition.is_featured = is_featured === 'true';
 
     if (search) {
       whereCondition[Op.or] = [
@@ -203,17 +171,9 @@ export const getAllBlogs = async (req, res) => {
   }
 };
 
-// Lấy danh sách bài viết công khai (published)
 export const getPublishedBlogs = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      category_id,
-      search,
-      is_featured,
-      tags,
-    } = req.query;
+    const { page = 1, limit = 10, category_id, search } = req.query;
 
     const offset = (page - 1) * limit;
     const whereCondition = {
@@ -222,18 +182,12 @@ export const getPublishedBlogs = async (req, res) => {
     };
 
     if (category_id) whereCondition.category_id = category_id;
-    if (is_featured !== undefined)
-      whereCondition.is_featured = is_featured === 'true';
 
     if (search) {
       whereCondition[Op.or] = [
         { title: { [Op.like]: `%${search}%` } },
         { excerpt: { [Op.like]: `%${search}%` } },
       ];
-    }
-
-    if (tags) {
-      whereCondition.tags = { [Op.like]: `%${tags}%` };
     }
 
     const { count, rows: blogs } = await Blog.findAndCountAll({
@@ -277,7 +231,6 @@ export const getPublishedBlogs = async (req, res) => {
   }
 };
 
-// Lấy chi tiết bài viết
 export const getBlogById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -305,7 +258,6 @@ export const getBlogById = async (req, res) => {
       });
     }
 
-    // Increment view count if requested
     if (increment_view === 'true') {
       await blog.increment('views');
     }
@@ -324,59 +276,6 @@ export const getBlogById = async (req, res) => {
   }
 };
 
-// Lấy bài viết theo slug
-export const getBlogBySlug = async (req, res) => {
-  try {
-    const { slug } = req.params;
-    const { increment_view = 'true' } = req.query;
-
-    const blog = await Blog.findOne({
-      where: {
-        slug,
-        status: 'published',
-        published_at: { [Op.lte]: new Date() },
-      },
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name'],
-        },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
-        },
-      ],
-    });
-
-    if (!blog) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy bài viết',
-      });
-    }
-
-    // Increment view count
-    if (increment_view === 'true') {
-      await blog.increment('views');
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: blog,
-    });
-  } catch (error) {
-    console.error('Get blog by slug error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi lấy chi tiết bài viết',
-      error: error.message,
-    });
-  }
-};
-
-// Cập nhật bài viết
 export const updateBlog = async (req, res) => {
   const transaction = await sequelize.transaction();
 
@@ -384,7 +283,6 @@ export const updateBlog = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Get current user from token
     const currentUserId = req.user?.id;
     if (!currentUserId) {
       return res.status(401).json({
@@ -401,21 +299,8 @@ export const updateBlog = async (req, res) => {
       });
     }
 
-    // Optional: Check if user can only edit their own blogs
-    // Comment out if admin can edit any blog
-    /*
-    if (blog.author_id !== currentUserId) {
-      return res.status(403).json({
-        success: false,
-        message: 'Bạn chỉ có thể chỉnh sửa bài viết của mình',
-      });
-    }
-    */
-
-    // Remove author_id from updateData to prevent changing author
     delete updateData.author_id;
 
-    // Check if category exists (if updating)
     if (updateData.category_id) {
       const category = await Category.findByPk(updateData.category_id);
       if (!category) {
@@ -426,17 +311,11 @@ export const updateBlog = async (req, res) => {
       }
     }
 
-    // Handle slug update
     if (
       updateData.title &&
       (!updateData.slug || updateData.slug === blog.slug)
     ) {
-      const newSlug = updateData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim('-');
+      const newSlug = slugify(updateData.title, { lower: true });
 
       const existingBlog = await Blog.findOne({
         where: {
@@ -452,7 +331,6 @@ export const updateBlog = async (req, res) => {
       }
     }
 
-    // Handle published_at
     if (updateData.status === 'published' && !blog.published_at) {
       updateData.published_at = new Date();
     } else if (updateData.status !== 'published' && updateData.status) {
@@ -463,7 +341,6 @@ export const updateBlog = async (req, res) => {
 
     await transaction.commit();
 
-    // Fetch updated blog with associations
     const updatedBlog = await Blog.findByPk(id, {
       include: [
         {
@@ -495,7 +372,6 @@ export const updateBlog = async (req, res) => {
   }
 };
 
-// Xóa bài viết (soft delete)
 export const deleteBlog = async (req, res) => {
   try {
     const { id } = req.params;
@@ -508,7 +384,7 @@ export const deleteBlog = async (req, res) => {
       });
     }
 
-    await blog.destroy(); // Soft delete
+    await blog.destroy();
 
     return res.status(200).json({
       success: true,
@@ -524,7 +400,6 @@ export const deleteBlog = async (req, res) => {
   }
 };
 
-// Lấy bài viết từ thùng rác
 export const getTrashedBlogs = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -532,7 +407,7 @@ export const getTrashedBlogs = async (req, res) => {
 
     const { count, rows: blogs } = await Blog.findAndCountAll({
       where: {},
-      paranoid: false, // Include soft deleted records
+      paranoid: false,
       include: [
         {
           model: User,
@@ -550,7 +425,6 @@ export const getTrashedBlogs = async (req, res) => {
       offset: parseInt(offset),
     });
 
-    // Filter only trashed blogs
     const trashedBlogs = blogs.filter((blog) => blog.deleted_at !== null);
     const trashedCount = trashedBlogs.length;
 
@@ -576,7 +450,6 @@ export const getTrashedBlogs = async (req, res) => {
   }
 };
 
-// Khôi phục bài viết từ thùng rác
 export const restoreBlog = async (req, res) => {
   try {
     const { id } = req.params;
@@ -612,7 +485,6 @@ export const restoreBlog = async (req, res) => {
   }
 };
 
-// Xóa vĩnh viễn bài viết
 export const forceDeleteBlog = async (req, res) => {
   try {
     const { id } = req.params;
@@ -625,7 +497,7 @@ export const forceDeleteBlog = async (req, res) => {
       });
     }
 
-    await blog.destroy({ force: true }); // Force delete
+    await blog.destroy({ force: true });
 
     return res.status(200).json({
       success: true,
@@ -636,47 +508,6 @@ export const forceDeleteBlog = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Lỗi xóa vĩnh viễn bài viết',
-      error: error.message,
-    });
-  }
-};
-
-// Lấy bài viết nổi bật
-export const getFeaturedBlogs = async (req, res) => {
-  try {
-    const { limit = 5 } = req.query;
-
-    const blogs = await Blog.findAll({
-      where: {
-        status: 'published',
-        is_featured: true,
-        published_at: { [Op.lte]: new Date() },
-      },
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name'],
-        },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
-        },
-      ],
-      order: [['published_at', 'DESC']],
-      limit: parseInt(limit),
-    });
-
-    return res.status(200).json({
-      success: true,
-      data: blogs,
-    });
-  } catch (error) {
-    console.error('Get featured blogs error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi lấy bài viết nổi bật',
       error: error.message,
     });
   }

@@ -37,21 +37,17 @@ function ScrollContainer({
   const hasNext = currentIndex + itemsPreView < items.length;
   const hasPrev = currentIndex > 0;
 
-  // Lấy ra chỉ những items cần hiển thị
   const visibleItems = items.slice(currentIndex, currentIndex + itemsPreView);
 
   if (items.length === 0) return null;
 
-  // Tạo dynamic grid template columns dựa trên itemsPreView
   let gridTemplateColumns;
   let gridClass = '';
 
   if (itemsPreView === 6) {
-    // Đặc biệt cho 6 items: 3x2 grid
     gridTemplateColumns = 'repeat(3, 1fr)';
     gridClass = 'grid-3x2';
   } else {
-    // Các trường hợp khác: 1 hàng ngang
     gridTemplateColumns = `repeat(${itemsPreView}, 1fr)`;
   }
 

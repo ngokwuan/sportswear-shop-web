@@ -2,7 +2,11 @@ import mysql2 from 'mysql2/promise';
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
-dotenv.config();
+const envFile =
+  process.env.NODE_ENV === 'production'
+    ? '.env.production'
+    : '.env.development';
+dotenv.config({ path: envFile });
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -16,11 +20,10 @@ const sequelize = new Sequelize(
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Aiven yêu cầu SSL
+        rejectUnauthorized: false,
       },
+
       connectTimeout: 60000,
-      acquireTimeout: 60000,
-      timeout: 60000,
     },
     pool: {
       max: 5,
@@ -36,15 +39,33 @@ const sequelize = new Sequelize(
 
 export const connectDB = async () => {
   try {
-    console.log('Connecting to Aiven MySQL...');
-    console.log(`Host: ${process.env.DB_HOST}`);
-    console.log(`Database: ${process.env.DB_NAME}`);
-
     await sequelize.authenticate();
     console.log('MySQL connected successfully to Aiven!');
     return sequelize;
   } catch (error) {
-    console.error('Database connection failed:', error);
+    try {
+      console.log('Testing direct MySQL connection...');
+      const connection = await mysql2.createConnection({
+        host: process.env.DB_HOST,
+        port: parseInt(process.env.DB_PORT),
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      });
+      await connection.ping();
+      console.log('Direct MySQL connection successful!');
+      await connection.end();
+    } catch (directError) {
+      console.error(
+        'Direct MySQL connection also failed:',
+        directError.message
+      );
+    }
+
     process.exit(1);
   }
 };

@@ -11,13 +11,11 @@ import PriceFilter from '../PriceFilter';
 const cx = classNames.bind(styles);
 
 const FilterSidebar = ({
-  // Selected values
   selectedCategories,
   selectedBrands,
   selectedSizes,
   priceRange,
 
-  // Handlers
   onCategoryChange,
   onBrandChange,
   onSizeChange,

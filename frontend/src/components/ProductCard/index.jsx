@@ -48,12 +48,10 @@ function ProductCard({ product, viewMode }) {
       if (response.data.success) {
         setIsAdded(true);
 
-        // Reset trạng thái sau 2 giây
         setTimeout(() => {
           setIsAdded(false);
         }, 2000);
 
-        // Dispatch event để cập nhật cart counter nếu có
         window.dispatchEvent(new CustomEvent('cartUpdated'));
       } else {
         throw new Error(response.data.message || 'Không thể thêm vào giỏ hàng');
@@ -65,7 +63,6 @@ function ProductCard({ product, viewMode }) {
     }
   };
 
-  // Tính giá hiển thị và giá cũ
   const currentPrice = product.sale_price || product.price;
   const oldPrice = product.sale_price ? product.price : null;
   const isOnSale = product.sale_price && product.sale_price < product.price;
@@ -76,7 +73,6 @@ function ProductCard({ product, viewMode }) {
   return (
     <div className={cx('product-grid', viewMode)} onClick={handleClick}>
       <div className={cx('product-card', viewMode)}>
-        {/* Chỉ hiển thị sale badge khi có discount > 0% */}
         {isOnSale && discountPercent > 0 && (
           <span className={cx('sale-badge')}>-{discountPercent}%</span>
         )}
@@ -87,7 +83,6 @@ function ProductCard({ product, viewMode }) {
             src={product.featured_image}
             alt={product.name}
             onError={(e) => {
-              // Fallback nếu ảnh không load được
               e.target.src =
                 'https://via.placeholder.com/400x400/f0f0f0/666?text=Product+Image';
             }}

@@ -8,7 +8,6 @@ const cx = classNames.bind(styles);
 function Nav() {
   const location = useLocation();
 
-  // Check if current route is Home
   const isHomePage = location.pathname === '/';
   return (
     <div className={cx('wrapper', { 'home-layout': isHomePage })}>

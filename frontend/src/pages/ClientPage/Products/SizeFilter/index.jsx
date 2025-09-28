@@ -14,7 +14,6 @@ const SizeFilter = ({ selectedSizes, onSizeChange }) => {
       try {
         const response = await axios.get('/products');
         if (response.data && response.data.length > 0) {
-          // Extract unique sizes from products
           const sizeCounts = response.data.reduce((acc, product) => {
             if (product.size) {
               acc[product.size] = (acc[product.size] || 0) + 1;
@@ -27,7 +26,6 @@ const SizeFilter = ({ selectedSizes, onSizeChange }) => {
             count,
           }));
 
-          // Sort sizes in logical order
           const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
           sizeList.sort((a, b) => {
             const aIndex = sizeOrder.indexOf(a.size);

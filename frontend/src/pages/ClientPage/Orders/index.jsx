@@ -96,13 +96,11 @@ function Orders() {
     }
   };
 
-  // Filter orders
   const filteredOrders =
     filter === 'all'
       ? orders
       : orders.filter((order) => order.status === filter);
 
-  // Get unique statuses for filter
   const availableStatuses = [...new Set(orders.map((order) => order.status))];
 
   if (loading) {

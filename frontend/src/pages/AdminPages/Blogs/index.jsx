@@ -25,16 +25,15 @@ function Blogs() {
     featured_image: '',
     category_id: '',
     status: 'draft',
-    tags: [],
+
     meta_title: '',
     meta_description: '',
-    is_featured: false,
   });
   const [filters, setFilters] = useState({
     status: '',
     category_id: '',
     search: '',
-    is_featured: '',
+
     page: 1,
     limit: 10,
   });
@@ -47,7 +46,6 @@ function Blogs() {
     { value: 'archived', label: 'Lưu trữ' },
   ];
 
-  // Fetch blogs and categories
   const fetchBlogs = async () => {
     try {
       setLoading(true);
@@ -141,13 +139,11 @@ function Blogs() {
     }
 
     try {
-      // Get current user ID (you might need to get this from auth context)
-      const userId = 1; // Replace with actual current user ID
+      const userId = 1;
 
       const blogData = {
         ...newBlog,
         author_id: userId,
-        tags: Array.isArray(newBlog.tags) ? newBlog.tags : [],
       };
 
       const response = await axios.post('/blogs', blogData);
@@ -162,10 +158,9 @@ function Blogs() {
           featured_image: '',
           category_id: '',
           status: 'draft',
-          tags: [],
+
           meta_title: '',
           meta_description: '',
-          is_featured: false,
         });
         setShowCreateModal(false);
       }
@@ -178,7 +173,6 @@ function Blogs() {
   const handleEditBlog = (blog) => {
     setEditingBlog({
       ...blog,
-      tags: blog.tags || [],
     });
     setShowEditModal(true);
   };
@@ -245,15 +239,6 @@ function Blogs() {
 
   const handlePageChange = (newPage) => {
     setFilters((prev) => ({ ...prev, page: newPage }));
-  };
-
-  const handleTagsChange = (e, blogSetter) => {
-    const tagsString = e.target.value;
-    const tagsArray = tagsString
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter((tag) => tag);
-    blogSetter((prev) => ({ ...prev, tags: tagsArray }));
   };
 
   if (loading) {
@@ -337,20 +322,6 @@ function Blogs() {
           </div>
 
           <div className={cx('form-group')}>
-            <label>Nổi bật</label>
-            <select
-              value={filters.is_featured}
-              onChange={(e) =>
-                handleFilterChange('is_featured', e.target.value)
-              }
-            >
-              <option value="">Tất cả</option>
-              <option value="true">Nổi bật</option>
-              <option value="false">Thường</option>
-            </select>
-          </div>
-
-          <div className={cx('form-group')}>
             <button type="submit" className={cx('search-btn')}>
               Tìm kiếm
             </button>
@@ -365,7 +336,7 @@ function Blogs() {
           <span>Tác giả</span>
           <span>Danh mục</span>
           <span>Trạng thái</span>
-          <span>Lượt xem</span>
+
           <span>Ngày tạo</span>
           <span>Thao tác</span>
         </div>
@@ -379,9 +350,6 @@ function Blogs() {
             <div key={blog.id} className={cx('table-row')}>
               <div className={cx('blog-title')}>
                 <h4>{blog.title}</h4>
-                {blog.is_featured && (
-                  <span className={cx('featured-badge')}>Nổi bật</span>
-                )}
               </div>
               <span className={cx('blog-author')}>
                 {blog.author?.name || 'N/A'}
@@ -392,7 +360,7 @@ function Blogs() {
               <div className={cx('status-col')}>
                 {getStatusBadge(blog.status)}
               </div>
-              <span className={cx('blog-views')}>{blog.views}</span>
+
               <span className={cx('created-date')}>
                 {formatDate(blog.created_at)}
               </span>
@@ -551,31 +519,6 @@ function Blogs() {
                 </div>
               </div>
 
-              <div className={cx('form-group')}>
-                <label>Tags (phân cách bằng dấu phẩy)</label>
-                <input
-                  type="text"
-                  value={
-                    Array.isArray(newBlog.tags) ? newBlog.tags.join(', ') : ''
-                  }
-                  onChange={(e) => handleTagsChange(e, setNewBlog)}
-                  placeholder="tag1, tag2, tag3"
-                />
-              </div>
-
-              <div className={cx('form-group', 'checkbox-group')}>
-                <label className={cx('checkbox-label')}>
-                  <input
-                    type="checkbox"
-                    checked={newBlog.is_featured}
-                    onChange={(e) =>
-                      setNewBlog({ ...newBlog, is_featured: e.target.checked })
-                    }
-                  />
-                  Đánh dấu là bài viết nổi bật
-                </label>
-              </div>
-
               <div className={cx('form-row')}>
                 <div className={cx('form-group')}>
                   <label>Meta Title</label>
@@ -730,36 +673,6 @@ function Blogs() {
                 </div>
               </div>
 
-              <div className={cx('form-group')}>
-                <label>Tags (phân cách bằng dấu phẩy)</label>
-                <input
-                  type="text"
-                  value={
-                    Array.isArray(editingBlog.tags)
-                      ? editingBlog.tags.join(', ')
-                      : ''
-                  }
-                  onChange={(e) => handleTagsChange(e, setEditingBlog)}
-                  placeholder="tag1, tag2, tag3"
-                />
-              </div>
-
-              <div className={cx('form-group', 'checkbox-group')}>
-                <label className={cx('checkbox-label')}>
-                  <input
-                    type="checkbox"
-                    checked={editingBlog.is_featured || false}
-                    onChange={(e) =>
-                      setEditingBlog({
-                        ...editingBlog,
-                        is_featured: e.target.checked,
-                      })
-                    }
-                  />
-                  Đánh dấu là bài viết nổi bật
-                </label>
-              </div>
-
               <div className={cx('form-row')}>
                 <div className={cx('form-group')}>
                   <label>Meta Title</label>
@@ -859,10 +772,7 @@ function Blogs() {
                     <label>Lượt xem:</label>
                     <span>{viewingBlog.views}</span>
                   </div>
-                  <div className={cx('info-item')}>
-                    <label>Nổi bật:</label>
-                    <span>{viewingBlog.is_featured ? 'Có' : 'Không'}</span>
-                  </div>
+
                   <div className={cx('info-item')}>
                     <label>Ngày tạo:</label>
                     <span>{formatDate(viewingBlog.created_at)}</span>
@@ -895,19 +805,6 @@ function Blogs() {
                   dangerouslySetInnerHTML={{ __html: viewingBlog.content }}
                 />
               </div>
-
-              {viewingBlog.tags && viewingBlog.tags.length > 0 && (
-                <div className={cx('view-section')}>
-                  <h4>Tags</h4>
-                  <div className={cx('tags-list')}>
-                    {viewingBlog.tags.map((tag, index) => (
-                      <span key={index} className={cx('tag-item')}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {(viewingBlog.meta_title || viewingBlog.meta_description) && (
                 <div className={cx('view-section')}>

@@ -12,9 +12,6 @@ import {
   faShoppingCart,
   faDollarSign,
   faPenToSquare,
-  // faTrendUp,
-  // faTrendDown,
-  faArrowRight,
 } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
@@ -44,18 +41,15 @@ function Dashboard() {
   const [orderStatusStats, setOrderStatusStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all dashboard data
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
 
-      // Fetch main stats
       const statsResponse = await axios.get('/dashboard/stats');
       if (statsResponse.data.success) {
         setStats(statsResponse.data.data);
       }
 
-      // Fetch recent orders
       const ordersResponse = await axios.get(
         '/dashboard/recent-orders?limit=4'
       );
@@ -63,7 +57,6 @@ function Dashboard() {
         setRecentOrders(ordersResponse.data.data);
       }
 
-      // Fetch top products
       const productsResponse = await axios.get(
         '/dashboard/top-products?limit=4'
       );
@@ -71,7 +64,6 @@ function Dashboard() {
         setTopProducts(productsResponse.data.data);
       }
 
-      // Fetch order status stats
       const statusResponse = await axios.get('/dashboard/order-status');
       if (statusResponse.data.success) {
         setOrderStatusStats(statusResponse.data.data);
@@ -131,18 +123,6 @@ function Dashboard() {
       completed: 'Hoàn thành',
     };
     return statusLabels[status] || status;
-  };
-
-  // const getGrowthIcon = (growth) => {
-  //   if (growth > 0) return faTrendUp;
-  //   // if (growth < 0) return faTrendDown;
-  //   return faArrowRight;
-  // };
-
-  const getGrowthClass = (growth) => {
-    if (growth > 0) return 'positive';
-    if (growth < 0) return 'negative';
-    return 'neutral';
   };
 
   if (loading) {

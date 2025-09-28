@@ -14,7 +14,6 @@ function CategoryFilter({ selectedCategories, onCategoryChange }) {
       try {
         const response = await axios.get('/categories');
         if (response.data && response.data.length > 0) {
-          // Nếu API không trả về count, tính từ products
           const categoriesWithCount = await Promise.all(
             response.data.map(async (category) => {
               try {
@@ -59,9 +58,7 @@ function CategoryFilter({ selectedCategories, onCategoryChange }) {
               checked={selectedCategories.includes(category.id)}
               onChange={() => onCategoryChange(category.id)}
             />
-            <span>
-              {category.name} ({category.count || 0})
-            </span>
+            <span>{category.name}</span>
           </label>
         ))}
       </div>

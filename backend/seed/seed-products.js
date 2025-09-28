@@ -5,11 +5,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables - try multiple paths
 const envPaths = [
   path.resolve(__dirname, '../.env'),
   path.resolve(__dirname, '../../.env'),
@@ -34,13 +32,6 @@ if (!envLoaded) {
   );
 }
 
-// Debug environment variables
-console.log('Environment variables:');
-console.log('DB_USER:', process.env.DB_USER);
-console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '[SET]' : '[NOT SET]');
-console.log('DB_NAME:', process.env.DB_NAME);
-console.log('DB_HOST:', process.env.DB_HOST);
-console.log('DB_PORT:', process.env.DB_PORT);
 const sampleProducts = [
   ,
   {

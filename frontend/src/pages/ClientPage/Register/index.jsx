@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import classNames from 'classnames/bind';
-import axios from 'axios';
+import axios from '../../../setup/axios';
 import styles from './Register.module.scss';
 import Logo from '../../../components/Logo';
 import { Link } from 'react-router-dom';
@@ -35,12 +35,8 @@ function Register() {
   const submitUserData = async (userData) => {
     try {
       setIsSubmitting(true);
-      const res = await axios.post(
-        'http://localhost:3000/auth/register',
-        userData
-      );
+      const res = await axios.post('/auth/register', userData);
 
-      // Reset form sau khi thành công
       setFormData({
         fullName: '',
         email: '',

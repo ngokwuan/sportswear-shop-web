@@ -82,14 +82,12 @@ function Checkout() {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validate full name
     if (!orderInfo.fullName.trim()) {
       newErrors.fullName = 'Vui lòng nhập họ tên';
     } else if (orderInfo.fullName.trim().length < 2) {
       newErrors.fullName = 'Họ tên phải có ít nhất 2 ký tự';
     }
 
-    // Validate phone
     if (!orderInfo.phone.trim()) {
       newErrors.phone = 'Vui lòng nhập số điện thoại';
     } else {
@@ -99,14 +97,12 @@ function Checkout() {
       }
     }
 
-    // Validate email
     if (!orderInfo.email.trim()) {
       newErrors.email = 'Vui lòng nhập email';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orderInfo.email)) {
       newErrors.email = 'Email không hợp lệ';
     }
 
-    // Validate address
     if (!orderInfo.address.trim()) {
       newErrors.address = 'Vui lòng nhập địa chỉ giao hàng';
     } else if (orderInfo.address.trim().length < 10) {
@@ -120,12 +116,10 @@ function Checkout() {
   const handleInputChange = (field, value) => {
     setOrderInfo((prev) => ({ ...prev, [field]: value }));
 
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
 
-    // Clear notification when user makes changes
     if (notification.message) {
       setNotification({ type: '', message: '' });
     }

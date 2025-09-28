@@ -20,7 +20,6 @@ function CategoriesTrash() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
 
-  // Fetch trashed categories from API
   const fetchTrashedCategories = async () => {
     try {
       setLoading(true);
@@ -48,7 +47,6 @@ function CategoriesTrash() {
     });
   };
 
-  // Handle single category selection
   const handleSelectCategory = (categoryId) => {
     setSelectedCategories((prev) => {
       if (prev.includes(categoryId)) {
@@ -59,7 +57,6 @@ function CategoriesTrash() {
     });
   };
 
-  // Handle select all categories
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedCategories([]);
@@ -69,7 +66,6 @@ function CategoriesTrash() {
     setSelectAll(!selectAll);
   };
 
-  // Update selectAll state when selectedCategories changes
   useEffect(() => {
     setSelectAll(
       selectedCategories.length === trashedCategories.length &&
@@ -77,12 +73,10 @@ function CategoriesTrash() {
     );
   }, [selectedCategories, trashedCategories]);
 
-  // Restore single category
   const handleRestoreCategory = async (categoryId) => {
     try {
       await axios.patch(`/categories/${categoryId}/restore`);
       toast.success('Khôi phục danh mục thành công!');
-      // Remove restored category from trash list
       setTrashedCategories((prev) =>
         prev.filter((category) => category.id !== categoryId)
       );
@@ -93,7 +87,6 @@ function CategoriesTrash() {
     }
   };
 
-  // Force delete single category
   const handleForceDeleteCategory = async (categoryId) => {
     if (
       window.confirm(
@@ -103,7 +96,6 @@ function CategoriesTrash() {
       try {
         await axios.delete(`/categories/${categoryId}/force`);
         toast.success('Xóa vĩnh viễn danh mục thành công!');
-        // Remove deleted category from trash list
         setTrashedCategories((prev) =>
           prev.filter((category) => category.id !== categoryId)
         );
@@ -115,7 +107,6 @@ function CategoriesTrash() {
     }
   };
 
-  // Restore multiple selected categories
   const handleRestoreSelected = async () => {
     if (selectedCategories.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một danh mục');
@@ -136,7 +127,6 @@ function CategoriesTrash() {
         toast.success(
           `Khôi phục ${selectedCategories.length} danh mục thành công!`
         );
-        // Remove restored categories from trash list
         setTrashedCategories((prev) =>
           prev.filter((category) => !selectedCategories.includes(category.id))
         );
@@ -148,7 +138,6 @@ function CategoriesTrash() {
     }
   };
 
-  // Force delete multiple selected categories
   const handleForceDeleteSelected = async () => {
     if (selectedCategories.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một danh mục');
@@ -169,7 +158,6 @@ function CategoriesTrash() {
         toast.success(
           `Xóa vĩnh viễn ${selectedCategories.length} danh mục thành công!`
         );
-        // Remove deleted categories from trash list
         setTrashedCategories((prev) =>
           prev.filter((category) => !selectedCategories.includes(category.id))
         );
@@ -181,7 +169,6 @@ function CategoriesTrash() {
     }
   };
 
-  // Empty entire trash
   const handleEmptyTrash = async () => {
     if (trashedCategories.length === 0) {
       toast.warning('Thùng rác đã trống');

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import axios from '../../../../setup/axios';
 import classNames from 'classnames/bind';
 import styles from '../Products.module.scss';
+import { formatCurrency } from '../../../../utils/formatCurrency';
 
 const cx = classNames.bind(styles);
 
@@ -16,29 +17,26 @@ function PriceFilter({ priceRange, onPriceChange }) {
       try {
         const response = await axios.get('/products/price');
         if (response.data && response.data.actualPriceRange) {
-          const min = 0; // Luôn bắt đầu từ 0
+          const min = 0;
           const max = response.data.actualPriceRange.max_price || 99999;
 
           setMinPrice(min);
           setMaxPrice(max);
 
-          // Set initial price range if not set
           if (!priceRange || priceRange.length === 0) {
             onPriceChange([min, max]);
           }
         }
       } catch (error) {
         console.error('Lỗi khi lấy khoảng giá:', error);
-        // Fallback to getting price range from products
         try {
           const productsResponse = await axios.get('/products');
           if (productsResponse.data && productsResponse.data.length > 0) {
-            // Tính giá thực tế (ưu tiên sale_price nếu có)
             const actualPrices = productsResponse.data.map((product) => {
               return product.sale_price || product.price || 0;
             });
 
-            const min = 0; // Luôn bắt đầu từ 0
+            const min = 0;
             const max = Math.max(...actualPrices);
 
             setMinPrice(min);
@@ -101,7 +99,8 @@ function PriceFilter({ priceRange, onPriceChange }) {
 
         <div className={cx('price-display')}>
           <span className={cx('price-label')}>
-            ${priceRange[0] || minPrice} - ${priceRange[1] || maxPrice}
+            {formatCurrency(priceRange[0]) || minPrice} -{' '}
+            {formatCurrency(priceRange[1]) || maxPrice}
           </span>
         </div>
       </div>

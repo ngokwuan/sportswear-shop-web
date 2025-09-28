@@ -36,7 +36,6 @@ function ProductDetail() {
   });
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Fetch product data from API
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -73,7 +72,6 @@ function ProductDetail() {
     }
   }, [id]);
 
-  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -187,7 +185,6 @@ function ProductDetail() {
     ? Math.round(((product.price - product.sale_price) / product.price) * 100)
     : 0;
 
-  // Ensure images is an array
   const productImages = Array.isArray(product.images)
     ? product.images
     : product.featured_image
