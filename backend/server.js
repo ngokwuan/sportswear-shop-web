@@ -29,7 +29,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://sportswear-shop-web.netlify.app',
+      'https://sportswear-shop-mx3gyjq93-ngokwuans-projects.vercel.app/',
       'https://sportswear-shop-web.onrender.com',
     ];
 
