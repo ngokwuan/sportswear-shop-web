@@ -38,7 +38,7 @@ function PaymentResult() {
       try {
         // Lấy thông tin từ URL params
         const status = searchParams.get('status');
-        const vnpayOrderId = searchParams.get('vnpay_order_id');
+        const vnpayOrderId = searchParams.get('order_number');
         const amount = searchParams.get('amount');
         const code = searchParams.get('code');
         const message = searchParams.get('message');

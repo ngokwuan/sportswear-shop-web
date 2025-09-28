@@ -12,7 +12,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames/bind';
 import styles from './Blog.module.scss';
-import axios from '../../../setup/axios'; // Fixed import path
+import axios from '../../../setup/axios';
 
 const cx = classNames.bind(styles);
 
