@@ -42,6 +42,7 @@ function PaymentResult() {
         const amount = searchParams.get('amount');
         const code = searchParams.get('code');
         const message = searchParams.get('message');
+        const orderId = searchParams.get('order_id'); // Lấy order_id từ URL
 
         setPaymentInfo({
           status: status || 'unknown',
@@ -51,27 +52,25 @@ function PaymentResult() {
           message: message || '',
         });
 
-        // Lấy thông tin đơn hàng từ sessionStorage (nếu có)
-        const pendingOrder = sessionStorage.getItem('pending_order');
-        if (pendingOrder) {
-          const orderInfo = JSON.parse(pendingOrder);
-          setOrderDetails(orderInfo);
+        // Nếu có order_id từ backend, sử dụng nó
+        if (orderId) {
+          setOrderDetails({ order_id: orderId });
+        } else {
+          // Fallback: Lấy từ sessionStorage
+          const pendingOrder = sessionStorage.getItem('pending_order');
+          if (pendingOrder) {
+            const orderInfo = JSON.parse(pendingOrder);
+            setOrderDetails(orderInfo);
+          }
         }
 
-        // Nếu thanh toán thành công, cập nhật trạng thái đơn hàng
-        if (status === 'success' && pendingOrder) {
-          await updateOrderStatus(JSON.parse(pendingOrder).order_id, 'paid');
-          // Xóa giỏ hàng sau khi thanh toán thành công
-          await clearCart();
-          // Xóa thông tin đơn hàng tạm thời
+        // Backend đã xử lý update status và clear cart rồi
+        // Không cần gọi lại từ frontend
+        if (status === 'success') {
+          // Xóa pending order từ sessionStorage
           sessionStorage.removeItem('pending_order');
-
           toast.success('Thanh toán thành công! Đơn hàng đã được xác nhận.');
-        } else if (status === 'failed' && pendingOrder) {
-          await updateOrderStatus(
-            JSON.parse(pendingOrder).order_id,
-            'cancelled'
-          );
+        } else if (status === 'failed') {
           toast.error('Thanh toán thất bại! Đơn hàng đã bị hủy.');
         }
       } catch (error) {
@@ -84,22 +83,6 @@ function PaymentResult() {
 
     processPaymentResult();
   }, [searchParams]);
-
-  const updateOrderStatus = async (orderId, status) => {
-    try {
-      await axios.put(`/orders/${orderId}/status`, { status });
-    } catch (error) {
-      console.error('Error updating order status:', error);
-    }
-  };
-
-  const clearCart = async () => {
-    try {
-      await axios.delete('/cart/clear');
-    } catch (error) {
-      console.error('Error clearing cart:', error);
-    }
-  };
 
   const getStatusIcon = () => {
     switch (paymentInfo.status) {
@@ -302,7 +285,7 @@ function PaymentResult() {
               <>
                 <button
                   className={cx('action-btn', 'primary')}
-                  onClick={() => navigate(`/orders/${orderDetails.order_id}`)} // Sửa lại đường dẫn
+                  onClick={() => navigate('/orders')}
                 >
                   <FontAwesomeIcon icon={faReceipt} />
                   Xem đơn hàng của tôi

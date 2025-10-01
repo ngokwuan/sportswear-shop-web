@@ -128,124 +128,6 @@ export const createPaymentUrl = async (req, res) => {
   }
 };
 
-// export const vnpayReturnRedirect = async (req, res) => {
-//   try {
-//     let vnp_Params = { ...req.query };
-//     const secureHash = vnp_Params['vnp_SecureHash'];
-
-//     delete vnp_Params['vnp_SecureHash'];
-//     delete vnp_Params['vnp_SecureHashType'];
-
-//     vnp_Params = sortObject(vnp_Params);
-
-//     const signData = qs.stringify(vnp_Params, { encode: false });
-//     const hmac = crypto.createHmac('sha512', VNP_HASH_SECRET);
-//     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-
-//     const vnpayOrderId = req.query['vnp_TxnRef'];
-//     const responseCode = req.query['vnp_ResponseCode'];
-//     const amount = parseInt(req.query['vnp_Amount']) / 100;
-
-//     if (secureHash !== signed) {
-//       console.log('Invalid signature in VNPay return');
-//       return res.redirect(
-//         `${FRONTEND_URL_RS}?status=error&message=invalid_signature`
-//       );
-//     }
-
-//     try {
-//       const order = await Order.findOne({
-//         where: { order_number: vnpayOrderId },
-//       });
-
-//       if (order) {
-//         if (order.payment_status === 'pending') {
-//           console.log(
-//             'Order still pending - updating from return handler as fallback'
-//           );
-
-//           let newPaymentStatus, newOrderStatus;
-
-//           if (responseCode === '00') {
-//             newPaymentStatus = 'paid';
-//             newOrderStatus = 'processing';
-//           } else {
-//             newPaymentStatus = 'failed';
-//             newOrderStatus = 'cancelled';
-//           }
-
-//           const [updatedRowsCount] = await Order.update(
-//             {
-//               payment_status: newPaymentStatus,
-//               status: newOrderStatus,
-//               updated_at: new Date(),
-//             },
-//             {
-//               where: { order_number: vnpayOrderId },
-//             }
-//           );
-
-//           if (responseCode === '00') {
-//             try {
-//               const deletedCount = await Cart.destroy({
-//                 where: { user_id: order.user_id },
-//               });
-//             } catch (cartError) {
-//               console.error(
-//                 'Error clearing cart in return handler:',
-//                 cartError
-//               );
-//             }
-//           }
-
-//           const verifyOrder = await Order.findOne({
-//             where: { order_number: vnpayOrderId },
-//           });
-//         } else {
-//           console.log('Order already processed by IPN - no update needed');
-//         }
-
-//         if (responseCode === '00') {
-//           console.log('Payment successful for VNPay order:', vnpayOrderId);
-//           return res.redirect(
-//             `${FRONTEND_URL_RS}?status=success&order_id=${order.id}&order_number=${vnpayOrderId}&amount=${amount}&payment_status=${order.payment_status}`
-//           );
-//         } else {
-//           console.log(
-//             'Payment failed for VNPay order:',
-//             vnpayOrderId,
-//             'Code:',
-//             responseCode
-//           );
-//           return res.redirect(
-//             `${FRONTEND_URL_RS}?status=failed&order_id=${order.id}&order_number=${vnpayOrderId}&code=${responseCode}`
-//           );
-//         }
-//       } else {
-//         console.log('Order not found:', vnpayOrderId);
-//         return res.redirect(
-//           `${FRONTEND_URL_RS}?status=error&message=order_not_found&order_number=${vnpayOrderId}`
-//         );
-//       }
-//     } catch (dbError) {
-//       console.error('Database error in return handler:', dbError);
-
-//       if (responseCode === '00') {
-//         return res.redirect(
-//           `${FRONTEND_URL_RS}?status=success&order_number=${vnpayOrderId}&amount=${amount}`
-//         );
-//       } else {
-//         return res.redirect(
-//           `${FRONTEND_URL_RS}?status=failed&order_number=${vnpayOrderId}&code=${responseCode}`
-//         );
-//       }
-//     }
-//   } catch (error) {
-//     console.error('VNPay return redirect error:', error);
-//     return res.redirect(`${FRONTEND_URL_RS}?status=error&message=system_error`);
-//   }
-// };
-
 export const vnpayReturnRedirect = async (req, res) => {
   try {
     let vnp_Params = { ...req.query };
@@ -285,9 +167,11 @@ export const vnpayReturnRedirect = async (req, res) => {
       console.log('Found order:', order ? order.id : 'NOT FOUND');
 
       if (order) {
-        if (order.payment_status === 'pending') {
-          let newPaymentStatus, newOrderStatus;
+        // Khai báo biến ở đây để có scope rộng hơn
+        let newPaymentStatus = order.payment_status;
+        let newOrderStatus = order.status;
 
+        if (order.payment_status === 'pending') {
           if (responseCode === '00') {
             newPaymentStatus = 'paid';
             newOrderStatus = 'processing';
@@ -322,11 +206,7 @@ export const vnpayReturnRedirect = async (req, res) => {
         // Redirect với đầy đủ thông tin
         const redirectUrl =
           responseCode === '00'
-            ? `${FRONTEND_URL_RS}?status=success&order_id=${
-                order.id
-              }&order_number=${vnpayOrderId}&amount=${amount}&payment_status=${
-                newPaymentStatus || order.payment_status
-              }`
+            ? `${FRONTEND_URL_RS}?status=success&order_id=${order.id}&order_number=${vnpayOrderId}&amount=${amount}&payment_status=${newPaymentStatus}`
             : `${FRONTEND_URL_RS}?status=failed&order_id=${order.id}&order_number=${vnpayOrderId}&code=${responseCode}`;
 
         console.log('Redirecting to:', redirectUrl);
@@ -352,6 +232,112 @@ export const vnpayReturnRedirect = async (req, res) => {
     return res.redirect(`${FRONTEND_URL_RS}?status=error&message=system_error`);
   }
 };
+// export const vnpayReturnRedirect = async (req, res) => {
+//   try {
+//     let vnp_Params = { ...req.query };
+//     const secureHash = vnp_Params['vnp_SecureHash'];
+
+//     delete vnp_Params['vnp_SecureHash'];
+//     delete vnp_Params['vnp_SecureHashType'];
+
+//     vnp_Params = sortObject(vnp_Params);
+
+//     const signData = qs.stringify(vnp_Params, { encode: false });
+//     const hmac = crypto.createHmac('sha512', VNP_HASH_SECRET);
+//     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+//     const vnpayOrderId = req.query['vnp_TxnRef'];
+//     const responseCode = req.query['vnp_ResponseCode'];
+//     const amount = parseInt(req.query['vnp_Amount']) / 100;
+
+//     console.log('=== VNPay Return Debug ===');
+//     console.log('vnpayOrderId:', vnpayOrderId);
+//     console.log('responseCode:', responseCode);
+//     console.log('amount:', amount);
+//     console.log('FRONTEND_URL_RS:', FRONTEND_URL_RS);
+
+//     if (secureHash !== signed) {
+//       console.log('Invalid signature');
+//       return res.redirect(
+//         `${FRONTEND_URL_RS}?status=error&message=invalid_signature`
+//       );
+//     }
+
+//     try {
+//       const order = await Order.findOne({
+//         where: { order_number: vnpayOrderId },
+//       });
+
+//       console.log('Found order:', order ? order.id : 'NOT FOUND');
+
+//       if (order) {
+//         if (order.payment_status === 'pending') {
+//           let newPaymentStatus, newOrderStatus;
+
+//           if (responseCode === '00') {
+//             newPaymentStatus = 'paid';
+//             newOrderStatus = 'processing';
+//           } else {
+//             newPaymentStatus = 'failed';
+//             newOrderStatus = 'cancelled';
+//           }
+
+//           await Order.update(
+//             {
+//               payment_status: newPaymentStatus,
+//               status: newOrderStatus,
+//               updated_at: new Date(),
+//             },
+//             {
+//               where: { order_number: vnpayOrderId },
+//             }
+//           );
+
+//           if (responseCode === '00') {
+//             try {
+//               await Cart.destroy({
+//                 where: { user_id: order.user_id },
+//               });
+//               console.log('Cart cleared for user:', order.user_id);
+//             } catch (cartError) {
+//               console.error('Error clearing cart:', cartError);
+//             }
+//           }
+//         }
+
+//         // Redirect với đầy đủ thông tin
+//         const redirectUrl =
+//           responseCode === '00'
+//             ? `${FRONTEND_URL_RS}?status=success&order_id=${
+//                 order.id
+//               }&order_number=${vnpayOrderId}&amount=${amount}&payment_status=${
+//                 newPaymentStatus || order.payment_status
+//               }`
+//             : `${FRONTEND_URL_RS}?status=failed&order_id=${order.id}&order_number=${vnpayOrderId}&code=${responseCode}`;
+
+//         console.log('Redirecting to:', redirectUrl);
+//         return res.redirect(redirectUrl);
+//       } else {
+//         console.log('Order not found:', vnpayOrderId);
+//         return res.redirect(
+//           `${FRONTEND_URL_RS}?status=error&message=order_not_found&order_number=${vnpayOrderId}`
+//         );
+//       }
+//     } catch (dbError) {
+//       console.error('Database error:', dbError);
+
+//       const fallbackUrl =
+//         responseCode === '00'
+//           ? `${FRONTEND_URL_RS}?status=success&order_number=${vnpayOrderId}&amount=${amount}`
+//           : `${FRONTEND_URL_RS}?status=failed&order_number=${vnpayOrderId}&code=${responseCode}`;
+
+//       return res.redirect(fallbackUrl);
+//     }
+//   } catch (error) {
+//     console.error('VNPay return error:', error);
+//     return res.redirect(`${FRONTEND_URL_RS}?status=error&message=system_error`);
+//   }
+// };
 export const vnpayIpn = async (req, res) => {
   try {
     let vnp_Params = { ...req.query };

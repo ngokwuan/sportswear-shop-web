@@ -33,7 +33,17 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'https://sportswear-shop-web.onrender.com',
     ];
 
-app.use(
+// CORS middleware with special handling for VNPay IPN
+app.use((req, res, next) => {
+  // Allow VNPay IPN/return requests without CORS restrictions
+  if (
+    req.path.includes('/payment/vnpay/ipn') ||
+    req.path.includes('/payment/vnpay/return')
+  ) {
+    return next();
+  }
+
+  // Apply CORS for other routes
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
@@ -48,8 +58,8 @@ app.use(
     credentials: true,
     optionsSuccessStatus: 200,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  })
-);
+  })(req, res, next);
+});
 
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
@@ -84,7 +94,7 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(' Global error:', err);
+  console.error('Global error:', err);
 
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({ error: 'CORS policy violation' });
@@ -92,10 +102,6 @@ app.use((err, req, res, next) => {
 
   return res.status(500).json({ error: 'Internal server error' });
 });
-
-// if (process.env.NODE_ENV === 'development') {
-//   // sequelize.sync({ alter: true });
-// }
 
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
