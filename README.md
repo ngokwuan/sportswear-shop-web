@@ -4,7 +4,7 @@
 
 **Live Demo:**
 
-- Frontend: https://sportswear-shop-mx3gyjq93-ngokwuans-projects.vercel.app
+- Frontend: https://sportswear-shop-web.vercel.app
 - Backend API: https://sportswear-shop-web.onrender.com
 
 ## Tổng quan
@@ -208,12 +208,12 @@ VNP_HASH_SECRET=your_vnp_hash_secret
 VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 VNP_API=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 VNP_RETURN_URL=https://sportswear-shop-web.onrender.com/payment/vnpay/return
-FRONTEND_URL_RS=https://sportswear-shop-mx3gyjq93-ngokwuans-projects.vercel.app/payment-result
+FRONTEND_URL_RS=https://sportswear-shop-web.vercel.app/payment-result
 
 # Server Configuration
 PORT=3000
 NODE_ENV=production
-FRONTEND_URL=https://sportswear-shop-mx3gyjq93-ngokwuans-projects.vercel.app
+FRONTEND_URL=https://sportswear-shop-web.vercel.app
 
 # Cookie Configuration for Production
 COOKIE_SECURE=true
@@ -221,7 +221,7 @@ COOKIE_SAME_SITE=none
 COOKIE_HTTP_ONLY=true
 
 # CORS Configuration
-ALLOWED_ORIGINS=https://sportswear-shop-mx3gyjq93-ngokwuans-projects.vercel.app,https://sportswear-shop-web.onrender.com
+ALLOWED_ORIGINS=https://sportswear-shop-web.vercel.app,https://sportswear-shop-web.onrender.com
 ```
 
 **Frontend (.env.development):**

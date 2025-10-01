@@ -10,12 +10,7 @@ router.get('/size', controller.getSizeProduct);
 router.get('/trending', controller.getTrendingProduct);
 router.get('/new', controller.getNewProduct);
 router.get('/trash', controller.getProductTrash);
-router.get(
-  '/:id',
-  checkUserJWT,
-  checkUserPermission(['admin']),
-  controller.getProductById
-);
+router.get('/:id', controller.getProductById);
 
 router.use(checkUserJWT, checkUserPermission(['admin']));
 
