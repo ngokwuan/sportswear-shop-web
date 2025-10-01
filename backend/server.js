@@ -29,7 +29,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://sportswear-shop.vercel.app',
+      'https://sportswear-shop-web.vercel.app',
       'https://sportswear-shop-web.onrender.com',
     ];
 
