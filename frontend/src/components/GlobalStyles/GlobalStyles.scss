@@ -1,17 +1,35 @@
+// GlobalStyle.scss
 :root {
-  --primary-color: #dc2626;
+  // Primary Colors - Burgundy/Red Theme
+  --burgundy-dark: #4a0d0d;
+  --burgundy: #8b1a1a;
+  --burgundy-light: #b91c1c;
+  --primary-color: #8b1a1a;
   --primary-hover: #b91c1c;
-  --secondary-color: #6b7280;
-  --text-color: #374151;
-  --text-light: #a6aab0;
-  --bg-light: #f9fafb;
-  --white: #ffffff;
-  --black: #000000;
-  --border-color: #e5e7eb;
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --primary-light: #dc2626;
 
-  --bg-trash-link: #6c757d;
-  --bg-hover-trash: #a1a6a8;
+  // Background Colors - Dark Theme
+  --black: #0a0404;
+  --dark-gray: #1a0a0a;
+  --bg-primary: #0a0404;
+  --bg-secondary: #1a0a0a;
+  --bg-card: linear-gradient(135deg, #2a1010 0%, #1a0808 100%);
+
+  // Text Colors
+  --text-light: #f5f5f5;
+  --text-primary: #f5f5f5;
+  --text-secondary: rgba(245, 245, 245, 0.7);
+  --text-muted: rgba(245, 245, 245, 0.6);
+  --white: #ffffff;
+
+  // Border & Shadow
+  --border-color: rgba(139, 26, 26, 0.3);
+  --border-color-hover: rgba(139, 26, 26, 0.6);
+  --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 30px rgba(139, 26, 26, 0.2);
+  --shadow-lg: 0 20px 40px rgba(139, 26, 26, 0.3);
+
+  // Action Button Colors
   --bg-add: #07d590;
   --bg-hover-add: #258263;
   --bg-btn-edit: #28a745;
@@ -20,21 +38,24 @@
   --bg-hover-btn-delete: #c82333;
   --bg-btn-view: #17a2b8;
   --bg-hover-btn-view: #138496;
+  --bg-trash-link: #6c757d;
+  --bg-hover-trash: #a1a6a8;
+
+  // Status Colors (adapted to dark theme)
   --success-color: #10b981;
   --warning-color: #f59e0b;
   --error-color: #ef4444;
-  --text-primary: #1f2937;
-  --title: #333;
-  --subtitle: #666;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --bg-white: #ffffff;
-  --border-color: #e5e7eb;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  // Legacy support (kept for backward compatibility)
+  --secondary-color: rgba(245, 245, 245, 0.6);
+  --text-color: #f5f5f5;
+  --bg-light: #1a0a0a;
+  --bg-white: #2a1010;
+  --title: #f5f5f5;
+  --subtitle: rgba(245, 245, 245, 0.7);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
+
 * {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   box-sizing: border-box;
@@ -42,9 +63,52 @@
   padding: 0;
 }
 
+body {
+  background-color: var(--black);
+  color: var(--text-light);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
 @font-face {
   font-family: 'Akira';
   src: url('fonts/AkiraExpandedDemo.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
+}
+
+// Additional utility classes for consistency
+.text-burgundy {
+  color: var(--burgundy-light);
+}
+
+.bg-dark {
+  background-color: var(--black);
+}
+
+.bg-dark-secondary {
+  background-color: var(--dark-gray);
+}
+
+.border-burgundy {
+  border-color: var(--border-color);
+}
+
+// Scrollbar styling for dark theme
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--burgundy);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--burgundy-light);
 }

@@ -1,23 +1,72 @@
+// Breadcrumb.module.scss
 .breadcrumb {
   display: flex;
   align-items: center;
-  padding: 0 110px;
-  margin: 10px 0;
-  font-size: 0.875rem;
+  padding: 0 90px;
+  background: rgba(26, 10, 10, 0.5);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.55rem;
+  backdrop-filter: blur(10px);
+
+  @media (max-width: 1200px) {
+    padding: 14px 40px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 20px;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--dark-gray);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--burgundy);
+      border-radius: 2px;
+    }
+  }
 
   .link {
-    color: #6c757d;
+    color: var(--text-muted);
     text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
     transition: all 0.3s ease;
+    white-space: nowrap;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--burgundy-light);
+      transition: width 0.3s ease;
+    }
 
     &:hover {
-      color: #007bff;
-      text-decoration: underline;
+      color: var(--burgundy-light);
+
+      &::after {
+        width: 100%;
+      }
     }
 
     &.home {
+      color: var(--burgundy);
+      font-weight: 700;
+
       &:hover {
-        color: #0056b3;
+        color: var(--burgundy-light);
       }
     }
   }
@@ -25,64 +74,100 @@
   .breadcrumb-item {
     display: flex;
     align-items: center;
+    white-space: nowrap;
   }
 
   .separator {
-    margin: 0 0.5rem;
-    color: #adb5bd;
+    margin: 0 12px;
+    color: rgba(139, 26, 26, 0.5);
     font-weight: 300;
+    font-size: 1rem;
+
+    @media (max-width: 768px) {
+      margin: 0 8px;
+    }
   }
 
   .current {
-    color: #495057;
-    font-weight: 600;
-    text-transform: capitalize;
-  }
+    color: var(--text-light);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    white-space: nowrap;
 
-  // Responsive design
-  @media (max-width: 768px) {
-    font-size: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 1rem;
-
-    .separator {
-      margin: 0 0.25rem;
-    }
-
-    .current {
-      max-width: 120px;
+    @media (max-width: 768px) {
+      max-width: 150px;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
     }
   }
 }
 
-// Alternative dark theme
+// Dark theme variant (if needed)
 .breadcrumb.dark {
-  background-color: #343a40;
+  background: linear-gradient(135deg, #2a1010 0%, #1a0808 100%);
+  border-bottom: 1px solid var(--border-color-hover);
 
   .link {
-    color: #adb5bd;
+    color: var(--text-secondary);
 
     &:hover {
-      color: #ffffff;
+      color: var(--white);
     }
 
     &.home {
-      color: #17a2b8;
+      color: var(--burgundy-light);
 
       &:hover {
-        color: #138496;
+        color: var(--white);
       }
     }
   }
 
   .separator {
-    color: #6c757d;
+    color: rgba(139, 26, 26, 0.6);
   }
 
   .current {
-    color: #ffffff;
+    color: var(--white);
+  }
+}
+
+// Animation for breadcrumb items
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.breadcrumb-item {
+  animation: slideIn 0.3s ease forwards;
+
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 480px) {
+  .breadcrumb {
+    padding: 10px 15px;
+    font-size: 0.7rem;
+
+    .separator {
+      margin: 0 6px;
+      font-size: 0.85rem;
+    }
+
+    .current {
+      max-width: 100px;
+    }
   }
 }

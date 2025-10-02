@@ -13,9 +13,6 @@ function Nav() {
     <div className={cx('wrapper', { 'home-layout': isHomePage })}>
       <div>
         <div className={cx('nav-menu')}>
-          <NavLink to="/products" className={cx('nav-link', 'categories')}>
-            BROWSE CATEGORIES ▼
-          </NavLink>
           <NavLink to="/products" className={cx('nav-link')}>
             Products
           </NavLink>

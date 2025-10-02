@@ -60,19 +60,6 @@ function Header() {
 
   return (
     <div className={cx('wrapper', { 'home-layout': isHomePage })}>
-      {!isHomePage && (
-        <div className={cx('search')}>
-          <button className={cx('icon-btn')}>
-            <FontAwesomeIcon icon={faSearch} />
-            <input
-              type="text"
-              name="search"
-              placeholder="Enter your search keywords"
-            />
-          </button>
-        </div>
-      )}
-
       <div className={cx('logo')}>
         <Logo />
       </div>
@@ -100,12 +87,6 @@ function Header() {
             )}
           </button>
         </NavLink>
-
-        {isHomePage && (
-          <button className={cx('icon-btn')}>
-            <FontAwesomeIcon icon={faSearch} />
-          </button>
-        )}
       </div>
     </div>
   );
