@@ -126,7 +126,9 @@ function ProductCard({ product, viewMode }) {
         <div className={cx('product-info')}>
           <div className={cx('product-category')}>{product.category}</div>
           <h5 className={cx('product-name')} title={product.name}>
-            {product.name}
+            {product.name?.length > 18
+              ? `${product.name.substring(0, 18)}...`
+              : product.name || 'Không có tên'}
           </h5>
           <div className={cx('product-rating-size')}>
             <div className={cx('product-rating')}>
