@@ -61,9 +61,9 @@ app.use((req, res, next) => {
   })(req, res, next);
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  app.use(morgan('dev'));
-}
+// if (process.env.NODE_ENV !== 'production') {
+//   app.use(morgan('dev'));
+// }
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

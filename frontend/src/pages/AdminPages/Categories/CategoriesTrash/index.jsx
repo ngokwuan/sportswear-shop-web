@@ -2,7 +2,8 @@ import classNames from 'classnames/bind';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from '../../../../setup/axios';
-import styles from './CategoriesTrash.module.scss';
+import styles from '../Categories.module.scss';
+import Pagination from '../../../../components/Pagination';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -19,7 +20,15 @@ function CategoriesTrash() {
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = trashedCategories.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(trashedCategories.length / itemsPerPage);
   const fetchTrashedCategories = async () => {
     try {
       setLoading(true);
@@ -278,7 +287,7 @@ function CategoriesTrash() {
           </div>
 
           {/* Categories Table */}
-          <div className={cx('categories-table')}>
+          <div className={cx('categories-table', 'trash-table')}>
             <div className={cx('table-header')}>
               <span className={cx('select-col')}></span>
               <span>ID</span>
@@ -289,7 +298,7 @@ function CategoriesTrash() {
               <span>Thao tác</span>
             </div>
 
-            {trashedCategories.map((category) => (
+            {currentItems.map((category) => (
               <div
                 key={category.id}
                 className={cx('table-row', {
@@ -338,6 +347,14 @@ function CategoriesTrash() {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={trashedCategories.length}
+            onPageChange={setCurrentPage}
+            itemName="danh mục"
+          />
         </>
       )}
     </div>

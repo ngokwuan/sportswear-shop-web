@@ -2,8 +2,9 @@ import classNames from 'classnames/bind';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from '../../../../setup/axios';
-import styles from './UserTrash.module.scss';
+import styles from '../Users.module.scss';
 import { Link } from 'react-router-dom';
+import Pagination from '../../../../components/Pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faBroom,
@@ -18,7 +19,14 @@ function UserTrash() {
   const [loading, setLoading] = useState(true);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  // Pagination calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = trashedUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(trashedUsers.length / itemsPerPage);
   const fetchTrashedUsers = async () => {
     try {
       setLoading(true);
@@ -253,7 +261,8 @@ function UserTrash() {
                   className={cx('bulk-btn', 'restore-btn')}
                   onClick={handleRestoreSelected}
                 >
-                  🔄 Khôi phục ({selectedUsers.length})
+                  <FontAwesomeIcon icon={faTrashRestore} />
+                  Khôi phục ({selectedUsers.length})
                 </button>
                 <button
                   className={cx('bulk-btn', 'delete-btn')}
@@ -266,7 +275,7 @@ function UserTrash() {
           </div>
 
           {/* Users Table */}
-          <div className={cx('users-table')}>
+          <div className={cx('users-table', 'trash-table')}>
             <div className={cx('table-header')}>
               <span className={cx('select-col')}></span>
               <span>ID</span>
@@ -278,7 +287,7 @@ function UserTrash() {
               <span>Thao tác</span>
             </div>
 
-            {trashedUsers.map((user) => (
+            {currentUsers.map((user) => (
               <div
                 key={user.id}
                 className={cx('table-row', {
@@ -332,6 +341,15 @@ function UserTrash() {
               </div>
             ))}
           </div>
+          {/* Pagination Component */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={trashedUsers.length}
+            onPageChange={setCurrentPage}
+            itemName="người dùng"
+          />
         </>
       )}
     </div>

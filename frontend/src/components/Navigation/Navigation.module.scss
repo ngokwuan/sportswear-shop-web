@@ -1,4 +1,4 @@
-// Navigation.module.scss
+// Navigation.module.scss - Simple & Clean Theme
 .wrapper {
   position: sticky;
   top: 0;
@@ -7,25 +7,25 @@
   left: 0;
   display: flex;
   align-items: flex-start;
-  background: var(--black);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: var(--white);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 
   &.home-layout {
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
 
     .nav-menu {
       padding: 0 56px;
-      background: linear-gradient(135deg, #2a1010 0%, #1a0808 100%);
+      background: var(--bg-secondary);
     }
 
     .nav-link {
-      color: var(--text-light);
+      color: var(--text-dark);
 
       &:hover {
-        background: rgba(139, 26, 26, 0.2);
-        color: var(--burgundy-light);
+        background: var(--bg-tertiary);
+        color: var(--primary-red);
       }
     }
   }
@@ -39,10 +39,10 @@
 
 .nav-menu {
   padding: 0 90px;
-  background: linear-gradient(135deg, #2a1010 0%, #1a0808 100%);
+  background: var(--white);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 0px;
 
   @media (max-width: 1200px) {
     padding: 0 40px;
@@ -58,11 +58,11 @@
     }
 
     &::-webkit-scrollbar-track {
-      background: var(--dark-gray);
+      background: var(--border-light);
     }
 
     &::-webkit-scrollbar-thumb {
-      background: var(--burgundy);
+      background: var(--primary-red);
       border-radius: 2px;
     }
   }
@@ -71,52 +71,33 @@
 .nav-link {
   color: var(--text-secondary);
   text-decoration: none;
-  padding: 14px 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  padding: 8px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-base);
   cursor: pointer;
   white-space: nowrap;
   position: relative;
 
-  &::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--burgundy-light), var(--burgundy));
-    transform: translateX(-50%);
-    transition: width 0.3s ease;
-  }
-
   &:hover {
-    color: var(--burgundy-light);
-    background: rgba(139, 26, 26, 0.1);
-
-    &::before {
-      width: 80%;
-    }
+    color: var(--primary-red);
+    background: var(--bg-tertiary);
+    border-bottom-color: var(--primary-red);
   }
 
   &:global(.active) {
-    color: var(--white);
-    background: rgba(139, 26, 26, 0.2);
-    border-bottom-color: var(--burgundy-light);
-
-    &::before {
-      width: 100%;
-    }
+    color: var(--primary-red);
+    background: var(--bg-tertiary);
+    border-bottom-color: var(--primary-red);
+    font-weight: 700;
   }
 
   @media (max-width: 768px) {
-    padding: 12px 16px;
-    font-size: 0.75rem;
-    letter-spacing: 1px;
+    padding: 14px 18px;
+    font-size: 0.85rem;
   }
 }
 
@@ -127,7 +108,8 @@
   }
 
   .nav-link {
-    padding: 10px 12px;
-    font-size: 0.7rem;
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    letter-spacing: 0.3px;
   }
 }

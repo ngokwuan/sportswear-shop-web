@@ -2,8 +2,9 @@ import classNames from 'classnames/bind';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from '../../../../setup/axios';
-import styles from './ProductTrash.module.scss';
+import styles from '../Products.module.scss';
 import { Link } from 'react-router-dom';
+import Pagination from '../../../../components/Pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faBroom,
@@ -20,7 +21,12 @@ function ProductTrash() {
   const [loading, setLoading] = useState(true);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = trashedProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(trashedProducts.length / itemsPerPage);
   const fetchTrashedProducts = async () => {
     try {
       setLoading(true);
@@ -300,7 +306,7 @@ function ProductTrash() {
           </div>
 
           {/* Products Table */}
-          <div className={cx('products-table')}>
+          <div className={cx('products-table', 'trash-table')}>
             <div className={cx('table-header')}>
               <span className={cx('select-col')}></span>
               <span>ID</span>
@@ -315,7 +321,7 @@ function ProductTrash() {
               <span>Thao tác</span>
             </div>
 
-            {trashedProducts.map((product) => (
+            {currentItems.map((product) => (
               <div
                 key={product.id}
                 className={cx('table-row', {
@@ -397,6 +403,14 @@ function ProductTrash() {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={trashedProducts.length}
+            onPageChange={setCurrentPage}
+            itemName="sản phẩm"
+          />
         </>
       )}
     </div>

@@ -1,6 +1,11 @@
+// Products.module.scss - Simple & Clean
 .container {
   max-width: 100%;
   padding: 0 56px;
+
+  @media (max-width: 768px) {
+    padding: 0 20px;
+  }
 }
 
 .loading {
@@ -9,33 +14,48 @@
   justify-content: center;
   padding: 60px 0;
   font-size: 1.1rem;
-  color: var(--secondary-color, #666);
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .new-products-grid {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 24px;
+  gap: 32px;
   align-items: start;
+
+  @media (max-width: 1024px) {
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
 }
 
 .yoga-section {
-  background: url('https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg')
-    center/cover no-repeat;
-  padding: 40px 32px;
+  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+    url('https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg')
+      center/cover no-repeat;
+  padding: 48px 40px;
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
-  gap: 16px;
   position: relative;
   height: 100%;
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+  min-height: 450px;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-base);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  @media (max-width: 768px) {
+    min-height: 300px;
+    padding: 32px 28px;
   }
 }
 
@@ -46,111 +66,72 @@
 }
 
 .yoga-title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: 'Akira', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 16px;
+  color: var(--white);
   line-height: 1.2;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+
+  @media (max-width: 768px) {
+    font-size: 1.6rem;
+  }
 }
 
 .yoga-subtitle {
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 28px;
   font-size: 1.1rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  font-weight: 500;
+  letter-spacing: 1px;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-bottom: 24px;
+  }
 }
 
 .shop-now-btn {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  font-weight: 600;
+  background: var(--white);
+  color: var(--primary-red);
+  border: none;
+  font-weight: 700;
   cursor: pointer;
-  padding: 12px 24px;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  padding: 16px 36px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
   font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: var(--primary-red);
+    color: var(--white);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
   }
 
-  &:active {
-    transform: translateY(0);
+  @media (max-width: 768px) {
+    padding: 14px 30px;
+    font-size: 0.95rem;
   }
 }
 
-// Products Section
 .products-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-height: 400px; // Đảm bảo có đủ chiều cao
-}
+  gap: 20px;
+  min-height: 450px;
+  background: var(--white);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 
-.products-scroll {
-  // Custom styles cho ScrollContainer trong context này
-  .scroll-wrapper {
-    min-height: 350px; // Chiều cao tối thiểu cho container
-  }
-
-  .scroll-content {
-    height: 100%;
-  }
-
-  .scroll-item {
-    transition: transform 0.2s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-    }
-
-    // Đảm bảo ProductCard chiếm full width của scroll-item
-    & > * {
-      width: 100%;
-    }
-  }
-}
-
-// Responsive Design
-@media (max-width: 1024px) {
-  .container {
-    padding: 0 32px;
-  }
-
-  .new-products-grid {
-    gap: 20px;
-  }
-
-  .yoga-title {
-    font-size: 1.8rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 0 20px;
-  }
-
-  .new-products-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-
-  .yoga-section {
-    padding: 32px 24px;
-    min-height: 250px;
-  }
-
-  .yoga-title {
-    font-size: 1.6rem;
-  }
-
-  .yoga-subtitle {
-    font-size: 1rem;
+  @media (max-width: 768px) {
+    min-height: auto;
+    padding: 24px;
   }
 }
 
@@ -161,15 +142,11 @@
 
   .yoga-section {
     padding: 24px 20px;
-    min-height: 200px;
+    min-height: 220px;
   }
 
-  .yoga-title {
-    font-size: 1.4rem;
-  }
-
-  .shop-now-btn {
-    padding: 10px 20px;
-    font-size: 0.9rem;
+  .products-section {
+    gap: 16px;
+    padding: 20px;
   }
 }

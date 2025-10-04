@@ -4,8 +4,11 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import axios from '../../../setup/axios';
 import styles from './Categories.module.scss';
+import Pagination from '../../../components/Pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import CreateCategoryModal from './CreateCategoryModal.jsx';
+import EditCategoryModal from './EditCategoryModal.jsx';
 
 const cx = classNames.bind(styles);
 
@@ -14,10 +17,10 @@ function Categories() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [newCategory, setNewCategory] = useState({
-    name: '',
-    description: '',
-  });
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const fetchCategories = async () => {
     try {
@@ -36,78 +39,30 @@ function Categories() {
     fetchCategories();
   }, []);
 
+  // Pagination calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCategories = categories.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(categories.length / itemsPerPage);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  const handleCreateCategory = async (e) => {
-    e.preventDefault();
+  const handleCategoryCreated = (newCategory) => {
+    setCategories((prevCategories) => [...prevCategories, newCategory]);
 
-    if (!newCategory.name || !newCategory.description) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
-      return;
-    }
-
-    try {
-      const response = await axios.post('/categories', newCategory);
-
-      if (response.data.newCategories) {
-        setCategories((prevCategories) => [
-          ...prevCategories,
-          response.data.newCategories,
-        ]);
-        toast.success('Thêm danh mục thành công!');
-
-        setNewCategory({ name: '', description: '' });
-        setShowCreateModal(false);
-      }
-    } catch (error) {
-      console.error('Error creating category:', error);
-    }
+    // Navigate to last page
+    const newTotalPages = Math.ceil((categories.length + 1) / itemsPerPage);
+    setCurrentPage(newTotalPages);
   };
 
-  const handleEditCategory = (category) => {
-    setEditingCategory({
-      ...category,
-      name: category.name || '',
-      description: category.description || '',
-    });
-  };
-
-  const handleUpdateCategory = async (e) => {
-    e.preventDefault();
-
-    if (!editingCategory.name || !editingCategory.description) {
-      toast.error('Tên và mô tả danh mục không được để trống');
-      return;
-    }
-
-    try {
-      const updateData = {
-        name: editingCategory.name,
-        description: editingCategory.description,
-      };
-
-      const response = await axios.patch(
-        `/categories/${editingCategory.id}`,
-        updateData
-      );
-
-      if (response.data.category) {
-        setCategories((prevCategories) =>
-          prevCategories.map((category) =>
-            category.id === editingCategory.id
-              ? response.data.category
-              : category
-          )
-        );
-
-        toast.success('Cập nhật danh mục thành công!');
-        setEditingCategory(null);
-      }
-    } catch (error) {
-      console.error('Error updating category:', error);
-    }
+  const handleCategoryUpdated = (updatedCategory) => {
+    setCategories((prevCategories) =>
+      prevCategories.map((category) =>
+        category.id === updatedCategory.id ? updatedCategory : category
+      )
+    );
   };
 
   const handleDeleteCategory = async (categoryId) => {
@@ -121,8 +76,16 @@ function Categories() {
           prevCategories.filter((category) => category.id !== categoryId)
         );
         toast.success('Đã chuyển danh mục vào thùng rác!');
+
+        // Adjust page if current page is empty after deletion
+        const newTotalItems = categories.length - 1;
+        const newTotalPages = Math.ceil(newTotalItems / itemsPerPage);
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
       } catch (error) {
         console.error('Error deleting category:', error);
+        toast.error('Không thể xóa danh mục');
       }
     }
   };
@@ -141,7 +104,8 @@ function Categories() {
         <div className={cx('header-left')}>
           <h2 className={cx('card-title')}>Danh sách danh mục</h2>
           <p className={cx('subtitle')}>
-            Quản lý danh mục sản phẩm trong hệ thống
+            Quản lý danh mục sản phẩm trong hệ thống ({categories.length} danh
+            mục)
           </p>
         </div>
 
@@ -178,7 +142,7 @@ function Categories() {
             <p>Không có danh mục nào</p>
           </div>
         ) : (
-          categories.map((category) => (
+          currentCategories.map((category) => (
             <div key={category.id} className={cx('table-row')}>
               <span className={cx('category-id')}>#{category.id}</span>
               <span className={cx('category-name')}>{category.name}</span>
@@ -194,7 +158,7 @@ function Categories() {
               <div className={cx('category-actions')}>
                 <button
                   className={cx('action-btn', 'edit-btn')}
-                  onClick={() => handleEditCategory(category)}
+                  onClick={() => setEditingCategory(category)}
                   title="Chỉnh sửa"
                 >
                   <FontAwesomeIcon icon={faEdit} />
@@ -212,130 +176,29 @@ function Categories() {
         )}
       </div>
 
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        totalItems={categories.length}
+        onPageChange={setCurrentPage}
+        itemName="danh mục"
+      />
+
       {/* Create Category Modal */}
-      {showCreateModal && (
-        <div className={cx('modal-overlay')}>
-          <div className={cx('modal')}>
-            <div className={cx('modal-header')}>
-              <h3>Thêm danh mục mới</h3>
-              <button
-                className={cx('close-btn')}
-                onClick={() => setShowCreateModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleCreateCategory} className={cx('modal-form')}>
-              <div className={cx('form-group')}>
-                <label>
-                  Tên danh mục <span style={{ color: 'red' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newCategory.name}
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>
-                  Mô tả <span style={{ color: 'red' }}>*</span>
-                </label>
-                <textarea
-                  value={newCategory.description}
-                  onChange={(e) =>
-                    setNewCategory({
-                      ...newCategory,
-                      description: e.target.value,
-                    })
-                  }
-                  required
-                  rows="4"
-                  placeholder="Nhập mô tả cho danh mục..."
-                />
-              </div>
-              <div className={cx('modal-actions')}>
-                <button
-                  type="button"
-                  className={cx('cancel-btn')}
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Hủy
-                </button>
-                <button type="submit" className={cx('submit-btn')}>
-                  Thêm danh mục
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CreateCategoryModal
+        showModal={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCategoryCreated={handleCategoryCreated}
+      />
 
       {/* Edit Category Modal */}
-      {editingCategory && (
-        <div className={cx('modal-overlay')}>
-          <div className={cx('modal')}>
-            <div className={cx('modal-header')}>
-              <h3>Chỉnh sửa danh mục</h3>
-              <button
-                className={cx('close-btn')}
-                onClick={() => setEditingCategory(null)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleUpdateCategory} className={cx('modal-form')}>
-              <div className={cx('form-group')}>
-                <label>
-                  Tên danh mục <span style={{ color: 'red' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={editingCategory.name}
-                  onChange={(e) =>
-                    setEditingCategory({
-                      ...editingCategory,
-                      name: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>
-                  Mô tả <span style={{ color: 'red' }}>*</span>
-                </label>
-                <textarea
-                  value={editingCategory.description}
-                  onChange={(e) =>
-                    setEditingCategory({
-                      ...editingCategory,
-                      description: e.target.value,
-                    })
-                  }
-                  required
-                  rows="4"
-                  placeholder="Nhập mô tả cho danh mục..."
-                />
-              </div>
-              <div className={cx('modal-actions')}>
-                <button
-                  type="button"
-                  className={cx('cancel-btn')}
-                  onClick={() => setEditingCategory(null)}
-                >
-                  Hủy
-                </button>
-                <button type="submit" className={cx('submit-btn')}>
-                  Cập nhật
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditCategoryModal
+        category={editingCategory}
+        onClose={() => setEditingCategory(null)}
+        onCategoryUpdated={handleCategoryUpdated}
+      />
     </div>
   );
 }

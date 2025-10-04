@@ -6,7 +6,7 @@ import Blog from '../pages/ClientPage/Blog';
 import BlogDetail from '../pages/ClientPage/Blog/BlogDetail';
 import Checkout from '../pages/ClientPage/Checkout';
 import Cart from '../pages/ClientPage/Cart';
-import Contact from '../pages/ClientPage/Contact';
+import AboutUs from '../pages/ClientPage/AboutUs';
 import Register from '../pages/ClientPage/Register';
 import Login from '../pages/ClientPage/Login';
 import ProductDetail from '../pages/ClientPage/ProductDetail';
@@ -37,7 +37,7 @@ export const ClientRoutes = [
   { path: '/orders/:orderId', component: OrderDetail },
   { path: '/orders', component: Orders },
   { path: '/checkout', component: Checkout },
-  { path: '/contact', component: Contact },
+  { path: '/aboutus', component: AboutUs },
   { path: '/products/:slugAndId', component: ProductDetail },
   { path: '/products', component: Products },
   { path: '/payment-result', component: PaymentResult },
