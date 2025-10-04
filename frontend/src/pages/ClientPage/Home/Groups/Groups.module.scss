@@ -1,46 +1,135 @@
+// Groups.module.scss - Simple & Clean
 .container {
   max-width: 100%;
   padding: 0 56px;
+
+  @media (max-width: 768px) {
+    padding: 0 20px;
+  }
 }
+
 .team-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 30px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
 
 .team-card {
   position: relative;
   overflow: hidden;
-
   cursor: pointer;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+  border: 1px solid var(--border-light);
 
-  &:hover .team-image {
-    transform: scale(1.05);
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.7) 100%
+    );
+    z-index: 1;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-red);
+
+    .team-image {
+      transform: scale(1.1);
+    }
   }
 }
 
 .team-image {
   width: 100%;
-  height: 256px;
+  height: 320px;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease;
+
+  @media (max-width: 768px) {
+    height: 280px;
+  }
 }
 
 .team-overlay {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
+  bottom: 24px;
+  left: 24px;
   color: var(--white);
+  z-index: 2;
+
+  @media (max-width: 768px) {
+    bottom: 20px;
+    left: 20px;
+  }
 }
 
 .team-title {
-  font-weight: 700;
-  margin-bottom: 4px;
-  font-size: 1.25rem;
+  color: var(--primary-red);
+  font-family: 'Akira', sans-serif;
+  font-weight: 900;
+  margin-bottom: 8px;
+  font-size: 2rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transition: all var(--transition-base);
+  line-height: 1.1;
+
+  @media (max-width: 768px) {
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+  }
 }
 
 .team-subtitle {
-  font-size: 0.875rem;
-  opacity: 0.9;
+  font-size: 1rem;
   margin: 0;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .team-grid {
+    gap: 16px;
+  }
+
+  .team-image {
+    height: 240px;
+  }
+
+  .team-title {
+    font-size: 1.3rem;
+  }
+
+  .team-subtitle {
+    font-size: 0.8rem;
+  }
 }

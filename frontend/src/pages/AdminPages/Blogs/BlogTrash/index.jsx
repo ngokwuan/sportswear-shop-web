@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import axios from '../../../../setup/axios';
-import styles from './BlogsTrash.module.scss';
+import styles from '../Blogs.module.scss';
+import Pagination from '../../../../components/Pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faBroom,
@@ -23,7 +24,12 @@ function BlogsTrash() {
     page: 1,
     limit: 10,
   });
-  const [pagination, setPagination] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentBlogs = trashedBlogs.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(trashedBlogs.length / itemsPerPage);
 
   const fetchTrashedBlogs = async () => {
     try {
@@ -39,7 +45,6 @@ function BlogsTrash() {
 
       if (response.data.success) {
         setTrashedBlogs(response.data.data.blogs);
-        setPagination(response.data.data.pagination);
       }
     } catch (error) {
       console.error('Error fetching trashed blogs:', error);
@@ -229,10 +234,6 @@ function BlogsTrash() {
     }
   };
 
-  const handlePageChange = (newPage) => {
-    setFilters((prev) => ({ ...prev, page: newPage }));
-  };
-
   if (loading) {
     return (
       <div className={cx('content-card')}>
@@ -314,7 +315,7 @@ function BlogsTrash() {
           </div>
 
           {/* Blogs Table */}
-          <div className={cx('blogs-table')}>
+          <div className={cx('blogs-table', 'trash-table')}>
             <div className={cx('table-header')}>
               <span className={cx('select-col')}></span>
               <span>ID</span>
@@ -326,7 +327,7 @@ function BlogsTrash() {
               <span>Thao tác</span>
             </div>
 
-            {trashedBlogs.map((blog) => (
+            {currentBlogs.map((blog) => (
               <div
                 key={blog.id}
                 className={cx('table-row', {
@@ -389,30 +390,14 @@ function BlogsTrash() {
             ))}
           </div>
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className={cx('pagination')}>
-              <button
-                className={cx('page-btn')}
-                disabled={pagination.page === 1}
-                onClick={() => handlePageChange(pagination.page - 1)}
-              >
-                « Trước
-              </button>
-
-              <span className={cx('page-info')}>
-                Trang {pagination.page} / {pagination.totalPages}
-              </span>
-
-              <button
-                className={cx('page-btn')}
-                disabled={pagination.page === pagination.totalPages}
-                onClick={() => handlePageChange(pagination.page + 1)}
-              >
-                Sau »
-              </button>
-            </div>
-          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={trashedBlogs.length}
+            onPageChange={setCurrentPage}
+            itemName="sản phẩm"
+          />
         </>
       )}
     </div>

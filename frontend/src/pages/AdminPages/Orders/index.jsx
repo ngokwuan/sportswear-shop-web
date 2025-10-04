@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import axios from '../../../setup/axios';
 import styles from './Orders.module.scss';
+import Pagination from '../../../components/Pagination'; // ✅ Import Pagination
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 const cx = classNames.bind(styles);
@@ -19,9 +20,14 @@ function Orders() {
     payment_status: '',
     search: '',
     page: 1,
-    limit: 10,
+    limit: 5,
   });
-  const [pagination, setPagination] = useState({});
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5,
+    total: 0,
+    totalPages: 0,
+  });
 
   const statusOptions = [
     { value: '', label: 'Tất cả trạng thái' },
@@ -349,30 +355,15 @@ function Orders() {
             )}
           </div>
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className={cx('pagination')}>
-              <button
-                className={cx('page-btn')}
-                disabled={pagination.page === 1}
-                onClick={() => handlePageChange(pagination.page - 1)}
-              >
-                « Trước
-              </button>
-
-              <span className={cx('page-info')}>
-                Trang {pagination.page} / {pagination.totalPages}
-              </span>
-
-              <button
-                className={cx('page-btn')}
-                disabled={pagination.page === pagination.totalPages}
-                onClick={() => handlePageChange(pagination.page + 1)}
-              >
-                Sau »
-              </button>
-            </div>
-          )}
+          {/* ✅ Thay thế pagination cũ bằng component Pagination */}
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            itemsPerPage={pagination.limit}
+            totalItems={pagination.total}
+            onPageChange={handlePageChange}
+            itemName="đơn hàng"
+          />
         </div>
       </div>
 

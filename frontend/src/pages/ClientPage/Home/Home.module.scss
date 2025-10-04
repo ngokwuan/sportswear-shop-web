@@ -1,15 +1,7 @@
-// Variables
-$burgundy-dark: #4a0d0d;
-$burgundy: #8b1a1a;
-$burgundy-light: #b91c1c;
-$black: #0a0404;
-$dark-gray: #1a0a0a;
-$text-light: #f5f5f5;
-$white: #ffffff;
-
+// Home.module.scss - Simple & Clean with Red Theme
 .page-wrapper {
   min-height: 100vh;
-  background-color: $black;
+  background-color: var(--white);
 }
 
 .main-content {
@@ -22,15 +14,11 @@ $white: #ffffff;
   margin: 0 auto;
 }
 
-// Hero Section - Full width centered
+// Hero Section - Simple & Clean
 .hero-section {
   height: 70vh;
   min-height: 500px;
-  background: linear-gradient(
-      to bottom,
-      rgba(74, 13, 13, 0.85),
-      rgba(10, 4, 4, 0.95)
-    ),
+  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
     url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1600')
       center/cover;
   position: relative;
@@ -38,62 +26,36 @@ $white: #ffffff;
   align-items: center;
   justify-content: center;
 
-  .hero-overlay {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   .hero-content {
     max-width: 1000px;
     text-align: center;
-    animation: fadeInUp 1.2s ease;
   }
 
   .hero-subtitle {
     font-size: 1rem;
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--white);
     margin-bottom: 24px;
-    font-weight: 300;
+    font-weight: 600;
   }
 
   .hero-title {
-    font-family: 'Akira', 'Arial Black', sans-serif;
-    font-size: 6rem;
+    font-family: 'Akira', sans-serif;
+    font-size: 5rem;
     font-weight: 900;
-    letter-spacing: 12px;
+    letter-spacing: 8px;
     text-transform: uppercase;
-    background: linear-gradient(180deg, #fff 0%, #ff9999 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--white);
     margin-bottom: 50px;
     line-height: 1.1;
-    text-shadow: 0 0 40px rgba(255, 100, 100, 0.5);
-  }
-
-  .hero-product {
-    display: flex;
-    justify-content: center;
-    margin-top: 40px;
-  }
-
-  .hero-product-image {
-    width: 220px;
-    height: auto;
-    filter: drop-shadow(0 20px 40px rgba(220, 38, 38, 0.4));
-    animation: float 3s ease-in-out infinite;
   }
 }
 
-// Featured Section - 3 columns
+// Featured Section - Simple Cards
 .featured-section {
   padding: 80px 0;
-  background: $dark-gray;
+  background: var(--white);
 
   .featured-grid {
     display: grid;
@@ -105,21 +67,23 @@ $white: #ffffff;
     position: relative;
     overflow: hidden;
     cursor: pointer;
-    background: linear-gradient(135deg, #2a1010 0%, #1a0808 100%);
-    border: 1px solid rgba(139, 26, 26, 0.3);
-    transition: all 0.4s ease;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    border: 1px solid var(--border-light);
 
     &:hover {
-      transform: translateY(-10px);
-      border-color: rgba(139, 26, 26, 0.6);
-      box-shadow: 0 20px 40px rgba(139, 26, 26, 0.3);
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary-red);
 
       .featured-image-wrapper img {
         transform: scale(1.1);
       }
 
       .featured-title {
-        color: $burgundy-light;
+        color: var(--primary-red);
       }
     }
   }
@@ -128,7 +92,7 @@ $white: #ffffff;
     width: 100%;
     height: 350px;
     overflow: hidden;
-    background: #0a0404;
+    background: var(--light-gray);
 
     img {
       width: 100%;
@@ -145,37 +109,27 @@ $white: #ffffff;
 
   .featured-title {
     font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 2px;
+    font-weight: 700;
+    letter-spacing: 1px;
     text-transform: uppercase;
-    color: $text-light;
+    color: var(--text-dark);
     margin-bottom: 12px;
-    transition: color 0.3s ease;
+    transition: color var(--transition-base);
   }
 
   .featured-price {
-    font-size: 1.1rem;
-    color: $burgundy;
-    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--primary-red);
+    font-weight: 800;
     margin: 0;
   }
 }
 
-// Best Seller Section
+// Best Seller Section - Simple
 .bestseller-section {
   padding: 100px 0;
-  background: linear-gradient(135deg, $burgundy-dark 0%, $black 100%);
+  background: var(--primary-red);
   position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, $burgundy, transparent);
-  }
 
   .bestseller-grid {
     display: grid;
@@ -184,35 +138,30 @@ $white: #ffffff;
     align-items: center;
   }
 
-  .bestseller-content {
-    padding-right: 40px;
-  }
-
   .section-title {
     font-family: 'Akira', sans-serif;
     font-size: 3.5rem;
     font-weight: 900;
-    letter-spacing: 6px;
+    letter-spacing: 4px;
     text-transform: uppercase;
     margin-bottom: 50px;
     line-height: 1.2;
-    color: $text-light;
+    color: var(--white);
   }
 
   .bestseller-text {
     .bestseller-product-name {
       font-size: 2rem;
       font-weight: 700;
-      color: $burgundy-light;
+      color: var(--white);
       margin-bottom: 24px;
-      text-transform: capitalize;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
     }
 
     .bestseller-description {
       font-size: 1.05rem;
       line-height: 1.8;
-      color: rgba(255, 255, 255, 0.85);
+      color: rgba(255, 255, 255, 0.9);
       margin-bottom: 40px;
     }
 
@@ -226,104 +175,86 @@ $white: #ffffff;
         flex-direction: column;
         align-items: center;
         gap: 12px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all var(--transition-base);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-5px);
+        }
 
         .badge-icon {
           font-size: 2.5rem;
-          color: $burgundy;
+          color: var(--white);
         }
 
         span {
           font-size: 0.9rem;
           text-transform: uppercase;
           letter-spacing: 1px;
-          color: rgba(255, 255, 255, 0.8);
+          color: var(--white);
+          font-weight: 600;
         }
       }
     }
   }
 
-  .bestseller-product {
-    text-align: center;
-    position: relative;
+  .bestseller-product-image {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+  }
 
-    .bestseller-product-wrapper {
-      position: relative;
-      display: inline-block;
-
-      &::before {
-        content: '';
-        position: absolute;
-        inset: -30px;
-        background: radial-gradient(
-          circle,
-          rgba(139, 26, 26, 0.3) 0%,
-          transparent 70%
-        );
-        z-index: 0;
-      }
-    }
-
-    .bestseller-product-image {
-      width: 100%;
-      max-width: 380px;
-      height: auto;
-      filter: drop-shadow(0 30px 60px rgba(139, 26, 26, 0.5));
-      position: relative;
-      z-index: 1;
-      animation: float 4s ease-in-out infinite;
-    }
-
-    .bestseller-label {
-      margin-top: 35px;
-      font-size: 1.4rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: capitalize;
-      color: $text-light;
-    }
+  .bestseller-label {
+    margin-top: 35px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--white);
   }
 }
 
-// New Products Section
+// Sections
 .new-products-section {
   padding: 80px 0;
-  background: $dark-gray;
+  background: var(--off-white);
 }
 
-// Trending Section
 .trending-section {
   padding: 100px 0;
-  background: $black;
+  background: var(--white);
 }
 
-// Groups/Teams Section
 .team-section {
   padding: 80px 0;
-  background: $dark-gray;
+  background: var(--light-gray);
 }
 
 // About Section
 .about-section {
   padding: 100px 0;
-  background: $black;
+  background: var(--white);
 
   .section-title-center {
     font-family: 'Akira', sans-serif;
     font-size: 3rem;
     font-weight: 900;
     text-align: center;
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     text-transform: uppercase;
     margin-bottom: 15px;
-    color: $text-light;
+    color: var(--text-dark);
   }
 
   .section-subtitle {
     text-align: center;
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-secondary);
     margin-bottom: 70px;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
   }
 
   .about-grid {
@@ -338,47 +269,51 @@ $white: #ffffff;
       width: 90%;
       height: 500px;
       object-fit: cover;
-      border: 1px solid rgba(139, 26, 26, 0.3);
-    }
-  }
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-base);
 
-  .about-content {
-    padding-left: 40px;
+      &:hover {
+        transform: scale(1.02);
+        box-shadow: var(--shadow-lg);
+      }
+    }
   }
 
   .about-title {
     font-size: 2rem;
-    font-weight: 700;
-    color: $burgundy-light;
+    font-weight: 800;
+    color: var(--primary-red);
     margin-bottom: 30px;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     text-transform: uppercase;
   }
 
   .about-text {
     font-size: 1rem;
     line-height: 1.8;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
     margin-bottom: 20px;
   }
 
   .read-more-btn {
     margin-top: 30px;
     padding: 14px 32px;
-    background: transparent;
-    color: $text-light;
-    border: 2px solid rgba(139, 26, 26, 0.5);
+    background: var(--primary-red);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-sm);
     font-size: 0.9rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
 
     &:hover {
-      background: $burgundy;
-      border-color: $burgundy;
-      transform: translateX(5px);
+      background: var(--primary-red-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
   }
 }
@@ -386,70 +321,48 @@ $white: #ffffff;
 // FAQ Section
 .faq-section {
   padding: 100px 0;
-  background: $dark-gray;
+  background: var(--off-white);
 }
 
 // CTA Section
 .cta-section {
   padding: 120px 0;
-  background: linear-gradient(135deg, $burgundy-dark 0%, $black 100%);
+  background: var(--primary-red);
   text-align: center;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(
-      circle,
-      rgba(139, 26, 26, 0.2) 0%,
-      transparent 70%
-    );
-  }
-
-  .cta-content {
-    position: relative;
-    z-index: 1;
-  }
 
   .cta-title {
     font-family: 'Akira', sans-serif;
     font-size: 3rem;
     font-weight: 900;
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    color: $text-light;
+    color: var(--white);
     margin-bottom: 20px;
   }
 
   .cta-subtitle {
     font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 40px;
     letter-spacing: 1px;
   }
 
   .cta-btn {
-    padding: 18px 50px;
-    background: linear-gradient(135deg, $burgundy-light 0%, $burgundy 100%);
-    color: $white;
+    padding: 16px 48px;
+    background: var(--white);
+    color: var(--primary-red);
     border: none;
+    border-radius: var(--radius-sm);
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+    transition: all var(--transition-base);
 
     &:hover {
       transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(139, 26, 26, 0.3);
+      box-shadow: var(--shadow-lg);
     }
   }
 }
@@ -457,7 +370,7 @@ $white: #ffffff;
 // Features Section
 .features-section {
   padding: 80px 0;
-  background: $black;
+  background: var(--white);
 
   .features-grid {
     display: grid;
@@ -468,33 +381,34 @@ $white: #ffffff;
   .feature-item {
     text-align: center;
     padding: 40px 30px;
-    background: linear-gradient(135deg, #2a1010 0%, #1a0808 100%);
-    border: 1px solid rgba(139, 26, 26, 0.2);
-    transition: all 0.3s ease;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
 
     &:hover {
-      border-color: rgba(139, 26, 26, 0.5);
+      border-color: var(--primary-red);
       transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(139, 26, 26, 0.2);
+      box-shadow: var(--shadow-md);
 
       .feature-icon {
-        color: $burgundy-light;
-        transform: scale(1.1);
+        color: var(--primary-red);
       }
     }
   }
 
   .feature-icon {
     font-size: 3rem;
-    color: $burgundy;
+    color: var(--text-dark);
     margin-bottom: 20px;
-    transition: all 0.3s ease;
+    transition: color var(--transition-base);
   }
 
   .feature-title {
     font-size: 1.2rem;
-    font-weight: 600;
-    color: $text-light;
+    font-weight: 700;
+    color: var(--text-dark);
     margin-bottom: 12px;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -502,7 +416,7 @@ $white: #ffffff;
 
   .feature-description {
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-secondary);
     line-height: 1.6;
   }
 }
@@ -510,29 +424,7 @@ $white: #ffffff;
 // Blog Section
 .blog-section {
   padding: 100px 0;
-  background: $dark-gray;
-}
-
-// Animations
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+  background: var(--light-gray);
 }
 
 // Responsive Design
@@ -542,8 +434,7 @@ $white: #ffffff;
   }
 
   .hero-section .hero-title {
-    font-size: 4.5rem;
-    letter-spacing: 8px;
+    font-size: 4rem;
   }
 
   .bestseller-section {
@@ -555,10 +446,6 @@ $white: #ffffff;
       gap: 50px;
     }
   }
-
-  .featured-section .featured-grid {
-    gap: 20px;
-  }
 }
 
 @media (max-width: 992px) {
@@ -568,12 +455,10 @@ $white: #ffffff;
 
   .bestseller-section .bestseller-grid {
     grid-template-columns: 1fr;
-    gap: 60px;
   }
 
   .about-section .about-grid {
     grid-template-columns: 1fr;
-    gap: 50px;
   }
 
   .features-section .features-grid {
@@ -586,83 +471,15 @@ $white: #ffffff;
     padding: 0 20px;
   }
 
-  .hero-section {
-    height: 70vh;
-    min-height: 500px;
-
-    .hero-title {
-      font-size: 3rem;
-      letter-spacing: 4px;
-    }
-
-    .hero-subtitle {
-      font-size: 0.85rem;
-      letter-spacing: 2px;
-    }
-
-    .hero-product-image {
-      width: 150px;
-    }
+  .hero-section .hero-title {
+    font-size: 3rem;
   }
 
-  .featured-section {
-    padding: 60px 0;
-
-    .featured-grid {
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-
-    .featured-image-wrapper {
-      height: 300px;
-    }
-  }
-
-  .bestseller-section {
-    padding: 70px 0;
-
-    .section-title {
-      font-size: 2rem;
-      letter-spacing: 3px;
-    }
-
-    .bestseller-content {
-      padding-right: 0;
-    }
-
-    .bestseller-text .bestseller-product-name {
-      font-size: 1.5rem;
-    }
-  }
-
-  .about-section {
-    padding: 70px 0;
-
-    .section-title-center {
-      font-size: 2rem;
-      letter-spacing: 2px;
-    }
-
-    .about-content {
-      padding-left: 0;
-    }
-
-    .about-image img {
-      height: 400px;
-    }
-  }
-
-  .cta-section {
-    padding: 80px 0;
-
-    .cta-title {
-      font-size: 2rem;
-      letter-spacing: 2px;
-    }
+  .featured-section .featured-grid {
+    grid-template-columns: 1fr;
   }
 
   .features-section .features-grid {
     grid-template-columns: 1fr;
-    gap: 30px;
   }
 }

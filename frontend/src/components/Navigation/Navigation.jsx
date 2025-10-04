@@ -19,7 +19,7 @@ function Nav() {
           <NavLink to="/blogs" className={cx('nav-link')}>
             Blogs
           </NavLink>
-          <NavLink to="/contact" className={cx('nav-link')}>
+          <NavLink to="/aboutus" className={cx('nav-link')}>
             Contact
           </NavLink>
         </div>

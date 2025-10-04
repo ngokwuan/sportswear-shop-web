@@ -1,18 +1,8 @@
-// Variables matching the dark perfume theme
-$burgundy-dark: #4a0d0d;
-$burgundy: #8b1a1a;
-$burgundy-light: #b91c1c;
-$black: #0a0404;
-$dark-gray: #1a0a0a;
-$text-light: #f5f5f5;
-$white: #ffffff;
-$accent-red: #dc2626;
-
+// Header.module.scss - Simple & Clean
 .wrapper {
-  background: #fff9e7;
-  // background: linear-gradient(135deg, $black 0%, $dark-gray 100%);
-  border-bottom: 1px solid rgba(139, 26, 26, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  background: var(--white);
+  border-bottom: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -22,13 +12,11 @@ $accent-red: #dc2626;
   display: flex;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(10px);
+  transition: all var(--transition-base);
 
   &.home-layout {
     padding: 0px 56px;
     justify-content: space-between;
-    background: #fff9e7;
-    // background: linear-gradient(135deg, $black 0%, $dark-gray 100%);
 
     .logo {
       margin-right: 20px;
@@ -41,7 +29,6 @@ $accent-red: #dc2626;
   right: 90px;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
 }
 
@@ -49,17 +36,18 @@ $accent-red: #dc2626;
   position: relative;
   background: none;
   border: none;
-  color: rgba(139, 26, 26);
+  color: var(--text-dark);
   cursor: pointer;
-  padding: 10px 5px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13px;
   height: 40px;
-  letter-spacing: 1.5px;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  font-weight: 600;
+  transition: all var(--transition-base);
+  text-transform: uppercase;
 
   svg {
     font-size: 16px;
@@ -67,27 +55,17 @@ $accent-red: #dc2626;
 
   &::after {
     content: '';
-    display: block;
     position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 18px;
+    height: 16px;
     width: 1px;
-    background: rgba(139, 26, 26);
+    background: var(--border-medium);
   }
 
   &:hover {
-    color: $burgundy-light;
-    transform: translateY(-1px);
-
-    svg {
-      filter: rgba(139, 26, 26);
-    }
-  }
-
-  &:active {
-    transform: translateY(0);
+    color: var(--primary-red);
   }
 }
 
@@ -100,51 +78,47 @@ $accent-red: #dc2626;
 }
 
 .login-btn {
-  position: relative;
-  border-left: none;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  height: 40px;
-  padding-left: 18px;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: rgba(139, 26, 26);
+  color: var(--text-dark);
+  padding-left: 20px;
+
   &::before {
     content: '';
-    display: block;
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 18px;
+    height: 16px;
     width: 1px;
-    background: rgba(139, 26, 26);
+    background: var(--border-medium);
   }
 
   &::after {
-    display: block;
+    display: none;
   }
 
   &:hover {
-    color: $burgundy-light;
+    color: var(--primary-red);
   }
 }
 
 .cart-btn {
-  position: relative;
-  color: rgba(139, 26, 26);
+  color: var(--text-dark);
+
   &::after {
     display: none;
+  }
+
+  &:hover {
+    color: var(--primary-red);
   }
 }
 
 .cart-badge {
   position: absolute;
-  top: 4px;
+  top: 2px;
   right: 8px;
-  background: linear-gradient(135deg, $burgundy-light 0%, $burgundy 100%);
-  color: $white;
+  background: var(--primary-red);
+  color: var(--white);
   font-size: 10px;
   font-weight: 700;
   border-radius: 50%;
@@ -153,24 +127,10 @@ $accent-red: #dc2626;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid $black;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
-  animation: pulse 2s infinite;
+  border: 2px solid var(--white);
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
-  }
-  50% {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.6);
-  }
-}
-
-// Responsive adjustments
+// Responsive
 @media (max-width: 1200px) {
   .wrapper {
     padding: 16px 60px;
@@ -200,7 +160,7 @@ $accent-red: #dc2626;
   }
 
   .icon-btn {
-    padding: 8px 12px;
+    padding: 8px 10px;
     font-size: 0;
 
     svg {
@@ -214,5 +174,13 @@ $accent-red: #dc2626;
 
   .login-btn::before {
     display: none;
+  }
+
+  .cart-badge {
+    top: 0;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
   }
 }

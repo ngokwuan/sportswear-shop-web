@@ -51,23 +51,9 @@ function Home() {
           </div>
         </section>
 
-        {/* Featured Cards - 3 columns */}
-        <section className={cx('featured-section')}>
-          <div className={cx('container')}>
-            <div className={cx('featured-grid')}>
-              {sidebarItems.map((item, index) => (
-                <div key={index} className={cx('featured-card')}>
-                  <div className={cx('featured-image-wrapper')}>
-                    <img src={item.image} alt={item.title} />
-                  </div>
-                  <div className={cx('featured-info')}>
-                    <h3 className={cx('featured-title')}>{item.title}</h3>
-                    <p className={cx('featured-price')}>{item.price}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Groups/Teams Section */}
+        <section className={cx('team-section')}>
+          <Groups />
         </section>
 
         {/* Best Seller Section with large product image */}
@@ -129,11 +115,6 @@ function Home() {
         {/* Trending Products Carousel */}
         <section className={cx('trending-section')}>
           <Trending />
-        </section>
-
-        {/* Groups/Teams Section */}
-        <section className={cx('team-section')}>
-          <Groups />
         </section>
 
         {/* About/Story Section */}

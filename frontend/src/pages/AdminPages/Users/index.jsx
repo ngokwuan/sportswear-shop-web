@@ -6,6 +6,10 @@ import axios from '../../../setup/axios';
 import styles from './Users.module.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import Pagination from '../../../components/Pagination';
+import CreateUserModal from './CreateUserModal';
+import EditUserModal from './EditUserModal';
+
 const cx = classNames.bind(styles);
 
 function Users() {
@@ -13,12 +17,10 @@ function Users() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [newUser, setNewUser] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    phone: '',
-  });
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const fetchUsers = async () => {
     try {
@@ -37,6 +39,12 @@ function Users() {
     fetchUsers();
   }, []);
 
+  // Pagination calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
@@ -45,70 +53,18 @@ function Users() {
     return role === 'admin' ? 'admin-badge' : 'customer-badge';
   };
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
+  const handleUserCreated = (newUser) => {
+    setUsers((prevUsers) => [...prevUsers, newUser]);
 
-    if (!newUser.fullName || !newUser.email || !newUser.password) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
-      return;
-    }
-
-    try {
-      const response = await axios.post('/users', newUser);
-
-      if (response.data.user) {
-        setUsers((prevUsers) => [...prevUsers, response.data.user]);
-        toast.success('Thêm người dùng thành công!');
-        setNewUser({ fullName: '', email: '', password: '', phone: '' });
-        setShowCreateModal(false);
-      }
-    } catch (error) {
-      console.error('Error creating user:', error);
-    }
+    // Navigate to last page
+    const newTotalPages = Math.ceil((users.length + 1) / itemsPerPage);
+    setCurrentPage(newTotalPages);
   };
 
-  const handleEditUser = (user) => {
-    setEditingUser({
-      ...user,
-      name: user.name || '',
-      phone: user.phone || '',
-      address: user.address || '',
-    });
-  };
-
-  const handleUpdateUser = async (e) => {
-    e.preventDefault();
-
-    if (!editingUser.name) {
-      toast.error('Tên người dùng không được để trống');
-      return;
-    }
-
-    try {
-      const updateData = {
-        name: editingUser.name,
-        phone: editingUser.phone,
-        address: editingUser.address,
-      };
-
-      const response = await axios.patch(
-        `/users/${editingUser.id}`,
-        updateData
-      );
-
-      if (response.data.user) {
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user.id === editingUser.id ? response.data.user : user
-          )
-        );
-
-        toast.success('Cập nhật người dùng thành công!');
-        setEditingUser(null);
-      }
-    } catch (error) {
-      console.error('Error updating user:', error);
-    }
+  const handleUserUpdated = (updatedUser) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+    );
   };
 
   const handleDeleteUser = async (userId) => {
@@ -120,15 +76,23 @@ function Users() {
 
         setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
         toast.success('Đã chuyển người dùng vào thùng rác!');
+
+        // Adjust page if current page is empty after deletion
+        const newTotalItems = users.length - 1;
+        const newTotalPages = Math.ceil(newTotalItems / itemsPerPage);
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
       } catch (error) {
         console.error('Error deleting user:', error);
+        toast.error('Không thể xóa người dùng');
       }
     }
   };
 
   if (loading) {
     return (
-      <div className={cx('users')}>
+      <div className={cx('content-card')}>
         <div className={cx('loading')}>Đang tải...</div>
       </div>
     );
@@ -140,7 +104,8 @@ function Users() {
         <div className={cx('header-left')}>
           <h2 className={cx('card-title')}>Danh sách người dùng</h2>
           <p className={cx('subtitle')}>
-            Quản lý tài khoản người dùng trong hệ thống
+            Quản lý tài khoản người dùng trong hệ thống ({users.length} người
+            dùng)
           </p>
         </div>
 
@@ -178,7 +143,7 @@ function Users() {
             <p>Không có người dùng nào</p>
           </div>
         ) : (
-          users.map((user) => (
+          currentUsers.map((user) => (
             <div key={user.id} className={cx('table-row')}>
               <span className={cx('user-id')}>#{user.id}</span>
               <span className={cx('user-name')}>{user.name}</span>
@@ -199,7 +164,7 @@ function Users() {
               <div className={cx('user-actions')}>
                 <button
                   className={cx('action-btn', 'edit-btn')}
-                  onClick={() => handleEditUser(user)}
+                  onClick={() => setEditingUser(user)}
                   title="Chỉnh sửa"
                 >
                   <FontAwesomeIcon icon={faEdit}></FontAwesomeIcon>
@@ -217,159 +182,29 @@ function Users() {
         )}
       </div>
 
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        totalItems={users.length}
+        onPageChange={setCurrentPage}
+        itemName="người dùng"
+      />
+
       {/* Create User Modal */}
-      {showCreateModal && (
-        <div className={cx('modal-overlay')}>
-          <div className={cx('modal')}>
-            <div className={cx('modal-header')}>
-              <h3>Thêm người dùng mới</h3>
-              <button
-                className={cx('close-btn')}
-                onClick={() => setShowCreateModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleCreateUser} className={cx('modal-form')}>
-              <div className={cx('form-group')}>
-                <label>
-                  Họ và tên <span style={{ color: 'red' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newUser.fullName}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, fullName: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>
-                  Email <span style={{ color: 'red' }}>*</span>
-                </label>
-                <input
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, email: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>
-                  Mật khẩu <span style={{ color: 'red' }}>*</span>
-                </label>
-                <input
-                  type="password"
-                  value={newUser.password}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, password: e.target.value })
-                  }
-                  required
-                  minLength="6"
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>Số điện thoại</label>
-                <input
-                  type="tel"
-                  value={newUser.phone}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, phone: e.target.value })
-                  }
-                />
-              </div>
-              <div className={cx('modal-actions')}>
-                <button
-                  type="button"
-                  className={cx('cancel-btn')}
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Hủy
-                </button>
-                <button type="submit" className={cx('submit-btn')}>
-                  Thêm người dùng
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CreateUserModal
+        showModal={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onUserCreated={handleUserCreated}
+      />
 
       {/* Edit User Modal */}
-      {editingUser && (
-        <div className={cx('modal-overlay')}>
-          <div className={cx('modal')}>
-            <div className={cx('modal-header')}>
-              <h3>Chỉnh sửa người dùng</h3>
-              <button
-                className={cx('close-btn')}
-                onClick={() => setEditingUser(null)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleUpdateUser} className={cx('modal-form')}>
-              <div className={cx('form-group')}>
-                <label>
-                  Họ và tên <span style={{ color: 'red' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={editingUser.name}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>Email (không thể thay đổi)</label>
-                <input
-                  type="email"
-                  value={editingUser.email}
-                  disabled
-                  className={cx('disabled-input')}
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>Số điện thoại</label>
-                <input
-                  type="tel"
-                  value={editingUser.phone}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, phone: e.target.value })
-                  }
-                />
-              </div>
-              <div className={cx('form-group')}>
-                <label>Địa chỉ</label>
-                <textarea
-                  value={editingUser.address}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, address: e.target.value })
-                  }
-                  rows="3"
-                />
-              </div>
-              <div className={cx('modal-actions')}>
-                <button
-                  type="button"
-                  className={cx('cancel-btn')}
-                  onClick={() => setEditingUser(null)}
-                >
-                  Hủy
-                </button>
-                <button type="submit" className={cx('submit-btn')}>
-                  Cập nhật
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditUserModal
+        user={editingUser}
+        onClose={() => setEditingUser(null)}
+        onUserUpdated={handleUserUpdated}
+      />
     </div>
   );
 }
