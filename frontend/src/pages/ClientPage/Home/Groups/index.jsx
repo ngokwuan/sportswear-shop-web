@@ -12,7 +12,7 @@ function Groups() {
             className={cx('team-image')}
           />
           <div className={cx('team-overlay')}>
-            <h3 className={cx('team-title')}>MEN</h3>
+            <h3 className={cx('team-title')}>RUNNING</h3>
             <p className={cx('team-subtitle')}>Athletic Wear</p>
           </div>
         </div>
@@ -23,7 +23,7 @@ function Groups() {
             className={cx('team-image')}
           />
           <div className={cx('team-overlay')}>
-            <h3 className={cx('team-title')}>KIDS</h3>
+            <h3 className={cx('team-title')}>YOGA</h3>
             <p className={cx('team-subtitle')}>Sports Equipment</p>
           </div>
         </div>
@@ -34,7 +34,7 @@ function Groups() {
             className={cx('team-image')}
           />
           <div className={cx('team-overlay')}>
-            <h3 className={cx('team-title')}>WOMEN</h3>
+            <h3 className={cx('team-title')}>GYM</h3>
             <p className={cx('team-subtitle')}>Fitness Gear</p>
           </div>
         </div>

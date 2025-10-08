@@ -1,8 +1,8 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-const Product = sequelize.define(
-  'Product',
+const Products = sequelize.define(
+  'Products',
   {
     id: {
       type: DataTypes.INTEGER,
@@ -10,14 +10,11 @@ const Product = sequelize.define(
       autoIncrement: true,
     },
     name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
     },
     slug: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING,
       allowNull: false,
       unique: true,
     },
@@ -28,31 +25,19 @@ const Product = sequelize.define(
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-      validate: {
-        min: 0,
-      },
     },
     sale_price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
-      validate: {
-        min: 0,
-      },
     },
     stock_quantity: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       defaultValue: 0,
-      validate: {
-        min: 0,
-      },
     },
     category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'categories',
-        key: 'id',
-      },
     },
     brand: {
       type: DataTypes.STRING(100),
@@ -60,58 +45,144 @@ const Product = sequelize.define(
     },
     size: {
       type: DataTypes.ENUM('XS', 'S', 'M', 'L', 'XL', 'XXL'),
-      defaultValue: 'M',
+      allowNull: true,
     },
     color: {
       type: DataTypes.STRING(50),
       allowNull: true,
+    },
+    featured_image: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      get() {
+        const rawValue = this.getDataValue('featured_image');
+
+        // If null or undefined, return null
+        if (!rawValue) return null;
+
+        // If already an object, return it
+        if (typeof rawValue === 'object') {
+          return rawValue;
+        }
+
+        // If it's a string, try to parse it
+        if (typeof rawValue === 'string') {
+          // Check if it's already a URL (legacy data)
+          if (
+            rawValue.startsWith('http://') ||
+            rawValue.startsWith('https://')
+          ) {
+            return { url: rawValue, publicId: null };
+          }
+
+          // Try to parse JSON
+          try {
+            const parsed = JSON.parse(rawValue);
+            return parsed;
+          } catch (error) {
+            // If parsing fails, return as plain URL
+            console.warn(
+              'Failed to parse featured_image, treating as URL:',
+              rawValue
+            );
+            return { url: rawValue, publicId: null };
+          }
+        }
+
+        return null;
+      },
+      set(value) {
+        if (!value) {
+          this.setDataValue('featured_image', null);
+          return;
+        }
+
+        // Store as JSON string
+        if (typeof value === 'object') {
+          this.setDataValue('featured_image', JSON.stringify(value));
+        } else if (typeof value === 'string') {
+          this.setDataValue('featured_image', value);
+        } else {
+          this.setDataValue('featured_image', null);
+        }
+      },
     },
     images: {
       type: DataTypes.TEXT,
       allowNull: true,
       get() {
         const rawValue = this.getDataValue('images');
-        return rawValue ? JSON.parse(rawValue) : [];
+
+        // If null or undefined, return empty array
+        if (!rawValue) return [];
+
+        // If already an array, return it
+        if (Array.isArray(rawValue)) {
+          return rawValue;
+        }
+
+        // If it's a string, try to parse it
+        if (typeof rawValue === 'string') {
+          // Try to parse JSON
+          try {
+            const parsed = JSON.parse(rawValue);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (error) {
+            console.warn('Failed to parse images, returning empty array');
+            return [];
+          }
+        }
+
+        return [];
       },
       set(value) {
-        this.setDataValue('images', JSON.stringify(value));
+        if (!value || (Array.isArray(value) && value.length === 0)) {
+          this.setDataValue('images', null);
+          return;
+        }
+
+        // Store as JSON string
+        if (Array.isArray(value)) {
+          this.setDataValue('images', JSON.stringify(value));
+        } else {
+          this.setDataValue('images', null);
+        }
       },
-    },
-    featured_image: {
-      type: DataTypes.TEXT,
-      allowNull: true,
     },
     isNew: {
       type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
-
     star: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      validate: {
-        min: 0,
-        max: 5,
-      },
     },
     status: {
       type: DataTypes.ENUM('active', 'inactive'),
       defaultValue: 'active',
     },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    deleted_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: 'products',
     timestamps: true,
+    paranoid: true,
+    underscored: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      { fields: ['category_id'] },
-      { fields: ['status'] },
-      { fields: ['price'] },
-      { type: 'FULLTEXT', fields: ['name', 'description', 'brand'] },
-    ],
-    paranoid: true,
     deletedAt: 'deleted_at',
   }
 );
 
-export default Product;
+export default Products;

@@ -12,12 +12,39 @@ import classNames from 'classnames/bind';
 import styles from './ProductCard.module.scss';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatCurrency';
+
 const cx = classNames.bind(styles);
 
 function ProductCard({ product, viewMode }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const navigate = useNavigate();
+
+  // Helper function to get image URL
+  const getImageUrl = (imageData) => {
+    if (!imageData) {
+      return 'https://via.placeholder.com/400x400/f0f0f0/666?text=Product+Image';
+    }
+
+    // If it's a string, try to parse JSON first
+    if (typeof imageData === 'string') {
+      try {
+        const parsed = JSON.parse(imageData);
+        if (parsed && parsed.url) return parsed.url;
+      } catch (error) {
+        // Not JSON, check if it's a direct URL
+        if (imageData.startsWith('http')) return imageData;
+      }
+    }
+
+    // If it's an object with url property
+    if (typeof imageData === 'object' && imageData.url) {
+      return imageData.url;
+    }
+
+    // Fallback
+    return 'https://via.placeholder.com/400x400/f0f0f0/666?text=Product+Image';
+  };
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -28,9 +55,11 @@ function ProductCard({ product, viewMode }) {
       />
     ));
   };
+
   const handleClick = () => {
     navigate(`/products/${product.slug}_${product.id}`);
   };
+
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -70,6 +99,8 @@ function ProductCard({ product, viewMode }) {
     ? Math.round(((product.price - product.sale_price) / product.price) * 100)
     : 0;
 
+  const imageUrl = getImageUrl(product.featured_image);
+
   return (
     <div className={cx('product-grid', viewMode)} onClick={handleClick}>
       <div className={cx('product-card', viewMode)}>
@@ -80,7 +111,7 @@ function ProductCard({ product, viewMode }) {
 
         <div className={cx('product-image')}>
           <img
-            src={product.featured_image}
+            src={imageUrl}
             alt={product.name}
             onError={(e) => {
               e.target.src =

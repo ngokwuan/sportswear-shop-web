@@ -655,3 +655,66 @@
     max-width: none;
   }
 }
+// ============= SELECT DROPDOWN STYLING =============
+.modal-form {
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    transition: all var(--transition-base);
+    box-sizing: border-box;
+    background-color: var(--bg-primary);
+    color: var(--text-dark);
+    cursor: pointer;
+
+    // Custom dropdown arrow
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+
+    &:hover {
+      border-color: var(--text-secondary);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--info-color);
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+
+    option {
+      padding: 10px;
+      background-color: var(--bg-primary);
+      color: var(--text-dark);
+
+      &:checked {
+        background-color: var(--info-color);
+        color: var(--text-light);
+      }
+    }
+  }
+}
+
+// Role badge styling (nếu chưa có)
+.role-select-wrapper {
+  position: relative;
+
+  .role-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  select {
+    padding-left: 40px;
+  }
+}

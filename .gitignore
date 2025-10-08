@@ -8,4 +8,9 @@
 /frontend/.env.local
 .env.local
 
-
+# Uploads
+/backend/uploads/*
+/backend/!uploads/.gitkeep
+/backend/!uploads/products/
+/backend/uploads/products/*
+/backend/!uploads/products/.gitkeep

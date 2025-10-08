@@ -23,6 +23,20 @@ function Products() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // Helper function to get image URL
+  const getImageUrl = (imageData) => {
+    if (!imageData) return '/placeholder-image.jpg';
+
+    // If it's already a string URL
+    if (typeof imageData === 'string') return imageData;
+
+    // If it's an object with url property
+    if (typeof imageData === 'object' && imageData.url) return imageData.url;
+
+    // Fallback
+    return '/placeholder-image.jpg';
+  };
+
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -173,7 +187,7 @@ function Products() {
               <span className={cx('product-id')}>#{product.id}</span>
               <div className={cx('product-image')}>
                 <img
-                  src={product.featured_image}
+                  src={getImageUrl(product.featured_image)}
                   alt={product.name}
                   onError={(e) => {
                     e.target.src = '/placeholder-image.jpg';
