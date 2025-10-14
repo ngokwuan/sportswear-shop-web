@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', controller.getProduct);
+router.get('/by-category', controller.getProductsByCategory); // Route mới
 router.get('/brands', controller.getBrandProduct);
 router.get('/price', controller.getPriceProduct);
 router.get('/size', controller.getSizeProduct);

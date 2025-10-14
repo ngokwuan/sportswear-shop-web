@@ -122,7 +122,9 @@ function Home() {
                   innovate and bring you the latest in sports technology and
                   design.
                 </p>
-                <button className={cx('read-more-btn')}>Learn More →</button>
+                <Link to="/aboutus">
+                  <button className={cx('read-more-btn')}>Learn More →</button>
+                </Link>
               </div>
             </div>
           </div>

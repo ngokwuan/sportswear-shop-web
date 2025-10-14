@@ -1,313 +1,3 @@
-// import slugify from 'slugify';
-// import Products from '../models/products.model.js';
-// import { filterFields } from '../utils/filterFields.js';
-// import { Sequelize, Op } from 'sequelize';
-// import {
-//   deleteLocalFile,
-//   deleteMultipleLocalFiles,
-// } from '../middleware/upload.middleware.js';
-// import {
-//   uploadToCloudinary,
-//   deleteFromCloudinary,
-//   deleteMultipleFromCloudinary,
-// } from '../config/cloudinary.config.js';
-// export const getProduct = async (req, res) => {
-//   try {
-//     const products = await Products.findAll();
-//     res.json(products);
-//   } catch (error) {
-//     res.status(500).json({ error: 'Không lấy được sản phẩm' });
-//   }
-// };
-// export const getProductTrash = async (req, res) => {
-//   try {
-//     const products = await Products.findAll({
-//       where: {
-//         deleted_at: {
-//           [Op.ne]: null,
-//         },
-//       },
-//       paranoid: false,
-//     });
-//     res.json(products);
-//   } catch (error) {
-//     res.status(500).json({ error: 'Không lấy được sản phẩm đã xóa ' });
-//   }
-// };
-// export const getTrendingProduct = async (req, res) => {
-//   try {
-//     const products = await Products.findAll({
-//       order: [['star', 'DESC']],
-//       limit: 18,
-//     });
-//     res.json(products);
-//   } catch (error) {
-//     res.status(500).json({ error: 'Không lấy được sản phẩm' });
-//   }
-// };
-// export const getBrandProduct = async (req, res) => {
-//   try {
-//     const brands = await Products.findAll({
-//       attributes: [
-//         'brand',
-
-//         [Sequelize.fn('GROUP_CONCAT', Sequelize.col('id')), 'product_ids'],
-//       ],
-//       group: ['brand'],
-//       order: [['brand', 'ASC']],
-//     });
-
-//     const result = brands.map((b) => ({
-//       brand: b.brand,
-//       product_ids: b
-//         .get('product_ids')
-//         .split(',')
-//         .map((id) => Number(id)),
-//     }));
-
-//     res.json(result);
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ error: 'Không lấy được brand và danh sách sản phẩm' });
-//   }
-// };
-// export const getSizeProduct = async (req, res) => {
-//   try {
-//     const sizes = await Products.findAll({
-//       attributes: [
-//         'size',
-
-//         [Sequelize.fn('GROUP_CONCAT', Sequelize.col('id')), 'product_ids'],
-//       ],
-//       group: ['size'],
-//     });
-
-//     // convert chuỗi id thành mảng số
-//     const result = sizes.map((b) => ({
-//       size: b.size,
-//       product_ids: b
-//         .get('product_ids')
-//         .split(',')
-//         .map((id) => Number(id)),
-//     }));
-
-//     res.json(result);
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ error: 'Không lấy được size và danh sách sản phẩm' });
-//   }
-// };
-
-// export const getPriceProduct = async (req, res) => {
-//   try {
-//     const { minPrice = 0, maxPrice = 999999 } = req.query;
-
-//     const allProducts = await Products.findAll();
-
-//     const actualPrices = allProducts.map((product) => {
-//       return product.sale_price || product.price || 0;
-//     });
-
-//     const minPriceFromDB = Math.min(...actualPrices);
-//     const maxPriceFromDB = Math.max(...actualPrices);
-
-//     const products = await Products.findAll({
-//       where: {
-//         [Sequelize.Op.or]: [
-//           {
-//             sale_price: {
-//               [Sequelize.Op.not]: null,
-//               [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
-//             },
-//           },
-//           {
-//             sale_price: null,
-//             price: {
-//               [Sequelize.Op.between]: [Number(minPrice), Number(maxPrice)],
-//             },
-//           },
-//         ],
-//       },
-//       order: [['created_at', 'DESC']],
-//     });
-
-//     res.json({
-//       products,
-//       count: products.length,
-//       priceRange: {
-//         min: Number(minPrice),
-//         max: Number(maxPrice),
-//       },
-//       actualPriceRange: {
-//         min_price: minPriceFromDB,
-//         max_price: maxPriceFromDB,
-//       },
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       error: 'Không lấy được sản phẩm theo khoảng giá',
-//     });
-//   }
-// };
-
-// export const getNewProduct = async (req, res) => {
-//   try {
-//     const products = await Products.findAll({
-//       order: [['created_at', 'DESC']],
-//       limit: 8,
-//     });
-//     res.json(products);
-//   } catch (error) {
-//     res.status(500).json({ error: 'Không lấy được sản phẩm' });
-//   }
-// };
-
-// export const getProductById = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const product = await Products.findByPk(id);
-
-//     if (!product) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Không tìm thấy sản phẩm',
-//       });
-//     }
-
-//     res.json({
-//       success: true,
-//       data: product,
-//     });
-//   } catch (error) {
-//     console.error('Error getting product:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Không thể lấy thông tin sản phẩm',
-//     });
-//   }
-// };
-// export const createProduct = async (req, res) => {
-//   const uploadedFiles = []; // Track các file tạm để cleanup
-
-//   try {
-//     const {
-//       name,
-//       description,
-//       price,
-//       salePrice,
-//       categoryId,
-//       stockQuantity,
-//       brand,
-//       size,
-//       color,
-//     } = req.body;
-
-//     // Validate required fields
-//     const requiredFields = {
-//       name,
-//       description,
-//       price,
-//       categoryId,
-//       stockQuantity,
-//       brand,
-//       size,
-//       color,
-//     };
-
-//     for (const [key, value] of Object.entries(requiredFields)) {
-//       if (!value) {
-//         return res.status(400).json({
-//           message: `Trường ${key} là bắt buộc`,
-//         });
-//       }
-//     }
-
-//     // Xử lý upload ảnh lên Cloudinary
-//     let featuredImageData = null;
-//     let imagesData = [];
-
-//     if (req.files) {
-//       // Upload featured image
-//       if (req.files.featuredImage && req.files.featuredImage[0]) {
-//         const file = req.files.featuredImage[0];
-//         uploadedFiles.push(file.path);
-
-//         const result = await uploadToCloudinary(file.path, 'products');
-//         featuredImageData = {
-//           url: result.url,
-//           publicId: result.publicId,
-//         };
-//       }
-
-//       // Upload danh sách images
-//       if (req.files.images && req.files.images.length > 0) {
-//         for (const file of req.files.images) {
-//           uploadedFiles.push(file.path);
-//           const result = await uploadToCloudinary(file.path, 'products');
-//           imagesData.push({
-//             url: result.url,
-//             publicId: result.publicId,
-//           });
-//         }
-//       }
-//     }
-
-//     // Nếu không có featured image, lấy ảnh đầu tiên từ images
-//     if (!featuredImageData && imagesData.length > 0) {
-//       featuredImageData = imagesData[0];
-//     }
-
-//     // Tạo sản phẩm
-//     const newProduct = await Products.create({
-//       name,
-//       slug: slugify(name, { lower: true }),
-//       description,
-//       price,
-//       sale_price: salePrice || null,
-//       stock_quantity: stockQuantity,
-//       category_id: categoryId,
-//       brand,
-//       size,
-//       color,
-//       images: imagesData, // Lưu array of objects {url, publicId}
-//       featured_image: featuredImageData, // Lưu object {url, publicId}
-//       status: 'active',
-//       isNew: true,
-//       star: 0,
-//     });
-
-//     // Cleanup: Xóa các file tạm
-//     deleteMultipleLocalFiles(uploadedFiles);
-
-//     res.status(201).json({
-//       message: 'Thêm sản phẩm thành công!',
-//       product: newProduct,
-//     });
-//   } catch (error) {
-//     console.error('Lỗi thêm sản phẩm:', error);
-
-//     // Cleanup: Xóa các file tạm nếu có lỗi
-//     deleteMultipleLocalFiles(uploadedFiles);
-
-//     if (error.name === 'SequelizeValidationError') {
-//       return res.status(400).json({
-//         error: 'Dữ liệu không hợp lệ',
-//         details: error.errors.map((err) => err.message),
-//       });
-//     }
-
-//     res.status(500).json({
-//       error: 'Không thể thêm sản phẩm',
-//       details: error.message,
-//     });
-//   }
-// };
-
 import slugify from 'slugify';
 import Products from '../models/products.model.js';
 import { filterFields } from '../utils/filterFields.js';
@@ -519,7 +209,127 @@ export const getProductById = async (req, res) => {
     });
   }
 };
+// Thêm function này vào products.controller.js
 
+export const getProductsByCategory = async (req, res) => {
+  try {
+    const { category_id } = req.query;
+
+    if (!category_id) {
+      return res.status(400).json({
+        error: 'Vui lòng cung cấp category_id',
+      });
+    }
+
+    // Query products có category_id trong array category_ids
+    // Sử dụng cả string và number để đảm bảo tìm được
+    const products = await Products.findAll({
+      where: Sequelize.literal(
+        `(JSON_CONTAINS(category_ids, '"${category_id}"', '$') OR JSON_CONTAINS(category_ids, '${category_id}', '$'))`
+      ),
+      raw: false,
+    });
+
+    console.log(
+      `Found ${products.length} products for category ${category_id}`
+    );
+
+    const serializedProducts = products.map((product) => product.toJSON());
+
+    res.json(serializedProducts);
+  } catch (error) {
+    console.error('Error in getProductsByCategory:', error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm theo danh mục',
+      details: error.message,
+    });
+  }
+};
+
+// Filter với multiple categories
+export const getProductsByCategoryIds = async (req, res) => {
+  try {
+    const { category_ids } = req.query; // "1,2,3"
+
+    if (!category_ids) {
+      // Nếu không có filter, trả về tất cả
+      return getProduct(req, res);
+    }
+
+    const categoryIdArray = category_ids.split(',');
+
+    // Tạo điều kiện OR cho từng category (check cả string và number)
+    const conditions = categoryIdArray.map((id) =>
+      Sequelize.literal(
+        `(JSON_CONTAINS(category_ids, '"${id}"', '$') OR JSON_CONTAINS(category_ids, '${id}', '$'))`
+      )
+    );
+
+    const products = await Products.findAll({
+      where: {
+        [Op.or]: conditions,
+      },
+      raw: false,
+    });
+
+    console.log(
+      `Found ${products.length} products for categories ${category_ids}`
+    );
+
+    const serializedProducts = products.map((product) => product.toJSON());
+
+    res.json(serializedProducts);
+  } catch (error) {
+    console.error('Error in getProductsByCategoryIds:', error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm theo danh mục',
+      details: error.message,
+    });
+  }
+};
+
+// HOẶC cách đơn giản hơn - lấy tất cả rồi filter bằng JavaScript
+export const getProductsByCategorySimple = async (req, res) => {
+  try {
+    const { category_id } = req.query;
+
+    if (!category_id) {
+      return res.status(400).json({
+        error: 'Vui lòng cung cấp category_id',
+      });
+    }
+
+    // Lấy tất cả products
+    const allProducts = await Products.findAll({ raw: false });
+
+    // Filter bằng JavaScript
+    const filteredProducts = allProducts.filter((product) => {
+      const categoryIds = product.category_ids || [];
+      // Check cả string và number
+      return (
+        categoryIds.includes(category_id) ||
+        categoryIds.includes(parseInt(category_id)) ||
+        categoryIds.includes(category_id.toString())
+      );
+    });
+
+    console.log(
+      `Found ${filteredProducts.length} products for category ${category_id}`
+    );
+
+    const serializedProducts = filteredProducts.map((product) =>
+      product.toJSON()
+    );
+
+    res.json(serializedProducts);
+  } catch (error) {
+    console.error('Error in getProductsByCategorySimple:', error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm theo danh mục',
+      details: error.message,
+    });
+  }
+};
 export const createProduct = async (req, res) => {
   const uploadedFiles = [];
 

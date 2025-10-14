@@ -10,7 +10,7 @@ import { ClientRoutes, AdminRoutes } from './routes/';
 import { ToastContainer } from 'react-toastify';
 import { useContext } from 'react';
 import { UserContext } from './context/UserContext';
-
+import ScrollToTop from './components/ScrollToTop';
 function ProtectedRoute({ children, requiredRole = null }) {
   const { user, loading } = useContext(UserContext);
 
@@ -38,6 +38,7 @@ function ProtectedRoute({ children, requiredRole = null }) {
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <div className="App">
         <Routes>
           {/* Public routes */}
