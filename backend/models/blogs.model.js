@@ -38,12 +38,47 @@ const Blog = sequelize.define(
         key: 'id',
       },
     },
-    category_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'categories',
-        key: 'id',
+    category_ids: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
+      validate: {
+        isValidArray(value) {
+          if (!Array.isArray(value) || value.length === 0) {
+            throw new Error('Phải chọn ít nhất 1 danh mục');
+          }
+        },
+      },
+      get() {
+        const rawValue = this.getDataValue('category_ids');
+        // Đảm bảo luôn trả về array
+        if (!rawValue) return [];
+        if (Array.isArray(rawValue)) return rawValue;
+
+        // Nếu là string, parse nó
+        if (typeof rawValue === 'string') {
+          try {
+            const parsed = JSON.parse(rawValue);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        return [];
+      },
+      set(value) {
+        if (!value) {
+          this.setDataValue('category_ids', []);
+          return;
+        }
+
+        // Nếu là array, lưu trực tiếp (MySQL sẽ tự convert sang JSON)
+        if (Array.isArray(value)) {
+          this.setDataValue('category_ids', value);
+        } else {
+          this.setDataValue('category_ids', []);
+        }
       },
     },
     status: {
@@ -62,6 +97,34 @@ const Blog = sequelize.define(
       type: DataTypes.JSON,
       allowNull: true,
       defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('tags');
+        if (!rawValue) return [];
+        if (Array.isArray(rawValue)) return rawValue;
+
+        if (typeof rawValue === 'string') {
+          try {
+            const parsed = JSON.parse(rawValue);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        return [];
+      },
+      set(value) {
+        if (!value || (Array.isArray(value) && value.length === 0)) {
+          this.setDataValue('tags', []);
+          return;
+        }
+
+        if (Array.isArray(value)) {
+          this.setDataValue('tags', value);
+        } else {
+          this.setDataValue('tags', []);
+        }
+      },
     },
     meta_title: {
       type: DataTypes.STRING(255),
@@ -71,7 +134,6 @@ const Blog = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-
     deleted_at: {
       type: DataTypes.DATE,
       allowNull: true,

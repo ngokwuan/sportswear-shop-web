@@ -9,20 +9,33 @@ export const createBlog = async (req, res) => {
   try {
     const {
       title,
-
       excerpt,
       content,
       featured_image,
-      category_id,
+      category_ids, // Đổi từ category_id sang category_ids
       status = 'draft',
       meta_title,
       meta_description,
+      tags,
+      is_featured = false,
     } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({
         success: false,
         message: 'Thiếu thông tin bắt buộc: title, content',
+      });
+    }
+
+    // Validate category_ids
+    if (
+      !category_ids ||
+      !Array.isArray(category_ids) ||
+      category_ids.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phải chọn ít nhất 1 danh mục',
       });
     }
 
@@ -42,27 +55,31 @@ export const createBlog = async (req, res) => {
       });
     }
 
-    if (category_id) {
-      const category = await Category.findByPk(category_id);
-      if (!category) {
-        return res.status(404).json({
-          success: false,
-          message: 'Danh mục không tồn tại',
-        });
-      }
+    // Validate tất cả categories có tồn tại không
+    const categories = await Category.findAll({
+      where: { id: category_ids },
+    });
+
+    if (categories.length !== category_ids.length) {
+      return res.status(404).json({
+        success: false,
+        message: 'Một hoặc nhiều danh mục không tồn tại',
+      });
     }
 
     const blogData = {
       title,
-      slug: slugify(title, { lower: true }),
+      slug: slugify(title, { lower: true, strict: true }),
       excerpt,
       content,
       featured_image,
       author_id,
-      category_id,
+      category_ids, // JSON array
       status,
       meta_title: meta_title || title,
       meta_description: meta_description || excerpt,
+      tags: tags || [],
+      is_featured,
     };
 
     if (status === 'published') {
@@ -73,6 +90,7 @@ export const createBlog = async (req, res) => {
 
     await transaction.commit();
 
+    // Lấy thông tin blog vừa tạo
     const createdBlog = await Blog.findByPk(blog.id, {
       include: [
         {
@@ -80,18 +98,24 @@ export const createBlog = async (req, res) => {
           as: 'author',
           attributes: ['id', 'name', 'email'],
         },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
-        },
       ],
     });
+
+    // Lấy categories thủ công
+    const blogCategories = await Category.findAll({
+      where: { id: createdBlog.category_ids },
+      attributes: ['id', 'name', 'slug'],
+    });
+
+    const response = {
+      ...createdBlog.toJSON(),
+      categories: blogCategories,
+    };
 
     return res.status(201).json({
       success: true,
       message: 'Tạo bài viết thành công',
-      data: createdBlog,
+      data: response,
     });
   } catch (error) {
     await transaction.rollback();
@@ -113,14 +137,23 @@ export const getAllBlogs = async (req, res) => {
       category_id,
       author_id,
       search,
+      is_featured,
     } = req.query;
 
     const offset = (page - 1) * limit;
     const whereCondition = {};
 
     if (status) whereCondition.status = status;
-    if (category_id) whereCondition.category_id = category_id;
     if (author_id) whereCondition.author_id = author_id;
+    if (is_featured !== undefined)
+      whereCondition.is_featured = is_featured === 'true';
+
+    // Tìm kiếm theo category_id trong JSON array
+    if (category_id) {
+      whereCondition[Op.and] = sequelize.literal(
+        `JSON_CONTAINS(category_ids, '${parseInt(category_id)}')`
+      );
+    }
 
     if (search) {
       whereCondition[Op.or] = [
@@ -138,21 +171,42 @@ export const getAllBlogs = async (req, res) => {
           as: 'author',
           attributes: ['id', 'name', 'email'],
         },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
-        },
       ],
       order: [['created_at', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
 
+    // Lấy tất cả category_ids từ blogs
+    const allCategoryIds = [
+      ...new Set(blogs.flatMap((blog) => blog.category_ids || [])),
+    ];
+
+    // Lấy thông tin categories
+    const categories =
+      allCategoryIds.length > 0
+        ? await Category.findAll({
+            where: { id: allCategoryIds },
+            attributes: ['id', 'name', 'slug'],
+          })
+        : [];
+
+    // Map categories vào từng blog
+    const blogsWithCategories = blogs.map((blog) => {
+      const blogCategories = categories.filter((cat) =>
+        (blog.category_ids || []).includes(cat.id)
+      );
+
+      return {
+        ...blog.toJSON(),
+        categories: blogCategories,
+      };
+    });
+
     return res.status(200).json({
       success: true,
       data: {
-        blogs,
+        blogs: blogsWithCategories,
         pagination: {
           total: count,
           page: parseInt(page),
@@ -173,7 +227,13 @@ export const getAllBlogs = async (req, res) => {
 
 export const getPublishedBlogs = async (req, res) => {
   try {
-    const { page = 1, limit = 10, category_id, search } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      category_id,
+      search,
+      is_featured,
+    } = req.query;
 
     const offset = (page - 1) * limit;
     const whereCondition = {
@@ -181,7 +241,15 @@ export const getPublishedBlogs = async (req, res) => {
       published_at: { [Op.lte]: new Date() },
     };
 
-    if (category_id) whereCondition.category_id = category_id;
+    if (is_featured !== undefined)
+      whereCondition.is_featured = is_featured === 'true';
+
+    // Tìm kiếm theo category_id trong JSON array
+    if (category_id) {
+      whereCondition[Op.and] = sequelize.literal(
+        `JSON_CONTAINS(category_ids, '${parseInt(category_id)}')`
+      );
+    }
 
     if (search) {
       whereCondition[Op.or] = [
@@ -198,21 +266,42 @@ export const getPublishedBlogs = async (req, res) => {
           as: 'author',
           attributes: ['id', 'name'],
         },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
-        },
       ],
       order: [['published_at', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
 
+    // Lấy tất cả category_ids từ blogs
+    const allCategoryIds = [
+      ...new Set(blogs.flatMap((blog) => blog.category_ids || [])),
+    ];
+
+    // Lấy thông tin categories
+    const categories =
+      allCategoryIds.length > 0
+        ? await Category.findAll({
+            where: { id: allCategoryIds },
+            attributes: ['id', 'name', 'slug'],
+          })
+        : [];
+
+    // Map categories vào từng blog
+    const blogsWithCategories = blogs.map((blog) => {
+      const blogCategories = categories.filter((cat) =>
+        (blog.category_ids || []).includes(cat.id)
+      );
+
+      return {
+        ...blog.toJSON(),
+        categories: blogCategories,
+      };
+    });
+
     return res.status(200).json({
       success: true,
       data: {
-        blogs,
+        blogs: blogsWithCategories,
         pagination: {
           total: count,
           page: parseInt(page),
@@ -243,10 +332,61 @@ export const getBlogById = async (req, res) => {
           as: 'author',
           attributes: ['id', 'name', 'email'],
         },
+      ],
+    });
+
+    if (!blog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy bài viết',
+      });
+    }
+
+    // Lấy thông tin categories
+    const categories =
+      blog.category_ids && blog.category_ids.length > 0
+        ? await Category.findAll({
+            where: { id: blog.category_ids },
+            attributes: ['id', 'name', 'slug'],
+          })
+        : [];
+
+    const response = {
+      ...blog.toJSON(),
+      categories,
+    };
+
+    if (increment_view === 'true') {
+      await blog.increment('views');
+      response.views = blog.views + 1;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: response,
+    });
+  } catch (error) {
+    console.error('Get blog by id error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi lấy chi tiết bài viết',
+      error: error.message,
+    });
+  }
+};
+
+export const getBlogBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { increment_view = 'false' } = req.query;
+
+    const blog = await Blog.findOne({
+      where: { slug },
+      include: [
         {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
+          model: User,
+          as: 'author',
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });
@@ -258,16 +398,31 @@ export const getBlogById = async (req, res) => {
       });
     }
 
+    // Lấy thông tin categories
+    const categories =
+      blog.category_ids && blog.category_ids.length > 0
+        ? await Category.findAll({
+            where: { id: blog.category_ids },
+            attributes: ['id', 'name', 'slug'],
+          })
+        : [];
+
+    const response = {
+      ...blog.toJSON(),
+      categories,
+    };
+
     if (increment_view === 'true') {
       await blog.increment('views');
+      response.views = blog.views + 1;
     }
 
     return res.status(200).json({
       success: true,
-      data: blog,
+      data: response,
     });
   } catch (error) {
-    console.error('Get blog by id error:', error);
+    console.error('Get blog by slug error:', error);
     return res.status(500).json({
       success: false,
       message: 'Lỗi lấy chi tiết bài viết',
@@ -299,23 +454,39 @@ export const updateBlog = async (req, res) => {
       });
     }
 
+    // Không cho phép update author_id
     delete updateData.author_id;
 
-    if (updateData.category_id) {
-      const category = await Category.findByPk(updateData.category_id);
-      if (!category) {
+    // Validate category_ids nếu có trong update
+    if (updateData.category_ids) {
+      if (
+        !Array.isArray(updateData.category_ids) ||
+        updateData.category_ids.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Phải chọn ít nhất 1 danh mục',
+        });
+      }
+
+      const categories = await Category.findAll({
+        where: { id: updateData.category_ids },
+      });
+
+      if (categories.length !== updateData.category_ids.length) {
         return res.status(404).json({
           success: false,
-          message: 'Danh mục không tồn tại',
+          message: 'Một hoặc nhiều danh mục không tồn tại',
         });
       }
     }
 
+    // Tự động tạo slug mới nếu title thay đổi
     if (
       updateData.title &&
       (!updateData.slug || updateData.slug === blog.slug)
     ) {
-      const newSlug = slugify(updateData.title, { lower: true });
+      const newSlug = slugify(updateData.title, { lower: true, strict: true });
 
       const existingBlog = await Blog.findOne({
         where: {
@@ -331,6 +502,7 @@ export const updateBlog = async (req, res) => {
       }
     }
 
+    // Xử lý published_at
     if (updateData.status === 'published' && !blog.published_at) {
       updateData.published_at = new Date();
     } else if (updateData.status !== 'published' && updateData.status) {
@@ -348,18 +520,27 @@ export const updateBlog = async (req, res) => {
           as: 'author',
           attributes: ['id', 'name', 'email'],
         },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
-        },
       ],
     });
+
+    // Lấy thông tin categories
+    const categories =
+      updatedBlog.category_ids && updatedBlog.category_ids.length > 0
+        ? await Category.findAll({
+            where: { id: updatedBlog.category_ids },
+            attributes: ['id', 'name', 'slug'],
+          })
+        : [];
+
+    const response = {
+      ...updatedBlog.toJSON(),
+      categories,
+    };
 
     return res.status(200).json({
       success: true,
       message: 'Cập nhật bài viết thành công',
-      data: updatedBlog,
+      data: response,
     });
   } catch (error) {
     await transaction.rollback();
@@ -406,7 +587,9 @@ export const getTrashedBlogs = async (req, res) => {
     const offset = (page - 1) * limit;
 
     const { count, rows: blogs } = await Blog.findAndCountAll({
-      where: {},
+      where: {
+        deleted_at: { [Op.ne]: null },
+      },
       paranoid: false,
       include: [
         {
@@ -414,29 +597,47 @@ export const getTrashedBlogs = async (req, res) => {
           as: 'author',
           attributes: ['id', 'name', 'email'],
         },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name', 'slug'],
-        },
       ],
       order: [['deleted_at', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
 
-    const trashedBlogs = blogs.filter((blog) => blog.deleted_at !== null);
-    const trashedCount = trashedBlogs.length;
+    // Lấy tất cả category_ids từ blogs
+    const allCategoryIds = [
+      ...new Set(blogs.flatMap((blog) => blog.category_ids || [])),
+    ];
+
+    // Lấy thông tin categories
+    const categories =
+      allCategoryIds.length > 0
+        ? await Category.findAll({
+            where: { id: allCategoryIds },
+            attributes: ['id', 'name', 'slug'],
+          })
+        : [];
+
+    // Map categories vào từng blog
+    const blogsWithCategories = blogs.map((blog) => {
+      const blogCategories = categories.filter((cat) =>
+        (blog.category_ids || []).includes(cat.id)
+      );
+
+      return {
+        ...blog.toJSON(),
+        categories: blogCategories,
+      };
+    });
 
     return res.status(200).json({
       success: true,
       data: {
-        blogs: trashedBlogs,
+        blogs: blogsWithCategories,
         pagination: {
-          total: trashedCount,
+          total: count,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(trashedCount / limit),
+          totalPages: Math.ceil(count / limit),
         },
       },
     });

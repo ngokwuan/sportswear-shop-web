@@ -208,7 +208,7 @@ function BlogDetail() {
               {/* Article Header */}
               <header className={cx('article-header')}>
                 <button
-                  onClick={() => navigate('/blog')}
+                  onClick={() => navigate('/blogs')}
                   className={cx('back-button')}
                 >
                   <FontAwesomeIcon icon={faArrowLeft} />

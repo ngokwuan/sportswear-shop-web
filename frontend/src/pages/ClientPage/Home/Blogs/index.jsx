@@ -5,6 +5,7 @@ import {
   faCalendarAlt,
   faEye,
   faUser,
+  faFolder,
 } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames/bind';
 import styles from './Blogs.module.scss';
@@ -110,8 +111,17 @@ function Blogs() {
                 )}
               </div>
 
-              {post.category && (
-                <div className={cx('blog-category')}>{post.category.name}</div>
+              {/* Hiển thị nhiều categories */}
+              {post.categories && post.categories.length > 0 && (
+                <div className={cx('blog-categories')}>
+                  {post.categories.map((category, index) => (
+                    <span key={category.id} className={cx('blog-category')}>
+                      <FontAwesomeIcon icon={faFolder} />
+                      {category.name}
+                      {index < post.categories.length - 1 && ', '}
+                    </span>
+                  ))}
+                </div>
               )}
 
               <h3 className={cx('blog-title')}>{post.title}</h3>

@@ -13,9 +13,8 @@ User.hasMany(Order, { foreignKey: 'user_id', as: 'orders' });
 User.hasMany(Review, { foreignKey: 'user_id', as: 'reviews' });
 User.hasMany(Blog, { foreignKey: 'author_id', as: 'blogs' });
 
-// Product Associations (REMOVED category relationships)
-// Since category_ids is a JSON array, we cannot use standard Sequelize associations
-// You'll need to handle category relationships manually in your queries
+// Product Associations
+// category_ids là JSON array, không dùng standard Sequelize associations
 Product.hasMany(Cart, { foreignKey: 'product_id', as: 'cartItems' });
 Product.hasMany(OrderItem, { foreignKey: 'product_id', as: 'orderItems' });
 Product.hasMany(Review, { foreignKey: 'product_id', as: 'reviews' });
@@ -38,16 +37,18 @@ Review.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
 // Blog Associations
 Blog.belongsTo(User, { foreignKey: 'author_id', as: 'author' });
-// REMOVED category relationship for Blog since it also uses category_ids as JSON array
+// category_ids là JSON array, không dùng standard Sequelize associations
 
-// NOTE: Category associations are removed because category_ids is a JSON array field
-// If you need to query products by category, do it manually in your controllers like this:
+// Category không có direct associations vì Products và Blogs dùng JSON array
+// Để query products/blogs theo category, dùng JSON_CONTAINS trong where clause:
 //
-// Get all products in a category:
+// Ví dụ:
 // const products = await Product.findAll({
-//   where: Sequelize.literal(`JSON_CONTAINS(category_ids, '${categoryId}')`)
+//   where: sequelize.literal(`JSON_CONTAINS(category_ids, '${categoryId}')`)
 // });
 //
-// Or use raw queries for more complex category filtering
+// const blogs = await Blog.findAll({
+//   where: sequelize.literal(`JSON_CONTAINS(category_ids, '${categoryId}')`)
+// });
 
 export { User, Category, Product, Cart, Order, OrderItem, Review, Blog };
