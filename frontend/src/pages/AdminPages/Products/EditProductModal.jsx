@@ -18,7 +18,7 @@ function EditProductModal({
     description: '',
     price: '',
     salePrice: '',
-    categoryId: '',
+    categoryIds: [], // Changed from categoryId to categoryIds
     stockQuantity: '',
     brand: '',
     size: '',
@@ -41,12 +41,21 @@ function EditProductModal({
 
   useEffect(() => {
     if (product) {
+      // Ensure category_ids is always an array
+      let categoryIds = [];
+      if (Array.isArray(product.category_ids)) {
+        categoryIds = product.category_ids;
+      } else if (product.category_id) {
+        // Fallback for old single category format
+        categoryIds = [product.category_id];
+      }
+
       setFormData({
         name: product.name || '',
         description: product.description || '',
         price: product.price || '',
         salePrice: product.sale_price || '',
-        categoryId: product.category_id || '',
+        categoryIds: categoryIds, // Set as array
         stockQuantity: product.stock_quantity || '',
         brand: product.brand || '',
         size: product.size || '',
@@ -74,6 +83,17 @@ function EditProductModal({
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  // Handle multiple category selection
+  const handleCategoryChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions);
+    const selectedIds = selectedOptions.map((option) => option.value);
+
+    setFormData((prev) => ({
+      ...prev,
+      categoryIds: selectedIds,
     }));
   };
 
@@ -161,7 +181,6 @@ function EditProductModal({
       name: 'Tên sản phẩm',
       description: 'Mô tả',
       price: 'Giá',
-      categoryId: 'Danh mục',
       stockQuantity: 'Số lượng',
       brand: 'Thương hiệu',
       size: 'Size',
@@ -173,6 +192,12 @@ function EditProductModal({
         toast.error(`${label} là bắt buộc`);
         return;
       }
+    }
+
+    // Validate categories
+    if (!formData.categoryIds || formData.categoryIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất 1 danh mục');
+      return;
     }
 
     // Validate price
@@ -205,11 +230,16 @@ function EditProductModal({
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
-      formDataToSend.append('categoryId', formData.categoryId);
       formDataToSend.append('stockQuantity', formData.stockQuantity);
       formDataToSend.append('brand', formData.brand);
       formDataToSend.append('size', formData.size);
       formDataToSend.append('color', formData.color);
+
+      // Append categoryIds as JSON string
+      formDataToSend.append(
+        'categoryIds',
+        JSON.stringify(formData.categoryIds)
+      );
 
       // Append optional salePrice
       if (formData.salePrice) {
@@ -314,19 +344,25 @@ function EditProductModal({
                 Danh mục <span style={{ color: 'red' }}>*</span>
               </label>
               <select
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleChange}
+                name="categoryIds"
+                multiple
+                value={formData.categoryIds}
+                onChange={handleCategoryChange}
                 required
                 disabled={isSubmitting}
+                style={{ height: '100px' }}
               >
-                <option value="">Chọn danh mục</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
                 ))}
               </select>
+              <small
+                style={{ color: '#666', display: 'block', marginTop: '5px' }}
+              >
+                Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều danh mục
+              </small>
             </div>
           </div>
 
@@ -355,7 +391,7 @@ function EditProductModal({
                 value={formData.price}
                 onChange={handleChange}
                 required
-                min="1"
+                min="0"
                 step="1000"
                 disabled={isSubmitting}
               />

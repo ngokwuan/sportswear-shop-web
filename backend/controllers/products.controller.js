@@ -529,19 +529,26 @@ export const createProduct = async (req, res) => {
       description,
       price,
       salePrice,
-      categoryId,
+      categoryIds,
       stockQuantity,
       brand,
       size,
       color,
     } = req.body;
 
-    // Validate required fields
+    let parsedCategoryIds = categoryIds;
+    if (typeof categoryIds === 'string') {
+      try {
+        parsedCategoryIds = JSON.parse(categoryIds);
+      } catch (e) {
+        parsedCategoryIds = [categoryIds];
+      }
+    }
+
     const requiredFields = {
       name,
       description,
       price,
-      categoryId,
       stockQuantity,
       brand,
       size,
@@ -556,16 +563,20 @@ export const createProduct = async (req, res) => {
       }
     }
 
-    // Xử lý upload ảnh lên Cloudinary
+    if (!parsedCategoryIds || parsedCategoryIds.length === 0) {
+      return res.status(400).json({
+        message: 'Vui lòng chọn ít nhất 1 danh mục',
+      });
+    }
+
+    // Xử lý upload ảnh (giữ nguyên như cũ)
     let featuredImageData = null;
     let imagesData = [];
 
     if (req.files) {
-      // Upload featured image
       if (req.files.featuredImage && req.files.featuredImage[0]) {
         const file = req.files.featuredImage[0];
         uploadedFiles.push(file.path);
-
         const result = await uploadToCloudinary(file.path, 'products');
         featuredImageData = {
           url: result.url,
@@ -573,7 +584,6 @@ export const createProduct = async (req, res) => {
         };
       }
 
-      // Upload danh sách images
       if (req.files.images && req.files.images.length > 0) {
         for (const file of req.files.images) {
           uploadedFiles.push(file.path);
@@ -586,12 +596,11 @@ export const createProduct = async (req, res) => {
       }
     }
 
-    // Nếu không có featured image, lấy ảnh đầu tiên từ images
     if (!featuredImageData && imagesData.length > 0) {
       featuredImageData = imagesData[0];
     }
 
-    // Tạo sản phẩm
+    // Tạo sản phẩm với category_ids (array)
     const newProduct = await Products.create({
       name,
       slug: slugify(name, { lower: true }),
@@ -599,7 +608,7 @@ export const createProduct = async (req, res) => {
       price,
       sale_price: salePrice || null,
       stock_quantity: stockQuantity,
-      category_id: categoryId,
+      category_ids: parsedCategoryIds, // Lưu array category IDs
       brand,
       size,
       color,
@@ -610,7 +619,6 @@ export const createProduct = async (req, res) => {
       star: 0,
     });
 
-    // Cleanup: Xóa các file tạm
     deleteMultipleLocalFiles(uploadedFiles);
 
     res.status(201).json({
@@ -619,8 +627,6 @@ export const createProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Lỗi thêm sản phẩm:', error);
-
-    // Cleanup: Xóa các file tạm nếu có lỗi
     deleteMultipleLocalFiles(uploadedFiles);
 
     if (error.name === 'SequelizeValidationError') {
@@ -637,7 +643,6 @@ export const createProduct = async (req, res) => {
   }
 };
 
-// ... rest of the controller methods remain the same
 export const updateProduct = async (req, res) => {
   const uploadedFiles = [];
 
@@ -648,6 +653,7 @@ export const updateProduct = async (req, res) => {
       description,
       price,
       salePrice,
+      categoryIds,
       stockQuantity,
       brand,
       size,
@@ -661,6 +667,18 @@ export const updateProduct = async (req, res) => {
       });
     }
 
+    // Parse categoryIds if it's a string
+    let parsedCategoryIds = categoryIds;
+    if (categoryIds) {
+      if (typeof categoryIds === 'string') {
+        try {
+          parsedCategoryIds = JSON.parse(categoryIds);
+        } catch (e) {
+          parsedCategoryIds = [categoryIds];
+        }
+      }
+    }
+
     let updateFields = {
       name,
       slug: name ? slugify(name, { lower: true }) : undefined,
@@ -668,6 +686,7 @@ export const updateProduct = async (req, res) => {
       price,
       sale_price: salePrice,
       stock_quantity: stockQuantity,
+      category_ids: parsedCategoryIds, // Update category_ids array
       brand,
       size,
       color,
@@ -728,6 +747,9 @@ export const updateProduct = async (req, res) => {
     // Filter và update
     updateFields = filterFields(updateFields);
     await product.update(updateFields);
+
+    // Reload product to get fresh data with getters applied
+    await product.reload();
 
     // Xóa các ảnh cũ từ Cloudinary (async, không block response)
     if (oldPublicIds.length > 0) {

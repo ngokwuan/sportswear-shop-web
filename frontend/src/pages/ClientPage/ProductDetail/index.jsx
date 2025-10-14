@@ -36,6 +36,68 @@ function ProductDetail() {
   });
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+  // Helper function to get image URL
+  const getImageUrl = (imageData) => {
+    if (!imageData)
+      return 'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image';
+
+    // If it's already a string URL
+    if (typeof imageData === 'string') return imageData;
+
+    // If it's an object with url property
+    if (typeof imageData === 'object' && imageData.url) return imageData.url;
+
+    // Fallback
+    return 'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image';
+  };
+
+  // Helper function to process product images
+  const processProductImages = (productData) => {
+    const images = [];
+
+    // Add featured image first
+    if (productData.featured_image) {
+      images.push(getImageUrl(productData.featured_image));
+    }
+
+    // Process additional images
+    if (productData.images) {
+      let additionalImages = [];
+
+      // If images is a string, try to parse it
+      if (typeof productData.images === 'string') {
+        try {
+          additionalImages = JSON.parse(productData.images);
+        } catch (err) {
+          console.log('Could not parse images string:', err);
+          additionalImages = [];
+        }
+      } else if (Array.isArray(productData.images)) {
+        additionalImages = productData.images;
+      }
+
+      // Add each additional image
+      if (Array.isArray(additionalImages)) {
+        additionalImages.forEach((img) => {
+          const imgUrl = getImageUrl(img);
+          // Avoid duplicates
+          if (!images.includes(imgUrl)) {
+            images.push(imgUrl);
+          }
+        });
+      }
+    }
+
+    // If no images at all, add placeholder
+    if (images.length === 0) {
+      images.push(
+        'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image'
+      );
+    }
+
+    return images;
+  };
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -47,15 +109,6 @@ function ProductDetail() {
         if (response.data && response.data.success) {
           const productData = response.data.data;
           setProduct(productData);
-
-          if (typeof productData.images === 'string') {
-            try {
-              productData.images = JSON.parse(productData.images);
-            } catch (err) {
-              console.log(err);
-              productData.images = [productData.featured_image];
-            }
-          }
         } else {
           throw new Error('Product not found');
         }
@@ -185,11 +238,8 @@ function ProductDetail() {
     ? Math.round(((product.price - product.sale_price) / product.price) * 100)
     : 0;
 
-  const productImages = Array.isArray(product.images)
-    ? product.images
-    : product.featured_image
-    ? [product.featured_image]
-    : [];
+  // Process product images using the new helper function
+  const productImages = processProductImages(product);
 
   return (
     <div className={cx('product-detail')}>

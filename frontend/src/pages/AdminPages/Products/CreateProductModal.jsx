@@ -12,7 +12,7 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
     description: '',
     price: '',
     salePrice: '',
-    categoryId: '',
+    categoryIds: [], // Thay đổi từ categoryId sang categoryIds (array)
     stockQuantity: '',
     brand: '',
     size: '',
@@ -30,6 +30,17 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  // Xử lý chọn nhiều danh mục
+  const handleCategoryChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions);
+    const selectedIds = selectedOptions.map((option) => option.value);
+
+    setFormData((prev) => ({
+      ...prev,
+      categoryIds: selectedIds,
     }));
   };
 
@@ -97,7 +108,6 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
       name: 'Tên sản phẩm',
       description: 'Mô tả',
       price: 'Giá',
-      categoryId: 'Danh mục',
       stockQuantity: 'Số lượng',
       brand: 'Thương hiệu',
       size: 'Size',
@@ -109,6 +119,12 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
         toast.error(`${label} là bắt buộc`);
         return;
       }
+    }
+
+    // Validate categories
+    if (!formData.categoryIds || formData.categoryIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất 1 danh mục');
+      return;
     }
 
     // Validate price
@@ -147,11 +163,16 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
-      formDataToSend.append('categoryId', formData.categoryId);
       formDataToSend.append('stockQuantity', formData.stockQuantity);
       formDataToSend.append('brand', formData.brand);
       formDataToSend.append('size', formData.size);
       formDataToSend.append('color', formData.color);
+
+      // Append categoryIds as JSON string hoặc multiple values
+      formDataToSend.append(
+        'categoryIds',
+        JSON.stringify(formData.categoryIds)
+      );
 
       // Append optional salePrice
       if (formData.salePrice) {
@@ -160,45 +181,19 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
 
       // Append featured image
       if (featuredImage) {
-        console.log('Featured Image:', {
-          name: featuredImage.name,
-          type: featuredImage.type,
-          size: featuredImage.size,
-        });
         formDataToSend.append('featuredImage', featuredImage);
       }
 
       // Append multiple images
-      images.forEach((image, index) => {
-        console.log(`Image ${index + 1}:`, {
-          name: image.name,
-          type: image.type,
-          size: image.size,
-        });
+      images.forEach((image) => {
         formDataToSend.append('images', image);
       });
 
-      // Log FormData entries
-      console.log('FormData entries:');
-      for (let pair of formDataToSend.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(pair[0], '→ File:', pair[1].name, pair[1].type);
-        } else {
-          console.log(pair[0], '→', pair[1]);
-        }
-      }
-
-      // Không cần set Content-Type, axios sẽ tự động set với boundary
       const response = await axios.post('/products', formDataToSend);
 
-      // Backend trả về { message, product }
       if (response.data.product) {
         toast.success(response.data.message || 'Thêm sản phẩm thành công!');
-
-        // Gọi callback để cập nhật danh sách sản phẩm
         onProductCreated(response.data.product);
-
-        // Reset form
         resetForm();
         onClose();
       }
@@ -212,7 +207,6 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
 
       toast.error(errorMessage);
 
-      // Hiển thị chi tiết lỗi nếu có
       if (error.response?.data?.details) {
         console.error('Error details:', error.response.data.details);
       }
@@ -227,7 +221,7 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
       description: '',
       price: '',
       salePrice: '',
-      categoryId: '',
+      categoryIds: [],
       stockQuantity: '',
       brand: '',
       size: '',
@@ -260,7 +254,6 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
   };
 
   const handleClose = () => {
-    // Cleanup preview URLs
     if (previewFeatured) {
       URL.revokeObjectURL(previewFeatured);
     }
@@ -311,19 +304,25 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
                 Danh mục <span style={{ color: 'red' }}>*</span>
               </label>
               <select
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleChange}
+                name="categoryIds"
+                multiple
+                value={formData.categoryIds}
+                onChange={handleCategoryChange}
                 required
                 disabled={isSubmitting}
+                style={{ height: '100px' }}
               >
-                <option value="">Chọn danh mục</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
                 ))}
               </select>
+              <small
+                style={{ color: '#666', display: 'block', marginTop: '5px' }}
+              >
+                Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều danh mục
+              </small>
             </div>
           </div>
 
@@ -352,7 +351,7 @@ function CreateProductModal({ isOpen, onClose, categories, onProductCreated }) {
                 value={formData.price}
                 onChange={handleChange}
                 required
-                min="1"
+                min="0"
                 step="1000"
                 disabled={isSubmitting}
               />

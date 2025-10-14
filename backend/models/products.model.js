@@ -35,9 +35,48 @@ const Products = sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
-    category_id: {
-      type: DataTypes.INTEGER,
+    category_ids: {
+      type: DataTypes.JSON,
       allowNull: false,
+      defaultValue: [],
+      validate: {
+        isValidArray(value) {
+          if (!Array.isArray(value) || value.length === 0) {
+            throw new Error('Phải chọn ít nhất 1 danh mục');
+          }
+        },
+      },
+      get() {
+        const rawValue = this.getDataValue('category_ids');
+        // Đảm bảo luôn trả về array
+        if (!rawValue) return [];
+        if (Array.isArray(rawValue)) return rawValue;
+
+        // Nếu là string, parse nó
+        if (typeof rawValue === 'string') {
+          try {
+            const parsed = JSON.parse(rawValue);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        return [];
+      },
+      set(value) {
+        if (!value) {
+          this.setDataValue('category_ids', []);
+          return;
+        }
+
+        // Nếu là array, lưu trực tiếp (MySQL sẽ tự convert sang JSON)
+        if (Array.isArray(value)) {
+          this.setDataValue('category_ids', value);
+        } else {
+          this.setDataValue('category_ids', []);
+        }
+      },
     },
     brand: {
       type: DataTypes.STRING(100),
@@ -52,22 +91,14 @@ const Products = sequelize.define(
       allowNull: true,
     },
     featured_image: {
-      type: DataTypes.TEXT,
+      type: DataTypes.JSON,
       allowNull: true,
       get() {
         const rawValue = this.getDataValue('featured_image');
-
-        // If null or undefined, return null
         if (!rawValue) return null;
+        if (typeof rawValue === 'object') return rawValue;
 
-        // If already an object, return it
-        if (typeof rawValue === 'object') {
-          return rawValue;
-        }
-
-        // If it's a string, try to parse it
         if (typeof rawValue === 'string') {
-          // Check if it's already a URL (legacy data)
           if (
             rawValue.startsWith('http://') ||
             rawValue.startsWith('https://')
@@ -75,16 +106,9 @@ const Products = sequelize.define(
             return { url: rawValue, publicId: null };
           }
 
-          // Try to parse JSON
           try {
-            const parsed = JSON.parse(rawValue);
-            return parsed;
+            return JSON.parse(rawValue);
           } catch (error) {
-            // If parsing fails, return as plain URL
-            console.warn(
-              'Failed to parse featured_image, treating as URL:',
-              rawValue
-            );
             return { url: rawValue, publicId: null };
           }
         }
@@ -97,9 +121,8 @@ const Products = sequelize.define(
           return;
         }
 
-        // Store as JSON string
         if (typeof value === 'object') {
-          this.setDataValue('featured_image', JSON.stringify(value));
+          this.setDataValue('featured_image', value);
         } else if (typeof value === 'string') {
           this.setDataValue('featured_image', value);
         } else {
@@ -108,27 +131,18 @@ const Products = sequelize.define(
       },
     },
     images: {
-      type: DataTypes.TEXT,
+      type: DataTypes.JSON,
       allowNull: true,
       get() {
         const rawValue = this.getDataValue('images');
-
-        // If null or undefined, return empty array
         if (!rawValue) return [];
+        if (Array.isArray(rawValue)) return rawValue;
 
-        // If already an array, return it
-        if (Array.isArray(rawValue)) {
-          return rawValue;
-        }
-
-        // If it's a string, try to parse it
         if (typeof rawValue === 'string') {
-          // Try to parse JSON
           try {
             const parsed = JSON.parse(rawValue);
             return Array.isArray(parsed) ? parsed : [];
           } catch (error) {
-            console.warn('Failed to parse images, returning empty array');
             return [];
           }
         }
@@ -137,15 +151,14 @@ const Products = sequelize.define(
       },
       set(value) {
         if (!value || (Array.isArray(value) && value.length === 0)) {
-          this.setDataValue('images', null);
+          this.setDataValue('images', []);
           return;
         }
 
-        // Store as JSON string
         if (Array.isArray(value)) {
-          this.setDataValue('images', JSON.stringify(value));
+          this.setDataValue('images', value);
         } else {
-          this.setDataValue('images', null);
+          this.setDataValue('images', []);
         }
       },
     },
