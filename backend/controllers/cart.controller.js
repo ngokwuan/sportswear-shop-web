@@ -1,58 +1,139 @@
 import { Cart, Product } from '../models/index.js';
 
+// export const addToCart = async (req, res) => {
+//   try {
+//     const userId = req.user?.id || req.body.user_id;
+//     const { productId, quantity = 1, size = null } = req.body;
+
+//     if (!userId)
+//       return res.status(401).json({ success: false, message: 'Unauthorized' });
+//     if (!productId)
+//       return res
+//         .status(400)
+//         .json({ success: false, message: 'productId required' });
+
+//     // check product exists and global stock
+//     const product = await Product.findByPk(productId);
+//     if (!product)
+//       return res
+//         .status(404)
+//         .json({ success: false, message: 'Product not found' });
+
+//     const availableStock = product.stock ?? product.stock_quantity ?? 0;
+//     if (availableStock < quantity) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: 'Not enough stock' });
+//     }
+
+//     // try find existing cart item with same size (size can be null)
+//     const where = {
+//       user_id: userId,
+//       product_id: productId,
+//       size: size || null,
+//     };
+
+//     let item = await Cart.findOne({ where });
+
+//     if (item) {
+//       item.quantity = item.quantity + Number(quantity);
+//       await item.save();
+//     } else {
+//       item = await Cart.create({
+//         user_id: userId,
+//         product_id: productId,
+//         quantity: Number(quantity),
+//         size: size || null,
+//       });
+//     }
+
+//     return res.json({ success: true, message: 'Added to cart', data: item });
+//   } catch (error) {
+//     console.error('Add to cart error:', error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: 'Server error', error: error.message });
+//   }
+// };
+
 export const addToCart = async (req, res) => {
   try {
-    const { productId, quantity = 1 } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.id || req.body.user_id;
+    const { productId, quantity = 1, size = null } = req.body;
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
-      });
-    }
+    console.log('Add to cart request:', { userId, productId, quantity, size });
 
+    if (!userId)
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    if (!productId)
+      return res
+        .status(400)
+        .json({ success: false, message: 'productId required' });
+
+    // check product exists and global stock
     const product = await Product.findByPk(productId);
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy sản phẩm',
-      });
+      console.log('Product not found:', productId);
+      return res
+        .status(404)
+        .json({ success: false, message: 'Product not found' });
     }
 
-    const existingCartItem = await Cart.findOne({
-      where: {
-        user_id: userId,
-        product_id: productId,
-      },
-    });
+    const availableStock = product.stock ?? product.stock_quantity ?? 0;
+    if (availableStock < quantity) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Not enough stock' });
+    }
 
-    let cartItem;
-    if (existingCartItem) {
-      existingCartItem.quantity += parseInt(quantity);
-      cartItem = await existingCartItem.save();
+    // Tìm cart item với cùng user_id, product_id VÀ size
+    // Nếu size là null, tìm item có size = null
+    const where = {
+      user_id: userId,
+      product_id: productId,
+    };
+
+    // Xử lý size: nếu size được truyền thì match size đó, nếu không thì match null
+    if (size) {
+      where.size = size;
     } else {
-      cartItem = await Cart.create({
+      where.size = null;
+    }
+
+    console.log('Finding existing cart item with:', where);
+
+    let item = await Cart.findOne({ where });
+
+    if (item) {
+      // Cập nhật số lượng
+      console.log('Updating existing cart item');
+      item.quantity = item.quantity + Number(quantity);
+      await item.save();
+    } else {
+      // Tạo mới
+      console.log('Creating new cart item');
+      item = await Cart.create({
         user_id: userId,
         product_id: productId,
-        quantity: parseInt(quantity),
+        quantity: Number(quantity),
+        size: size || null,
       });
     }
 
-    return res.status(201).json({
-      success: true,
-      message: 'Đã thêm sản phẩm vào giỏ hàng',
-      cartItem: cartItem,
-    });
+    console.log('Cart item saved:', item.toJSON());
+
+    return res.json({ success: true, message: 'Added to cart', data: item });
   } catch (error) {
-    console.error('Error adding to cart:', error);
+    console.error('Add to cart error:', error);
+    console.error('Error stack:', error.stack);
     return res.status(500).json({
       success: false,
-      message: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng',
+      message: 'Server error',
+      error: error.message,
+      details: error.stack,
     });
   }
 };
-
 export const getCart = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -81,9 +162,27 @@ export const getCart = async (req, res) => {
         },
       ],
       order: [['created_at', 'DESC']],
+      raw: false,
     });
 
-    res.json(cart);
+    // Serialize và format featured_image
+    const serializedCart = cart.map((item) => {
+      const plain = item.toJSON();
+
+      // Format featured_image
+      if (plain.product?.featured_image) {
+        const img = plain.product.featured_image;
+        if (typeof img === 'object' && img.url) {
+          plain.product.featured_image = img.url;
+        } else if (typeof img !== 'string') {
+          plain.product.featured_image = null;
+        }
+      }
+
+      return plain;
+    });
+
+    res.json(serializedCart);
   } catch (error) {
     console.error('Error getting cart:', error);
     res.status(500).json({
@@ -92,7 +191,6 @@ export const getCart = async (req, res) => {
     });
   }
 };
-
 export const getCountCart = async (req, res) => {
   try {
     const userId = req.user?.id;

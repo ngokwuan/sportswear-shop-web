@@ -17,6 +17,20 @@ function OrderDetail() {
   const [error, setError] = useState('');
   const { user } = useContext(UserContext);
 
+  // Helper function to get image URL
+  const getImageUrl = (imageData) => {
+    if (!imageData) return '/placeholder-image.jpg';
+
+    // If it's already a string URL
+    if (typeof imageData === 'string') return imageData;
+
+    // If it's an object with url property
+    if (typeof imageData === 'object' && imageData.url) return imageData.url;
+
+    // Fallback
+    return '/placeholder-image.jpg';
+  };
+
   useEffect(() => {
     const fetchOrderDetail = async () => {
       try {
@@ -69,7 +83,6 @@ function OrderDetail() {
           <h3>Thông tin đơn hàng</h3>
           <p>
             <strong>Trạng thái: </strong>
-
             <span className={cx('status-badge')}>{order?.status}</span>
           </p>
           <p>
@@ -105,14 +118,20 @@ function OrderDetail() {
           {order?.items?.map((item) => (
             <div key={item.id} className={cx('product-item')}>
               <img
-                src={item.product.featured_image}
-                alt={item.product.name}
+                src={getImageUrl(item.product?.featured_image)}
+                alt={item.product?.name || 'Product'}
                 onError={(e) => {
-                  e.target.src = '/images/default-product.jpg';
+                  e.target.src = '/placeholder-image.jpg';
                 }}
               />
               <div className={cx('product-info')}>
-                <h4>{item.product.name}</h4>
+                <h4>{item.product?.name || item.product_name}</h4>
+                {/* show size chosen for this order item */}
+                {item.size && (
+                  <p>
+                    <strong>Size:</strong> {item.size}
+                  </p>
+                )}
                 <p>
                   Số lượng: <strong>{item.quantity}</strong>
                 </p>

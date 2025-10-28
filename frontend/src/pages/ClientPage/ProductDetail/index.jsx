@@ -36,6 +36,10 @@ function ProductDetail() {
   });
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+  // size selection
+  const [sizes, setSizes] = useState([]);
+  const [selectedSize, setSelectedSize] = useState(null);
+
   // Helper function to get image URL
   const getImageUrl = (imageData) => {
     if (!imageData)
@@ -109,6 +113,26 @@ function ProductDetail() {
         if (response.data && response.data.success) {
           const productData = response.data.data;
           setProduct(productData);
+          // init sizes when product loads
+          let parsedSizes = [];
+          if (Array.isArray(productData.size)) parsedSizes = productData.size;
+          else if (
+            typeof productData.size === 'string' &&
+            productData.size.trim() !== ''
+          ) {
+            try {
+              const p = JSON.parse(productData.size);
+              parsedSizes = Array.isArray(p) ? p : [String(p)];
+            } catch {
+              parsedSizes = productData.size
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean);
+            }
+          }
+          setSizes(parsedSizes);
+          // Do not auto-select any size — require user to choose
+          setSelectedSize(null);
         } else {
           throw new Error('Product not found');
         }
@@ -153,6 +177,11 @@ function ProductDetail() {
   const handleAddToCart = async () => {
     if (isAddingToCart) return;
     if (!user) return;
+    // require size selection if sizes available
+    if (sizes.length > 0 && !selectedSize) {
+      toast.warn('Vui lòng chọn kích thước');
+      return;
+    }
 
     try {
       setIsAddingToCart(true);
@@ -160,6 +189,7 @@ function ProductDetail() {
       const response = await axios.post('/cart/add', {
         productId: id,
         quantity: quantity,
+        size: selectedSize || null,
       });
 
       if (response.data.success) {
@@ -241,6 +271,11 @@ function ProductDetail() {
   // Process product images using the new helper function
   const productImages = processProductImages(product);
 
+  // Correct display price: prefer sale_price when present (not null/undefined), otherwise use price
+  const displayPrice =
+    product.sale_price != null ? product.sale_price : product.price;
+  const displayPriceFormatted = formatCurrency(displayPrice);
+
   return (
     <div className={cx('product-detail')}>
       <div className={cx('product-container')}>
@@ -288,10 +323,7 @@ function ProductDetail() {
           <h1 className={cx('product-title')}>{product.name}</h1>
 
           <div className={cx('product-price')}>
-            <span className={cx('current-price')}>
-              {formatCurrency(product.sale_price) ||
-                formatCurrency(product.price)}
-            </span>
+            <span className={cx('current-price')}>{displayPriceFormatted}</span>
             {product.sale_price && (
               <span className={cx('old-price')}>
                 {formatCurrency(product.price)}
@@ -303,43 +335,63 @@ function ProductDetail() {
             {product.description || 'No description available.'}
           </p>
 
-          {/* Countdown */}
-          <div className={cx('countdown')}>
-            <div className={cx('countdown-item')}>
-              <span className={cx('countdown-number')}>
-                {String(countdown.days).padStart(2, '0')}
-              </span>
-              <span className={cx('countdown-label')}>Days</span>
+          {/* Countdown: show only when there is a sale */}
+          {discountPercent > 0 && (
+            <div className={cx('countdown')}>
+              <div className={cx('countdown-item')}>
+                <span className={cx('countdown-number')}>
+                  {String(countdown.days).padStart(2, '0')}
+                </span>
+                <span className={cx('countdown-label')}>Days</span>
+              </div>
+              <span className={cx('separator')}>:</span>
+              <div className={cx('countdown-item')}>
+                <span className={cx('countdown-number')}>
+                  {String(countdown.hours).padStart(2, '0')}
+                </span>
+                <span className={cx('countdown-label')}>Hours</span>
+              </div>
+              <span className={cx('separator')}>:</span>
+              <div className={cx('countdown-item')}>
+                <span className={cx('countdown-number')}>
+                  {String(countdown.minutes).padStart(2, '0')}
+                </span>
+                <span className={cx('countdown-label')}>Minutes</span>
+              </div>
+              <span className={cx('separator')}>:</span>
+              <div className={cx('countdown-item')}>
+                <span className={cx('countdown-number')}>
+                  {String(countdown.seconds).padStart(2, '0')}
+                </span>
+                <span className={cx('countdown-label')}>Seconds</span>
+              </div>
             </div>
-            <span className={cx('separator')}>:</span>
-            <div className={cx('countdown-item')}>
-              <span className={cx('countdown-number')}>
-                {String(countdown.hours).padStart(2, '0')}
-              </span>
-              <span className={cx('countdown-label')}>Hours</span>
-            </div>
-            <span className={cx('separator')}>:</span>
-            <div className={cx('countdown-item')}>
-              <span className={cx('countdown-number')}>
-                {String(countdown.minutes).padStart(2, '0')}
-              </span>
-              <span className={cx('countdown-label')}>Minutes</span>
-            </div>
-            <span className={cx('separator')}>:</span>
-            <div className={cx('countdown-item')}>
-              <span className={cx('countdown-number')}>
-                {String(countdown.seconds).padStart(2, '0')}
-              </span>
-              <span className={cx('countdown-label')}>Seconds</span>
-            </div>
-          </div>
+          )}
 
           {/* Product Options */}
           <div className={cx('product-options')}>
             <div className={cx('option-group')}>
               <label className={cx('option-label')}>SIZE</label>
-              <div className={cx('size-options', 'active')}>{product.size}</div>
+              <div className={cx('size-options')}>
+                {sizes.length === 0 ? (
+                  <div className={cx('no-size')}>One size</div>
+                ) : (
+                  sizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={cx('size-btn', {
+                        selected: selectedSize === s,
+                      })}
+                      onClick={() => setSelectedSize(s)}
+                    >
+                      {s}
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
+
             <div className={cx('option-group')}>
               <label className={cx('option-label')}>COLOR</label>
               <div className={cx('color-options', 'active')}>
@@ -490,10 +542,10 @@ function ProductDetail() {
 
           {activeTab === 'specifications' && (
             <div className={cx('product-specs')}>
-              {product.size && (
+              {sizes.length > 0 && (
                 <div className={cx('spec-row')}>
                   <span>Size</span>
-                  <span>{product.size}</span>
+                  <span>{sizes.join(', ')}</span>
                 </div>
               )}
               {product.color && (

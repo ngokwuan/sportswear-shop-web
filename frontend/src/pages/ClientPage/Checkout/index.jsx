@@ -156,6 +156,8 @@ function Checkout() {
           product_id: item.product_id,
           quantity: item.quantity,
           price: item.product?.sale_price || item.product?.price || 0,
+          // include selected size (nullable)
+          size: item.size || null,
         })),
         shipping_address: orderInfo.address.trim(),
         phone: orderInfo.phone.replace(/\s/g, ''),
@@ -559,7 +561,7 @@ function Checkout() {
                         {item.product?.name}
                       </div>
                       <div className={cx('item-info')}>
-                        <span className={cx('size')}>{item.product?.size}</span>
+                        <span className={cx('size')}>{item?.size}</span>
                         <span className={cx('quantity')}>x{item.quantity}</span>
                         <div className={cx('price-info')}>
                           {hasDiscount && (

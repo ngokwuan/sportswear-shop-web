@@ -12,40 +12,35 @@ const Cart = sequelize.define(
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id',
-      },
     },
     product_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'products',
-        key: 'id',
-      },
     },
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
-      validate: {
-        min: 1,
-      },
+    },
+    size: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   },
   {
     tableName: 'cart',
     timestamps: true,
+    underscored: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      {
-        unique: true,
-        fields: ['user_id', 'product_id'],
-        name: 'unique_user_product',
-      },
-    ],
   }
 );
 

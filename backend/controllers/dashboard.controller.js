@@ -213,38 +213,72 @@ export const getTopProducts = async (req, res) => {
   try {
     const { limit = 5 } = req.query;
 
-    const topProducts = await Product.findAll({
+    // First, get aggregated data from order_items
+    const topProductsData = await OrderItem.findAll({
       attributes: [
-        'id',
-        'name',
-        'featured_image',
-        'price',
-        'sale_price',
-        [
-          Sequelize.literal(`(
-            SELECT SUM(order_items.quantity)
-            FROM order_items
-            INNER JOIN orders ON order_items.order_id = orders.id
-            WHERE order_items.product_id = Product.id
-            AND orders.payment_status = 'paid'
-          )`),
-          'total_sold',
-        ],
-        [
-          Sequelize.literal(`(
-            SELECT SUM(order_items.total_price)
-            FROM order_items
-            INNER JOIN orders ON order_items.order_id = orders.id
-            WHERE order_items.product_id = Product.id
-            AND orders.payment_status = 'paid'
-          )`),
-          'total_revenue',
-        ],
+        'product_id',
+        [Sequelize.fn('SUM', Sequelize.col('quantity')), 'total_sold'],
+        [Sequelize.fn('SUM', Sequelize.col('total_price')), 'total_revenue'],
       ],
-      having: Sequelize.literal('total_sold > 0'),
-      order: [[Sequelize.literal('total_sold'), 'DESC']],
+      include: [
+        {
+          model: Order,
+          as: 'order',
+          attributes: [],
+          where: {
+            payment_status: 'paid',
+          },
+        },
+      ],
+      group: ['product_id'],
+      having: Sequelize.where(Sequelize.fn('SUM', Sequelize.col('quantity')), {
+        [Op.gt]: 0,
+      }),
+      order: [[Sequelize.fn('SUM', Sequelize.col('quantity')), 'DESC']],
       limit: parseInt(limit),
+      raw: true,
+      subQuery: false,
     });
+
+    // Get product details for these top products
+    const productIds = topProductsData.map((item) => item.product_id);
+
+    if (productIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+      });
+    }
+
+    const products = await Product.findAll({
+      where: {
+        id: {
+          [Op.in]: productIds,
+        },
+        deleted_at: null,
+      },
+      attributes: ['id', 'name', 'featured_image', 'price', 'sale_price'],
+    });
+
+    // Combine the data
+    const topProducts = topProductsData
+      .map((data) => {
+        const product = products.find((p) => p.id === data.product_id);
+        if (!product) return null;
+
+        return {
+          id: product.id,
+          name: product.name,
+          featured_image: product.featured_image,
+          price: product.price,
+          sale_price: product.sale_price,
+          dataValues: {
+            total_sold: parseInt(data.total_sold) || 0,
+            total_revenue: parseFloat(data.total_revenue) || 0,
+          },
+        };
+      })
+      .filter(Boolean); // Remove null entries
 
     return res.status(200).json({
       success: true,
@@ -252,6 +286,8 @@ export const getTopProducts = async (req, res) => {
     });
   } catch (error) {
     console.error('Top products error:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
     return res.status(500).json({
       success: false,
       message: 'Lỗi lấy sản phẩm bán chạy',
@@ -383,7 +419,7 @@ export const getCategoryStats = async (req, res) => {
           Sequelize.literal(`(
             SELECT COUNT(*)
             FROM products
-            WHERE products.category_id = Category.id
+            WHERE JSON_CONTAINS(products.category_ids, CAST(Category.id AS JSON))
             AND products.deleted_at IS NULL
           )`),
           'product_count',

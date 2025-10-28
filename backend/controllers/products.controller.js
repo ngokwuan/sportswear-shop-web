@@ -346,6 +346,9 @@ export const createProduct = async (req, res) => {
       color,
     } = req.body;
 
+    // default sizes
+    const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
     let parsedCategoryIds = categoryIds;
     if (typeof categoryIds === 'string') {
       try {
@@ -371,6 +374,24 @@ export const createProduct = async (req, res) => {
           message: `Trường ${key} là bắt buộc`,
         });
       }
+    }
+
+    // normalize size: if provided parse to array, otherwise use DEFAULT_SIZES
+    let parsedSizes = DEFAULT_SIZES;
+    if (size) {
+      if (Array.isArray(size)) parsedSizes = size;
+      else if (typeof size === 'string') {
+        try {
+          const p = JSON.parse(size);
+          parsedSizes = Array.isArray(p) ? p : [String(p)];
+        } catch {
+          parsedSizes = size
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+      }
+      if (parsedSizes.length === 0) parsedSizes = DEFAULT_SIZES;
     }
 
     if (!parsedCategoryIds || parsedCategoryIds.length === 0) {
@@ -420,7 +441,7 @@ export const createProduct = async (req, res) => {
       stock_quantity: stockQuantity,
       category_ids: parsedCategoryIds, // Lưu array category IDs
       brand,
-      size,
+      size: parsedSizes,
       color,
       images: imagesData,
       featured_image: featuredImageData,

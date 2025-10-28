@@ -245,11 +245,20 @@ function Cart() {
                         <div className={cx('product-details')}>
                           <h3>{item.product?.name}</h3>
                           <div className={cx('product-type')}>
-                            {item.product?.size && (
-                              <span className={cx('size')}>
-                                {item.product.size}
-                              </span>
-                            )}
+                            {/* show selected size (item.size) first; fallback to product.size list */}
+                            {item.size ? (
+                              <span className={cx('size')}>{item.size}</span>
+                            ) : item.product?.size ? (
+                              Array.isArray(item.product.size) ? (
+                                <span className={cx('size')}>
+                                  {item.product.size.join(', ')}
+                                </span>
+                              ) : (
+                                <span className={cx('size')}>
+                                  {item.product.size}
+                                </span>
+                              )
+                            ) : null}
                             {item.product?.brand && (
                               <span className={cx('brand')}>
                                 {item.product.brand}

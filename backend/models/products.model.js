@@ -83,8 +83,50 @@ const Products = sequelize.define(
       allowNull: true,
     },
     size: {
-      type: DataTypes.ENUM('XS', 'S', 'M', 'L', 'XL', 'XXL'),
-      allowNull: true,
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+      get() {
+        const raw = this.getDataValue('size');
+        if (!raw) return ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+        if (Array.isArray(raw)) return raw;
+        if (typeof raw === 'string') {
+          try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [String(parsed)];
+          } catch {
+            return raw
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean);
+          }
+        }
+        return ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+      },
+      set(value) {
+        if (!value) {
+          this.setDataValue('size', ['XS', 'S', 'M', 'L', 'XL', 'XXL']);
+          return;
+        }
+        if (Array.isArray(value)) {
+          this.setDataValue('size', value);
+        } else if (typeof value === 'string') {
+          try {
+            const parsed = JSON.parse(value);
+            this.setDataValue('size', Array.isArray(parsed) ? parsed : [value]);
+          } catch {
+            this.setDataValue(
+              'size',
+              value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            );
+          }
+        } else {
+          this.setDataValue('size', ['XS', 'S', 'M', 'L', 'XL', 'XXL']);
+        }
+      },
     },
     color: {
       type: DataTypes.STRING(50),

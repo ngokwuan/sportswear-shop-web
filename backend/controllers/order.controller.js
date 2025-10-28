@@ -52,7 +52,10 @@ export const createOrder = async (req, res) => {
     const orderItems = [];
 
     for (const item of items) {
-      const product = await Product.findByPk(item.product_id);
+      const product = await Product.findByPk(item.product_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
       if (!product) {
         await transaction.rollback();
         return res.status(404).json({
@@ -61,7 +64,9 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      if (product.stock && product.stock < item.quantity) {
+      // determine available stock (support both fields)
+      const availableStock = product.stock ?? product.stock_quantity ?? 0;
+      if (availableStock < item.quantity) {
         await transaction.rollback();
         return res.status(400).json({
           success: false,
@@ -79,6 +84,7 @@ export const createOrder = async (req, res) => {
         product_price: price,
         quantity: item.quantity,
         total_price: totalPrice,
+        size: item.size || null,
       });
     }
 
@@ -104,29 +110,35 @@ export const createOrder = async (req, res) => {
       { transaction }
     );
 
-    const orderItemsWithOrderId = orderItems.map((item) => ({
-      ...item,
+    // bulk create order items
+    const orderItemsWithOrderId = orderItems.map((it) => ({
+      ...it,
       order_id: order.id,
     }));
-
     await OrderItem.bulkCreate(orderItemsWithOrderId, { transaction });
 
+    // decrement global stock for each item (respect transaction)
     for (const item of items) {
-      const product = await Product.findByPk(item.product_id);
-      if (product.stock !== null && product.stock !== undefined) {
-        await product.update(
-          {
-            stock: product.stock - item.quantity,
-          },
-          { transaction }
-        );
+      const product = await Product.findByPk(item.product_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (product) {
+        const currentStock = product.stock ?? product.stock_quantity ?? 0;
+        const newStock = Math.max(0, currentStock - Number(item.quantity));
+
+        const updateData = {};
+        if (product.stock !== undefined) updateData.stock = newStock;
+        if (product.stock_quantity !== undefined)
+          updateData.stock_quantity = newStock;
+
+        // if model uses different column names, update whichever exists
+        await product.update(updateData, { transaction });
       }
     }
 
-    await Cart.destroy({
-      where: { user_id },
-      transaction,
-    });
+    // clear cart for user
+    await Cart.destroy({ where: { user_id }, transaction });
 
     await transaction.commit();
 
@@ -399,14 +411,18 @@ export const cancelOrder = async (req, res) => {
     }
 
     for (const item of order.items) {
-      const product = await Product.findByPk(item.product_id);
-      if (product && product.stock !== null) {
-        await product.update(
-          {
-            stock: product.stock + item.quantity,
-          },
-          { transaction }
-        );
+      const product = await Product.findByPk(item.product_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (product) {
+        const currentStock = product.stock ?? product.stock_quantity ?? 0;
+        const newStock = currentStock + Number(item.quantity);
+        const updateData = {};
+        if (product.stock !== undefined) updateData.stock = newStock;
+        if (product.stock_quantity !== undefined)
+          updateData.stock_quantity = newStock;
+        await product.update(updateData, { transaction });
       }
     }
 

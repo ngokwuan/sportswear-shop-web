@@ -41,6 +41,20 @@ function Dashboard() {
   const [orderStatusStats, setOrderStatusStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to get image URL (same as Products component)
+  const getImageUrl = (imageData) => {
+    if (!imageData) return '/placeholder-image.jpg';
+
+    // If it's already a string URL
+    if (typeof imageData === 'string') return imageData;
+
+    // If it's an object with url property
+    if (typeof imageData === 'object' && imageData.url) return imageData.url;
+
+    // Fallback
+    return '/placeholder-image.jpg';
+  };
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -315,7 +329,7 @@ function Dashboard() {
                   <div className={cx('product-rank')}>#{index + 1}</div>
                   <div className={cx('product-image')}>
                     <img
-                      src={product.featured_image || '/placeholder-image.jpg'}
+                      src={getImageUrl(product.featured_image)}
                       alt={product.name}
                       onError={(e) => {
                         e.target.src = '/placeholder-image.jpg';

@@ -73,7 +73,7 @@ function Home() {
               <div className={cx('bestseller-product')}>
                 <div className={cx('bestseller-product-wrapper')}>
                   <img
-                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"
+                    src="https://res.cloudinary.com/dputjypns/image/upload/v1760374135/products/bbjbfzmwscfaumgnqosn.jpg"
                     alt="Best Seller"
                     className={cx('bestseller-product-image')}
                   />

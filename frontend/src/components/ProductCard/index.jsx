@@ -16,8 +16,6 @@ import { formatCurrency } from '../../utils/formatCurrency';
 const cx = classNames.bind(styles);
 
 function ProductCard({ product, viewMode }) {
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isAdded, setIsAdded] = useState(false);
   const navigate = useNavigate();
 
   // Helper function to get image URL
@@ -60,38 +58,6 @@ function ProductCard({ product, viewMode }) {
     navigate(`/products/${product.slug}_${product.id}`);
   };
 
-  const handleAddToCart = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (isAddingToCart || isAdded) return;
-
-    try {
-      setIsAddingToCart(true);
-
-      const response = await axios.post('/cart/add', {
-        productId: product.id,
-        quantity: 1,
-      });
-
-      if (response.data.success) {
-        setIsAdded(true);
-
-        setTimeout(() => {
-          setIsAdded(false);
-        }, 2000);
-
-        window.dispatchEvent(new CustomEvent('cartUpdated'));
-      } else {
-        throw new Error(response.data.message || 'Không thể thêm vào giỏ hàng');
-      }
-    } catch (error) {
-      console.error('Lỗi khi thêm vào giỏ hàng:', error);
-    } finally {
-      setIsAddingToCart(false);
-    }
-  };
-
   const currentPrice = product.sale_price || product.price;
   const oldPrice = product.sale_price ? product.price : null;
   const isOnSale = product.sale_price && product.sale_price < product.price;
@@ -127,30 +93,9 @@ function ProductCard({ product, viewMode }) {
             </button>
           </div>
 
-          <button
-            className={cx('add-to-cart', {
-              adding: isAddingToCart,
-              added: isAdded,
-            })}
-            onClick={handleAddToCart}
-            disabled={isAddingToCart || isAdded}
-          >
-            {isAddingToCart ? (
-              <>
-                <div className={cx('spinner')}></div>
-                ĐANG THÊM...
-              </>
-            ) : isAdded ? (
-              <>
-                <FontAwesomeIcon icon={faCheck} />
-                ĐÃ THÊM
-              </>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faShoppingCart} />
-                THÊM VÀO GIỎ
-              </>
-            )}
+          <button className={cx('add-to-cart', {})} onClick={handleClick}>
+            <FontAwesomeIcon icon={faShoppingCart} />
+            THÊM VÀO GIỎ
           </button>
         </div>
 
@@ -165,9 +110,6 @@ function ProductCard({ product, viewMode }) {
             <div className={cx('product-rating')}>
               {renderStars(product.star || product.rating || 0)}
             </div>
-            {product.size && (
-              <span className={cx('size-tag')}>{product.size}</span>
-            )}
           </div>
           <div className={cx('product-price')}>
             <span className={cx('current-price')}>
