@@ -18,30 +18,63 @@ function EditProductModal({
     description: '',
     price: '',
     salePrice: '',
-    categoryId: '',
+    categoryIds: [], // Changed from categoryId to categoryIds
     stockQuantity: '',
     brand: '',
     size: '',
     color: '',
-    images: '',
-    featuredImage: '',
   });
+
+  const [featuredImage, setFeaturedImage] = useState(null);
+  const [images, setImages] = useState([]);
+  const [previewFeatured, setPreviewFeatured] = useState(null);
+  const [previewImages, setPreviewImages] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Helper to get image URL
+  const getImageUrl = (imageData) => {
+    if (!imageData) return null;
+    if (typeof imageData === 'string') return imageData;
+    if (typeof imageData === 'object' && imageData.url) return imageData.url;
+    return null;
+  };
 
   useEffect(() => {
     if (product) {
+      // Ensure category_ids is always an array
+      let categoryIds = [];
+      if (Array.isArray(product.category_ids)) {
+        categoryIds = product.category_ids;
+      } else if (product.category_id) {
+        // Fallback for old single category format
+        categoryIds = [product.category_id];
+      }
+
       setFormData({
         name: product.name || '',
         description: product.description || '',
         price: product.price || '',
         salePrice: product.sale_price || '',
-        categoryId: product.category_id || '',
+        categoryIds: categoryIds, // Set as array
         stockQuantity: product.stock_quantity || '',
         brand: product.brand || '',
         size: product.size || '',
         color: product.color || '',
-        images: product.images || '',
-        featuredImage: product.featured_image || '',
       });
+
+      // Set existing images as previews
+      const featuredUrl = getImageUrl(product.featured_image);
+      if (featuredUrl) {
+        setPreviewFeatured(featuredUrl);
+      }
+
+      // Set existing images
+      if (product.images && Array.isArray(product.images)) {
+        const imageUrls = product.images
+          .map((img) => getImageUrl(img))
+          .filter(Boolean);
+        setPreviewImages(imageUrls);
+      }
     }
   }, [product]);
 
@@ -53,44 +86,240 @@ function EditProductModal({
     }));
   };
 
+  // Handle multiple category selection
+  const handleCategoryChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions);
+    const selectedIds = selectedOptions.map((option) => option.value);
+
+    setFormData((prev) => ({
+      ...prev,
+      categoryIds: selectedIds,
+    }));
+  };
+
+  const handleFeaturedImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Kích thước file không được vượt quá 5MB');
+        e.target.value = '';
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        toast.error('Vui lòng chọn file hình ảnh');
+        e.target.value = '';
+        return;
+      }
+
+      setFeaturedImage(file);
+      setPreviewFeatured(URL.createObjectURL(file));
+    }
+  };
+
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    if (files.length > 3) {
+      toast.error('Chỉ được chọn tối đa 3 ảnh');
+      e.target.value = '';
+      return;
+    }
+
+    const validFiles = [];
+    const previews = [];
+
+    for (const file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`File ${file.name} vượt quá 5MB`);
+        continue;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        toast.error(`File ${file.name} không phải là hình ảnh`);
+        continue;
+      }
+
+      validFiles.push(file);
+      previews.push(URL.createObjectURL(file));
+    }
+
+    if (validFiles.length === 0) {
+      e.target.value = '';
+      return;
+    }
+
+    setImages(validFiles);
+    setPreviewImages(previews);
+  };
+
+  const removeFeaturedImage = () => {
+    if (previewFeatured && previewFeatured.startsWith('blob:')) {
+      URL.revokeObjectURL(previewFeatured);
+    }
+    setFeaturedImage(null);
+    setPreviewFeatured(null);
+  };
+
+  const removeImage = (index) => {
+    const preview = previewImages[index];
+    if (preview && preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
+    }
+
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviews = previewImages.filter((_, i) => i !== index);
+    setImages(newImages);
+    setPreviewImages(newPreviews);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const updateData = {
-        name: formData.name,
-        description: formData.description,
-        price: Number(formData.price),
-        salePrice: formData.salePrice ? Number(formData.salePrice) : null,
-        stockQuantity: Number(formData.stockQuantity),
-        brand: formData.brand,
-        size: formData.size,
-        color: formData.color,
-        images: formData.images,
-        featuredImage: formData.featuredImage,
-      };
+    // Validate required fields
+    const requiredFields = {
+      name: 'Tên sản phẩm',
+      description: 'Mô tả',
+      price: 'Giá',
+      stockQuantity: 'Số lượng',
+      brand: 'Thương hiệu',
+      size: 'Size',
+      color: 'Màu sắc',
+    };
 
-      const response = await axios.patch(`/products/${product.id}`, updateData);
+    for (const [field, label] of Object.entries(requiredFields)) {
+      if (!formData[field]) {
+        toast.error(`${label} là bắt buộc`);
+        return;
+      }
+    }
+
+    // Validate categories
+    if (!formData.categoryIds || formData.categoryIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất 1 danh mục');
+      return;
+    }
+
+    // Validate price
+    if (Number(formData.price) <= 0) {
+      toast.error('Giá phải lớn hơn 0');
+      return;
+    }
+
+    // Validate sale price if provided
+    if (
+      formData.salePrice &&
+      Number(formData.salePrice) >= Number(formData.price)
+    ) {
+      toast.error('Giá khuyến mãi phải nhỏ hơn giá gốc');
+      return;
+    }
+
+    // Validate stock quantity
+    if (Number(formData.stockQuantity) < 0) {
+      toast.error('Số lượng không được âm');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formDataToSend = new FormData();
+
+      // Append form fields
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('stockQuantity', formData.stockQuantity);
+      formDataToSend.append('brand', formData.brand);
+      formDataToSend.append('size', formData.size);
+      formDataToSend.append('color', formData.color);
+
+      // Append categoryIds as JSON string
+      formDataToSend.append(
+        'categoryIds',
+        JSON.stringify(formData.categoryIds)
+      );
+
+      // Append optional salePrice
+      if (formData.salePrice) {
+        formDataToSend.append('salePrice', formData.salePrice);
+      }
+
+      // Append featured image if changed
+      if (featuredImage) {
+        formDataToSend.append('featuredImage', featuredImage);
+      }
+
+      // Append images if changed
+      if (images.length > 0) {
+        images.forEach((image) => {
+          formDataToSend.append('images', image);
+        });
+      }
+
+      const response = await axios.patch(
+        `/products/${product.id}`,
+        formDataToSend
+      );
 
       if (response.data.product) {
-        toast.success('Cập nhật sản phẩm thành công!');
+        toast.success(response.data.message || 'Cập nhật sản phẩm thành công!');
         onProductUpdated(response.data.product);
-        onClose();
+        handleClose();
       }
     } catch (error) {
       console.error('Error updating product:', error);
-      toast.error('Không thể cập nhật sản phẩm');
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        'Không thể cập nhật sản phẩm';
+
+      toast.error(errorMessage);
+
+      if (error.response?.data?.details) {
+        console.error('Error details:', error.response.data.details);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleClose = () => {
+    // Cleanup preview URLs
+    if (previewFeatured && previewFeatured.startsWith('blob:')) {
+      URL.revokeObjectURL(previewFeatured);
+    }
+    previewImages.forEach((preview) => {
+      if (preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    });
+
+    // Reset state
+    setFeaturedImage(null);
+    setImages([]);
+    setPreviewFeatured(null);
+    setPreviewImages([]);
+    onClose();
   };
 
   if (!isOpen || !product) return null;
 
   return (
-    <div className={cx('modal-overlay')}>
-      <div className={cx('modal')}>
+    <div className={cx('modal-overlay')} onClick={handleClose}>
+      <div
+        className={cx('modal', 'modal-large')}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={cx('modal-header')}>
           <h3>Chỉnh sửa sản phẩm</h3>
-          <button className={cx('close-btn')} onClick={onClose}>
+          <button
+            className={cx('close-btn')}
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
             ×
           </button>
         </div>
@@ -107,6 +336,7 @@ function EditProductModal({
                 value={formData.name}
                 onChange={handleChange}
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className={cx('form-group')}>
@@ -114,18 +344,25 @@ function EditProductModal({
                 Danh mục <span style={{ color: 'red' }}>*</span>
               </label>
               <select
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleChange}
+                name="categoryIds"
+                multiple
+                value={formData.categoryIds}
+                onChange={handleCategoryChange}
                 required
+                disabled={isSubmitting}
+                style={{ height: '100px' }}
               >
-                <option value="">Chọn danh mục</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
                 ))}
               </select>
+              <small
+                style={{ color: '#666', display: 'block', marginTop: '5px' }}
+              >
+                Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều danh mục
+              </small>
             </div>
           </div>
 
@@ -139,6 +376,7 @@ function EditProductModal({
               onChange={handleChange}
               required
               rows="4"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -154,6 +392,8 @@ function EditProductModal({
                 onChange={handleChange}
                 required
                 min="0"
+                step="1000"
+                disabled={isSubmitting}
               />
             </div>
             <div className={cx('form-group')}>
@@ -164,6 +404,8 @@ function EditProductModal({
                 value={formData.salePrice}
                 onChange={handleChange}
                 min="0"
+                step="1000"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -180,6 +422,7 @@ function EditProductModal({
                 onChange={handleChange}
                 required
                 min="0"
+                disabled={isSubmitting}
               />
             </div>
             <div className={cx('form-group')}>
@@ -192,6 +435,7 @@ function EditProductModal({
                 value={formData.brand}
                 onChange={handleChange}
                 required
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -199,15 +443,23 @@ function EditProductModal({
           <div className={cx('form-row')}>
             <div className={cx('form-group')}>
               <label>
-                Kích cỡ <span style={{ color: 'red' }}>*</span>
+                Size <span style={{ color: 'red' }}>*</span>
               </label>
-              <input
-                type="text"
+              <select
                 name="size"
                 value={formData.size}
                 onChange={handleChange}
                 required
-              />
+                disabled={isSubmitting}
+              >
+                <option value="">Chọn Size</option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+              </select>
             </div>
             <div className={cx('form-group')}>
               <label>
@@ -219,48 +471,95 @@ function EditProductModal({
                 value={formData.color}
                 onChange={handleChange}
                 required
+                disabled={isSubmitting}
               />
             </div>
           </div>
 
+          {/* Featured Image Upload */}
           <div className={cx('form-group')}>
-            <label>
-              Hình ảnh <span style={{ color: 'red' }}>*</span>
-            </label>
+            <label>Hình ảnh nổi bật</label>
             <input
-              type="text"
-              name="images"
-              value={formData.images}
-              onChange={handleChange}
-              required
-              placeholder="Nhập URL hình ảnh"
+              type="file"
+              accept="image/*"
+              onChange={handleFeaturedImageChange}
+              className={cx('file-input')}
+              disabled={isSubmitting}
             />
+            {previewFeatured && (
+              <div className={cx('image-preview')}>
+                <img src={previewFeatured} alt="Featured preview" />
+                <button
+                  type="button"
+                  className={cx('remove-image-btn')}
+                  onClick={removeFeaturedImage}
+                  disabled={isSubmitting}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            <small
+              style={{ color: '#666', display: 'block', marginTop: '5px' }}
+            >
+              {featuredImage
+                ? 'Ảnh mới sẽ thay thế ảnh hiện tại'
+                : 'Để trống nếu không muốn thay đổi. Kích thước tối đa: 5MB'}
+            </small>
           </div>
 
+          {/* Multiple Images Upload */}
           <div className={cx('form-group')}>
-            <label>
-              Hình ảnh nổi bật <span style={{ color: 'red' }}>*</span>
-            </label>
+            <label>Hình ảnh khác (Tối đa 3 ảnh)</label>
             <input
-              type="text"
-              name="featuredImage"
-              value={formData.featuredImage}
-              onChange={handleChange}
-              required
-              placeholder="Nhập URL hình ảnh nổi bật"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImagesChange}
+              className={cx('file-input')}
+              disabled={isSubmitting}
             />
+            {previewImages.length > 0 && (
+              <div className={cx('images-preview-grid')}>
+                {previewImages.map((preview, index) => (
+                  <div key={index} className={cx('image-preview')}>
+                    <img src={preview} alt={`Preview ${index + 1}`} />
+                    <button
+                      type="button"
+                      className={cx('remove-image-btn')}
+                      onClick={() => removeImage(index)}
+                      disabled={isSubmitting}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <small
+              style={{ color: '#666', display: 'block', marginTop: '5px' }}
+            >
+              {images.length > 0
+                ? 'Ảnh mới sẽ thay thế tất cả ảnh hiện tại'
+                : 'Để trống nếu không muốn thay đổi. Mỗi ảnh tối đa 5MB'}
+            </small>
           </div>
 
           <div className={cx('modal-actions')}>
             <button
               type="button"
               className={cx('cancel-btn')}
-              onClick={onClose}
+              onClick={handleClose}
+              disabled={isSubmitting}
             >
               Hủy
             </button>
-            <button type="submit" className={cx('submit-btn')}>
-              Cập nhật
+            <button
+              type="submit"
+              className={cx('submit-btn')}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật sản phẩm'}
             </button>
           </div>
         </form>

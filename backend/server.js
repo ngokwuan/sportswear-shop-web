@@ -58,6 +58,7 @@ app.use((req, res, next) => {
     credentials: true,
     optionsSuccessStatus: 200,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Length', 'Content-Type'],
   })(req, res, next);
 });
 
@@ -68,6 +69,7 @@ app.use((req, res, next) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../frontend/public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(
   express.urlencoded({

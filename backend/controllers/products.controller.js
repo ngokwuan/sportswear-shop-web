@@ -2,15 +2,38 @@ import slugify from 'slugify';
 import Products from '../models/products.model.js';
 import { filterFields } from '../utils/filterFields.js';
 import { Sequelize, Op } from 'sequelize';
+import {
+  deleteLocalFile,
+  deleteMultipleLocalFiles,
+} from '../middleware/upload.middleware.js';
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+  deleteMultipleFromCloudinary,
+} from '../config/cloudinary.config.js';
 
 export const getProduct = async (req, res) => {
   try {
-    const products = await Products.findAll();
-    res.json(products);
+    console.log('Fetching products...');
+    const products = await Products.findAll({
+      raw: false, // Important: get Sequelize instances with getters
+    });
+
+    console.log(`Found ${products.length} products`);
+
+    // Serialize products to plain objects
+    const serializedProducts = products.map((product) => product.toJSON());
+
+    res.json(serializedProducts);
   } catch (error) {
-    res.status(500).json({ error: 'Không lấy được sản phẩm' });
+    console.error('Error in getProduct:', error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm',
+      details: error.message,
+    });
   }
 };
+
 export const getProductTrash = async (req, res) => {
   try {
     const products = await Products.findAll({
@@ -23,9 +46,11 @@ export const getProductTrash = async (req, res) => {
     });
     res.json(products);
   } catch (error) {
+    console.error('Error in getProductTrash:', error);
     res.status(500).json({ error: 'Không lấy được sản phẩm đã xóa ' });
   }
 };
+
 export const getTrendingProduct = async (req, res) => {
   try {
     const products = await Products.findAll({
@@ -34,15 +59,16 @@ export const getTrendingProduct = async (req, res) => {
     });
     res.json(products);
   } catch (error) {
+    console.error('Error in getTrendingProduct:', error);
     res.status(500).json({ error: 'Không lấy được sản phẩm' });
   }
 };
+
 export const getBrandProduct = async (req, res) => {
   try {
     const brands = await Products.findAll({
       attributes: [
         'brand',
-
         [Sequelize.fn('GROUP_CONCAT', Sequelize.col('id')), 'product_ids'],
       ],
       group: ['brand'],
@@ -59,24 +85,23 @@ export const getBrandProduct = async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error(error);
+    console.error('Error in getBrandProduct:', error);
     res
       .status(500)
       .json({ error: 'Không lấy được brand và danh sách sản phẩm' });
   }
 };
+
 export const getSizeProduct = async (req, res) => {
   try {
     const sizes = await Products.findAll({
       attributes: [
         'size',
-
         [Sequelize.fn('GROUP_CONCAT', Sequelize.col('id')), 'product_ids'],
       ],
       group: ['size'],
     });
 
-    // convert chuỗi id thành mảng số
     const result = sizes.map((b) => ({
       size: b.size,
       product_ids: b
@@ -87,7 +112,7 @@ export const getSizeProduct = async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error(error);
+    console.error('Error in getSizeProduct:', error);
     res
       .status(500)
       .json({ error: 'Không lấy được size và danh sách sản phẩm' });
@@ -140,7 +165,7 @@ export const getPriceProduct = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error in getPriceProduct:', error);
     res.status(500).json({
       error: 'Không lấy được sản phẩm theo khoảng giá',
     });
@@ -155,6 +180,7 @@ export const getNewProduct = async (req, res) => {
     });
     res.json(products);
   } catch (error) {
+    console.error('Error in getNewProduct:', error);
     res.status(500).json({ error: 'Không lấy được sản phẩm' });
   }
 };
@@ -183,62 +209,256 @@ export const getProductById = async (req, res) => {
     });
   }
 };
+// Thêm function này vào products.controller.js
+
+export const getProductsByCategory = async (req, res) => {
+  try {
+    const { category_id } = req.query;
+
+    if (!category_id) {
+      return res.status(400).json({
+        error: 'Vui lòng cung cấp category_id',
+      });
+    }
+
+    // Query products có category_id trong array category_ids
+    // Sử dụng cả string và number để đảm bảo tìm được
+    const products = await Products.findAll({
+      where: Sequelize.literal(
+        `(JSON_CONTAINS(category_ids, '"${category_id}"', '$') OR JSON_CONTAINS(category_ids, '${category_id}', '$'))`
+      ),
+      raw: false,
+    });
+
+    console.log(
+      `Found ${products.length} products for category ${category_id}`
+    );
+
+    const serializedProducts = products.map((product) => product.toJSON());
+
+    res.json(serializedProducts);
+  } catch (error) {
+    console.error('Error in getProductsByCategory:', error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm theo danh mục',
+      details: error.message,
+    });
+  }
+};
+
+// Filter với multiple categories
+export const getProductsByCategoryIds = async (req, res) => {
+  try {
+    const { category_ids } = req.query; // "1,2,3"
+
+    if (!category_ids) {
+      // Nếu không có filter, trả về tất cả
+      return getProduct(req, res);
+    }
+
+    const categoryIdArray = category_ids.split(',');
+
+    // Tạo điều kiện OR cho từng category (check cả string và number)
+    const conditions = categoryIdArray.map((id) =>
+      Sequelize.literal(
+        `(JSON_CONTAINS(category_ids, '"${id}"', '$') OR JSON_CONTAINS(category_ids, '${id}', '$'))`
+      )
+    );
+
+    const products = await Products.findAll({
+      where: {
+        [Op.or]: conditions,
+      },
+      raw: false,
+    });
+
+    console.log(
+      `Found ${products.length} products for categories ${category_ids}`
+    );
+
+    const serializedProducts = products.map((product) => product.toJSON());
+
+    res.json(serializedProducts);
+  } catch (error) {
+    console.error('Error in getProductsByCategoryIds:', error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm theo danh mục',
+      details: error.message,
+    });
+  }
+};
+
+// HOẶC cách đơn giản hơn - lấy tất cả rồi filter bằng JavaScript
+export const getProductsByCategorySimple = async (req, res) => {
+  try {
+    const { category_id } = req.query;
+
+    if (!category_id) {
+      return res.status(400).json({
+        error: 'Vui lòng cung cấp category_id',
+      });
+    }
+
+    // Lấy tất cả products
+    const allProducts = await Products.findAll({ raw: false });
+
+    // Filter bằng JavaScript
+    const filteredProducts = allProducts.filter((product) => {
+      const categoryIds = product.category_ids || [];
+      // Check cả string và number
+      return (
+        categoryIds.includes(category_id) ||
+        categoryIds.includes(parseInt(category_id)) ||
+        categoryIds.includes(category_id.toString())
+      );
+    });
+
+    console.log(
+      `Found ${filteredProducts.length} products for category ${category_id}`
+    );
+
+    const serializedProducts = filteredProducts.map((product) =>
+      product.toJSON()
+    );
+
+    res.json(serializedProducts);
+  } catch (error) {
+    console.error('Error in getProductsByCategorySimple:', error);
+    res.status(500).json({
+      error: 'Không lấy được sản phẩm theo danh mục',
+      details: error.message,
+    });
+  }
+};
 export const createProduct = async (req, res) => {
+  const uploadedFiles = [];
+
   try {
     const {
       name,
       description,
       price,
       salePrice,
-      categoryId,
+      categoryIds,
       stockQuantity,
       brand,
       size,
       color,
-      images,
-      featuredImage,
     } = req.body;
+
+    // default sizes
+    const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+    let parsedCategoryIds = categoryIds;
+    if (typeof categoryIds === 'string') {
+      try {
+        parsedCategoryIds = JSON.parse(categoryIds);
+      } catch (e) {
+        parsedCategoryIds = [categoryIds];
+      }
+    }
+
     const requiredFields = {
       name,
       description,
       price,
-      categoryId,
       stockQuantity,
       brand,
       size,
       color,
-      images,
-      featuredImage,
     };
 
     for (const [key, value] of Object.entries(requiredFields)) {
       if (!value) {
-        return res.status(400).json({ message: `Trường ${key} là bắt buộc` });
+        return res.status(400).json({
+          message: `Trường ${key} là bắt buộc`,
+        });
       }
     }
-    const newProducts = await Products.create({
+
+    // normalize size: if provided parse to array, otherwise use DEFAULT_SIZES
+    let parsedSizes = DEFAULT_SIZES;
+    if (size) {
+      if (Array.isArray(size)) parsedSizes = size;
+      else if (typeof size === 'string') {
+        try {
+          const p = JSON.parse(size);
+          parsedSizes = Array.isArray(p) ? p : [String(p)];
+        } catch {
+          parsedSizes = size
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+      }
+      if (parsedSizes.length === 0) parsedSizes = DEFAULT_SIZES;
+    }
+
+    if (!parsedCategoryIds || parsedCategoryIds.length === 0) {
+      return res.status(400).json({
+        message: 'Vui lòng chọn ít nhất 1 danh mục',
+      });
+    }
+
+    // Xử lý upload ảnh (giữ nguyên như cũ)
+    let featuredImageData = null;
+    let imagesData = [];
+
+    if (req.files) {
+      if (req.files.featuredImage && req.files.featuredImage[0]) {
+        const file = req.files.featuredImage[0];
+        uploadedFiles.push(file.path);
+        const result = await uploadToCloudinary(file.path, 'products');
+        featuredImageData = {
+          url: result.url,
+          publicId: result.publicId,
+        };
+      }
+
+      if (req.files.images && req.files.images.length > 0) {
+        for (const file of req.files.images) {
+          uploadedFiles.push(file.path);
+          const result = await uploadToCloudinary(file.path, 'products');
+          imagesData.push({
+            url: result.url,
+            publicId: result.publicId,
+          });
+        }
+      }
+    }
+
+    if (!featuredImageData && imagesData.length > 0) {
+      featuredImageData = imagesData[0];
+    }
+
+    // Tạo sản phẩm với category_ids (array)
+    const newProduct = await Products.create({
       name,
       slug: slugify(name, { lower: true }),
       description,
       price,
       sale_price: salePrice || null,
       stock_quantity: stockQuantity,
-      category_id: categoryId,
+      category_ids: parsedCategoryIds, // Lưu array category IDs
       brand,
-      size,
+      size: parsedSizes,
       color,
-      images,
-      featured_image: featuredImage,
-      status: true,
+      images: imagesData,
+      featured_image: featuredImageData,
+      status: 'active',
       isNew: true,
       star: 0,
     });
+
+    deleteMultipleLocalFiles(uploadedFiles);
+
     res.status(201).json({
-      message: 'Thêm sản phầm thành công!',
-      newProducts,
+      message: 'Thêm sản phẩm thành công!',
+      product: newProduct,
     });
   } catch (error) {
-    console.error('Lỗi thêm sản phẩm', error);
+    console.error('Lỗi thêm sản phẩm:', error);
+    deleteMultipleLocalFiles(uploadedFiles);
 
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
@@ -246,10 +466,17 @@ export const createProduct = async (req, res) => {
         details: error.errors.map((err) => err.message),
       });
     }
+
+    res.status(500).json({
+      error: 'Không thể thêm sản phẩm',
+      details: error.message,
+    });
   }
 };
 
 export const updateProduct = async (req, res) => {
+  const uploadedFiles = [];
+
   try {
     const { id } = req.params;
     const {
@@ -257,20 +484,32 @@ export const updateProduct = async (req, res) => {
       description,
       price,
       salePrice,
+      categoryIds,
       stockQuantity,
-      productId,
       brand,
       size,
       color,
-      images,
-      featuredImage,
     } = req.body;
+
     const product = await Products.findByPk(id);
     if (!product) {
       return res.status(404).json({
         error: 'Sản phẩm không tồn tại',
       });
     }
+
+    // Parse categoryIds if it's a string
+    let parsedCategoryIds = categoryIds;
+    if (categoryIds) {
+      if (typeof categoryIds === 'string') {
+        try {
+          parsedCategoryIds = JSON.parse(categoryIds);
+        } catch (e) {
+          parsedCategoryIds = [categoryIds];
+        }
+      }
+    }
+
     let updateFields = {
       name,
       slug: name ? slugify(name, { lower: true }) : undefined,
@@ -278,26 +517,141 @@ export const updateProduct = async (req, res) => {
       price,
       sale_price: salePrice,
       stock_quantity: stockQuantity,
-      product_id: productId,
+      category_ids: parsedCategoryIds, // Update category_ids array
       brand,
       size,
       color,
-      images,
-      featured_image: featuredImage,
     };
 
-    updateFields = filterFields(updateFields);
+    const oldPublicIds = []; // Track các ảnh cũ cần xóa
 
+    // Xử lý upload ảnh mới
+    if (req.files) {
+      // Cập nhật featured image
+      if (req.files.featuredImage && req.files.featuredImage[0]) {
+        const file = req.files.featuredImage[0];
+        uploadedFiles.push(file.path);
+
+        // Upload ảnh mới
+        const result = await uploadToCloudinary(file.path, 'products');
+
+        // Lưu publicId của ảnh cũ để xóa
+        if (product.featured_image?.publicId) {
+          oldPublicIds.push(product.featured_image.publicId);
+        }
+
+        updateFields.featured_image = {
+          url: result.url,
+          publicId: result.publicId,
+        };
+      }
+
+      // Cập nhật images
+      if (req.files.images && req.files.images.length > 0) {
+        const newImagesData = [];
+
+        for (const file of req.files.images) {
+          uploadedFiles.push(file.path);
+          const result = await uploadToCloudinary(file.path, 'products');
+          newImagesData.push({
+            url: result.url,
+            publicId: result.publicId,
+          });
+        }
+
+        // Lưu publicId của các ảnh cũ để xóa
+        if (product.images && Array.isArray(product.images)) {
+          product.images.forEach((img) => {
+            if (img.publicId) {
+              oldPublicIds.push(img.publicId);
+            }
+          });
+        }
+
+        updateFields.images = newImagesData;
+      }
+    }
+
+    // Cleanup: Xóa các file tạm
+    deleteMultipleLocalFiles(uploadedFiles);
+
+    // Filter và update
+    updateFields = filterFields(updateFields);
     await product.update(updateFields);
+
+    // Reload product to get fresh data with getters applied
+    await product.reload();
+
+    // Xóa các ảnh cũ từ Cloudinary (async, không block response)
+    if (oldPublicIds.length > 0) {
+      deleteMultipleFromCloudinary(oldPublicIds).catch((err) =>
+        console.error('Error deleting old images from Cloudinary:', err)
+      );
+    }
+
     return res.status(200).json({
-      message: 'Cập nhâp sản phẩm thành công ',
+      message: 'Cập nhật sản phẩm thành công',
       product,
     });
   } catch (error) {
-    res.status(500).json({ error: 'Không thể cập nhật sản phẩm' });
+    console.error('Lỗi cập nhật sản phẩm:', error);
+
+    // Cleanup: Xóa các file tạm
+    deleteMultipleLocalFiles(uploadedFiles);
+
+    res.status(500).json({
+      error: 'Không thể cập nhật sản phẩm',
+      details: error.message,
+    });
   }
 };
 
+export const forceDeleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Products.findByPk(id, { paranoid: false });
+
+    if (!product) {
+      return res.status(404).json({
+        error: 'Sản phẩm không tồn tại',
+      });
+    }
+
+    const publicIdsToDelete = [];
+
+    // Lấy publicId của featured image
+    if (product.featured_image?.publicId) {
+      publicIdsToDelete.push(product.featured_image.publicId);
+    }
+
+    // Lấy publicId của các images
+    if (product.images && Array.isArray(product.images)) {
+      product.images.forEach((img) => {
+        if (img.publicId) {
+          publicIdsToDelete.push(img.publicId);
+        }
+      });
+    }
+
+    // Xóa sản phẩm khỏi database
+    await product.destroy({ force: true });
+
+    // Xóa ảnh từ Cloudinary (async)
+    if (publicIdsToDelete.length > 0) {
+      deleteMultipleFromCloudinary(publicIdsToDelete).catch((err) =>
+        console.error('Error deleting images from Cloudinary:', err)
+      );
+    }
+
+    res.json({ message: 'Xóa vĩnh viễn sản phẩm thành công' });
+  } catch (error) {
+    console.error('Lỗi xóa sản phẩm:', error);
+    res.status(500).json({
+      error: 'Không thể xóa vĩnh viễn sản phẩm',
+      details: error.message,
+    });
+  }
+};
 export const softDeleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -311,22 +665,6 @@ export const softDeleteProduct = async (req, res) => {
     res.json({ message: 'Xóa sản phẩm thành công ' });
   } catch (error) {
     res.status(500).json({ error: 'Không thể xoá mềm sản phẩm' });
-  }
-};
-
-export const forceDeleteProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Products.findByPk(id, { paranoid: false });
-    if (!product) {
-      return res.status(404).json({
-        error: 'Sản phẩm không tồn tại',
-      });
-    }
-    await product.destroy({ force: true });
-    res.json({ message: 'Xóa vĩnh viễn sản phẩm thành công ' });
-  } catch (error) {
-    res.status(500).json({ error: 'Không thể xoá vĩnh viễn sản phẩm' });
   }
 };
 

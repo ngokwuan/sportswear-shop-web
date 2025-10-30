@@ -13,6 +13,7 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
     email: '',
     phone: '',
     address: '',
+    role: '',
   });
 
   useEffect(() => {
@@ -23,6 +24,7 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
         email: user.email || '',
         phone: user.phone || '',
         address: user.address || '',
+        role: user.role || 'customer',
       });
     }
   }, [user]);
@@ -40,6 +42,7 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
         name: editingUser.name,
         phone: editingUser.phone,
         address: editingUser.address,
+        role: editingUser.role,
       };
 
       const response = await axios.patch(
@@ -54,7 +57,9 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
       }
     } catch (error) {
       console.error('Error updating user:', error);
-      toast.error('Không thể cập nhật người dùng');
+      toast.error(
+        error.response?.data?.error || 'Không thể cập nhật người dùng'
+      );
     }
   };
 
@@ -83,6 +88,7 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
               required
             />
           </div>
+
           <div className={cx('form-group')}>
             <label>Email (không thể thay đổi)</label>
             <input
@@ -92,6 +98,23 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
               className={cx('disabled-input')}
             />
           </div>
+
+          <div className={cx('form-group')}>
+            <label>
+              Vai trò <span style={{ color: 'red' }}>*</span>
+            </label>
+            <select
+              value={editingUser.role}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, role: e.target.value })
+              }
+              required
+            >
+              <option value="customer">Khách hàng (Customer)</option>
+              <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+          </div>
+
           <div className={cx('form-group')}>
             <label>Số điện thoại</label>
             <input
@@ -102,6 +125,7 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
               }
             />
           </div>
+
           <div className={cx('form-group')}>
             <label>Địa chỉ</label>
             <textarea
@@ -112,6 +136,7 @@ function EditUserModal({ user, onClose, onUserUpdated }) {
               rows="3"
             />
           </div>
+
           <div className={cx('modal-actions')}>
             <button
               type="button"

@@ -1,24 +1,32 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+// Tự động detect môi trường
 const baseURL =
-  import.meta.env.VITE_API_URL || 'https://sportswear-shop-web.onrender.com';
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.MODE === 'development'
+    ? 'http://localhost:3000'
+    : 'https://sportswear-shop-web.onrender.com');
 
 const instance = axios.create({
   baseURL: baseURL,
   withCredentials: true,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // Không set Content-Type mặc định, để axios tự động detect
 });
 
 instance.interceptors.request.use(
   (config) => {
+    // Chỉ set Content-Type là application/json nếu không phải FormData
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+    // Nếu là FormData, axios sẽ tự động set Content-Type với boundary
+
     return config;
   },
   (error) => {
-    console.error(' Request interceptor error:', error);
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -29,8 +37,21 @@ instance.interceptors.response.use(
   },
   (error) => {
     const status = error.response?.status || 500;
-    const message = error.response?.data?.error || 'Có lỗi xảy ra';
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      'Có lỗi xảy ra';
     const code = error.response?.data?.code;
+
+    // Log để debug
+    if (status === 500) {
+      console.error('500 Error Details:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.response?.data,
+        headers: error.config?.headers,
+      });
+    }
 
     switch (status) {
       case 400: {
@@ -71,10 +92,10 @@ instance.interceptors.response.use(
 export const testConnection = async () => {
   try {
     const response = await instance.get('/health');
-    console.log(' Health check:', response.data);
+    console.log('Health check:', response.data);
     return response.data;
   } catch (error) {
-    console.error(' Health check failed:', error);
+    console.error('Health check failed:', error);
     throw error;
   }
 };
@@ -82,10 +103,10 @@ export const testConnection = async () => {
 export const testAuth = async () => {
   try {
     const response = await instance.get('/auth/me');
-    console.log(' Auth check:', response.data);
+    console.log('Auth check:', response.data);
     return response.data;
   } catch (error) {
-    console.error(' Auth check failed:', error);
+    console.error('Auth check failed:', error);
     throw error;
   }
 };

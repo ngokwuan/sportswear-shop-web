@@ -1,43 +1,141 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames/bind';
 import styles from './Groups.module.scss';
+import axios from '../../../../setup/axios';
+
 const cx = classNames.bind(styles);
+
 function Groups() {
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categoriesWithCount, setCategoriesWithCount] = useState({});
+
+  // Mapping tên hiển thị với tên category trong database
+  const categoryMapping = {
+    RUNNING: 'Running',
+    YOGA: 'Yoga',
+    GYM: 'Gym',
+  };
+
+  const displayCategories = [
+    {
+      displayName: 'RUNNING',
+      subtitle: 'Athletic Wear',
+      image:
+        'https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg',
+    },
+    {
+      displayName: 'YOGA',
+      subtitle: 'Sports Equipment',
+      image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800',
+    },
+    {
+      displayName: 'GYM',
+      subtitle: 'Fitness Gear',
+      image:
+        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800',
+    },
+  ];
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('/categories');
+        if (response.data && response.data.length > 0) {
+          setCategories(response.data);
+
+          // ✅ Fetch product count cho mỗi category
+          const countsMap = {};
+          for (const category of response.data) {
+            try {
+              const productsResponse = await axios.get(
+                `/products/by-category?category_id=${category.id}`
+              );
+              countsMap[category.id] = productsResponse.data?.length || 0;
+            } catch (error) {
+              console.error(
+                `Error fetching products for category ${category.id}:`,
+                error
+              );
+              countsMap[category.id] = 0;
+            }
+          }
+          setCategoriesWithCount(countsMap);
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy danh mục:', error);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleCategoryClick = (displayName) => {
+    // Tìm category ID từ tên
+    const categoryName = categoryMapping[displayName];
+    const category = categories.find(
+      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (category) {
+      // ✅ Điều hướng với category_ids (dạng số, không phải string)
+      navigate(`/products?category_ids=${category.id}`);
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      console.warn(`Category not found: ${categoryName}`);
+      navigate('/products');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={cx('container')}>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={cx('container')}>
       <div className={cx('team-grid')}>
-        <div className={cx('team-card')}>
-          <img
-            src="https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg"
-            alt="Men Category"
-            className={cx('team-image')}
-          />
-          <div className={cx('team-overlay')}>
-            <h3 className={cx('team-title')}>MEN</h3>
-            <p className={cx('team-subtitle')}>Athletic Wear</p>
-          </div>
-        </div>
-        <div className={cx('team-card')}>
-          <img
-            src="https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg"
-            alt="Kids Category"
-            className={cx('team-image')}
-          />
-          <div className={cx('team-overlay')}>
-            <h3 className={cx('team-title')}>KIDS</h3>
-            <p className={cx('team-subtitle')}>Sports Equipment</p>
-          </div>
-        </div>
-        <div className={cx('team-card')}>
-          <img
-            src="https://static.nike.com/a/images/w_1920,c_limit/52e409b4-9c3a-418c-ad86-e319498630f0/how-to-choose-running-shoes.jpg"
-            alt="Women Category"
-            className={cx('team-image')}
-          />
-          <div className={cx('team-overlay')}>
-            <h3 className={cx('team-title')}>WOMEN</h3>
-            <p className={cx('team-subtitle')}>Fitness Gear</p>
-          </div>
-        </div>
+        {displayCategories.map((item, index) => {
+          const categoryName = categoryMapping[item.displayName];
+          const category = categories.find(
+            (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+          );
+
+          const productCount = category
+            ? categoriesWithCount[category.id] || 0
+            : 0;
+
+          return (
+            <div
+              key={index}
+              className={cx('team-card')}
+              onClick={() => handleCategoryClick(item.displayName)}
+              style={{ cursor: 'pointer' }}
+            >
+              <img
+                src={item.image}
+                alt={`${item.displayName} Category`}
+                className={cx('team-image')}
+              />
+              <div className={cx('team-overlay')}>
+                <h3 className={cx('team-title')}>{item.displayName}</h3>
+                <p className={cx('team-subtitle')}>
+                  {item.subtitle}
+                  {category && ` • ${productCount} products`}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

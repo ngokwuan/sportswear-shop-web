@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from '../../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -15,6 +16,7 @@ import styles from './Products.module.scss';
 const cx = classNames.bind(styles);
 
 function Products() {
+  const [searchParams] = useSearchParams();
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
@@ -53,13 +55,52 @@ function Products() {
     fetchProducts();
   }, []);
 
+  // ✅ THÊM: Đọc category_ids từ URL query params khi component mount hoặc URL thay đổi
+  useEffect(() => {
+    const categoryIdsParam = searchParams.get('category_ids');
+
+    if (categoryIdsParam) {
+      // Parse category IDs từ URL: "1,2,3" -> [1, 2, 3]
+      const categoryIds = categoryIdsParam
+        .split(',')
+        .map((id) => Number(id.trim()))
+        .filter((id) => !isNaN(id));
+
+      console.log('🔗 URL params category_ids:', categoryIds);
+
+      if (categoryIds.length > 0) {
+        setSelectedCategories(categoryIds);
+
+        // Scroll to top khi filter từ URL
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      // Nếu không có query param, reset filter
+      setSelectedCategories([]);
+    }
+  }, [searchParams]); // Chạy lại mỗi khi URL thay đổi
+
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...allProducts];
 
+    // ✅ SỬA: Filter theo category_ids (array) - Handle type mismatch
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((product) =>
-        selectedCategories.includes(product.category_id)
-      );
+      filtered = filtered.filter((product) => {
+        const productCategories = product.category_ids || [];
+
+        // Debug log
+        console.log('Product:', product.name, 'Categories:', productCategories);
+
+        // Convert về cùng kiểu để so sánh (handle cả string và number)
+        const normalizedProductCats = productCategories.map((id) => Number(id));
+        const normalizedSelectedCats = selectedCategories.map((id) =>
+          Number(id)
+        );
+
+        return normalizedSelectedCats.some((selectedId) =>
+          normalizedProductCats.includes(selectedId)
+        );
+      });
     }
 
     if (selectedBrands.length > 0) {
@@ -73,6 +114,7 @@ function Products() {
         selectedSizes.includes(product.size)
       );
     }
+
     filtered = filtered.filter((product) => {
       const actualPrice = product.sale_price || product.price || 0;
       return actualPrice >= priceRange[0] && actualPrice <= priceRange[1];

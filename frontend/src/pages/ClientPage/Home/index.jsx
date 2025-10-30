@@ -4,7 +4,7 @@ import {
   faCreditCard,
   faShield,
 } from '@fortawesome/free-solid-svg-icons';
-
+import { Link } from 'react-router-dom';
 import classNames from 'classnames/bind';
 import styles from './Home.module.scss';
 import Question from './Question';
@@ -15,29 +15,6 @@ import NewProducts from './NewProducts';
 const cx = classNames.bind(styles);
 
 function Home() {
-  const sidebarItems = [
-    {
-      title: 'SMART FITNESS TRACKER WATCH',
-      subtitle: 'DIGITAL',
-      price: 'From $299',
-      image: 'https://cdn.mos.cms.futurecdn.net/FkGweMeB7hdPgaSFQdgsfj.jpg',
-    },
-    {
-      title: 'RUNNING SHOES',
-      subtitle: 'EQUIPMENT',
-      price: 'From $149',
-      image:
-        'https://allaboutginger.com/wp-content/uploads/2023/02/Nike-ZoomX-Vaporfly-3-Prototype-01-1024x719.webp',
-    },
-    {
-      title: 'GYM BAG',
-      subtitle: 'ACCESSORIES',
-      price: 'From $89',
-      image:
-        'https://tse1.mm.bing.net/th/id/OIP.gHfVH9A2_z7fcy87KXEMtgHaJQ?cb=thfvnext&rs=1&pid=ImgDetMain&o=7&rm=3',
-    },
-  ];
-
   return (
     <div className={cx('page-wrapper')}>
       <main className={cx('main-content')}>
@@ -96,7 +73,7 @@ function Home() {
               <div className={cx('bestseller-product')}>
                 <div className={cx('bestseller-product-wrapper')}>
                   <img
-                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"
+                    src="https://res.cloudinary.com/dputjypns/image/upload/v1760374135/products/bbjbfzmwscfaumgnqosn.jpg"
                     alt="Best Seller"
                     className={cx('bestseller-product-image')}
                   />
@@ -145,7 +122,9 @@ function Home() {
                   innovate and bring you the latest in sports technology and
                   design.
                 </p>
-                <button className={cx('read-more-btn')}>Learn More →</button>
+                <Link to="/aboutus">
+                  <button className={cx('read-more-btn')}>Learn More →</button>
+                </Link>
               </div>
             </div>
           </div>
@@ -163,7 +142,9 @@ function Home() {
             <p className={cx('cta-subtitle')}>
               Join thousands of athletes who trust us with their performance
             </p>
-            <button className={cx('cta-btn')}>Shop Now</button>
+            <Link to="/products">
+              <button className={cx('cta-btn')}>Shop Now</button>
+            </Link>
           </div>
         </section>
 

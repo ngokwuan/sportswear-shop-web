@@ -99,7 +99,6 @@ export const createUsers = async (req, res) => {
     });
   }
 };
-
 export const updateUsers = async (req, res) => {
   try {
     console.log('=== UPDATE USERS DEBUG ===');
@@ -108,7 +107,7 @@ export const updateUsers = async (req, res) => {
     console.log('Request user (from JWT):', req.user);
 
     const { id } = req.params;
-    const { name, phone, address, avatar } = req.body;
+    const { name, phone, address, avatar, role } = req.body; // Thêm role vào đây
 
     if (!id) {
       return res.status(400).json({
@@ -133,6 +132,7 @@ export const updateUsers = async (req, res) => {
       role: user.role,
     });
 
+    // Kiểm tra quyền
     if (req.user && req.user.id !== parseInt(id) && req.user.role !== 'admin') {
       console.log(
         'Permission denied. User ID:',
@@ -147,12 +147,18 @@ export const updateUsers = async (req, res) => {
       });
     }
 
+    // Chỉ admin mới được thay đổi role
     let updateFields = {
       name,
       phone,
       address,
       avatar,
     };
+
+    // Thêm role vào updateFields nếu user hiện tại là admin
+    if (req.user && req.user.role === 'admin' && role) {
+      updateFields.role = role;
+    }
 
     console.log('Update fields before filtering:', updateFields);
 
@@ -208,6 +214,115 @@ export const updateUsers = async (req, res) => {
     });
   }
 };
+
+// export const updateUsers = async (req, res) => {
+//   try {
+//     console.log('=== UPDATE USERS DEBUG ===');
+//     console.log('Request params:', req.params);
+//     console.log('Request body:', req.body);
+//     console.log('Request user (from JWT):', req.user);
+
+//     const { id } = req.params;
+//     const { name, phone, address, avatar } = req.body;
+
+//     if (!id) {
+//       return res.status(400).json({
+//         error: 'ID người dùng không được cung cấp',
+//       });
+//     }
+
+//     console.log('Finding user with ID:', id);
+//     const user = await Users.findByPk(id);
+
+//     if (!user) {
+//       console.log('User not found with ID:', id);
+//       return res.status(404).json({
+//         error: 'Người dùng không tồn tại',
+//       });
+//     }
+
+//     console.log('Found user:', {
+//       id: user.id,
+//       name: user.name,
+//       email: user.email,
+//       role: user.role,
+//     });
+
+//     if (req.user && req.user.id !== parseInt(id) && req.user.role !== 'admin') {
+//       console.log(
+//         'Permission denied. User ID:',
+//         req.user.id,
+//         'Target ID:',
+//         id,
+//         'User role:',
+//         req.user.role
+//       );
+//       return res.status(403).json({
+//         error: 'Bạn không có quyền cập nhật thông tin người dùng này',
+//       });
+//     }
+
+//     let updateFields = {
+//       name,
+//       phone,
+//       address,
+//       avatar,
+//     };
+
+//     console.log('Update fields before filtering:', updateFields);
+
+//     updateFields = filterFields(updateFields);
+
+//     console.log('Update fields after filtering:', updateFields);
+
+//     if (Object.keys(updateFields).length === 0) {
+//       return res.status(400).json({
+//         error: 'Không có dữ liệu để cập nhật',
+//       });
+//     }
+
+//     console.log('Updating user...');
+//     await user.update(updateFields);
+//     console.log('Update completed successfully');
+
+//     const updatedUser = await Users.findByPk(id, {
+//       attributes: [
+//         'id',
+//         'name',
+//         'email',
+//         'role',
+//         'avatar',
+//         'created_at',
+//         'phone',
+//         'address',
+//       ],
+//     });
+
+//     console.log('Updated user data:', updatedUser.toJSON());
+
+//     return res.status(200).json({
+//       message: 'Cập nhật người dùng thành công',
+//       user: updatedUser,
+//     });
+//   } catch (error) {
+//     console.error('=== UPDATE ERROR ===');
+//     console.error('Error name:', error.name);
+//     console.error('Error message:', error.message);
+//     console.error('Error stack:', error.stack);
+
+//     if (error.name === 'SequelizeValidationError') {
+//       return res.status(400).json({
+//         error: 'Dữ liệu không hợp lệ',
+//         details: error.errors.map((err) => err.message),
+//       });
+//     }
+
+//     res.status(500).json({
+//       error: 'Không thể cập nhật người dùng',
+//       details: error.message,
+//     });
+//   }
+// };
 export const softDeleteUsers = async (req, res) => {
   try {
     const { id } = req.params;

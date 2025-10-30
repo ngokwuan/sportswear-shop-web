@@ -876,3 +876,106 @@
   font-size: 16px;
   user-select: none;
 }
+// Thêm các styles sau vào file Products.module.scss hiện tại
+
+.modal-large {
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.file-input {
+  width: 100%;
+  padding: 8px;
+  border: 2px dashed #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+
+  &:hover {
+    border-color: #4a90e2;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4a90e2;
+  }
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+  margin-right: 10px;
+
+  img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+  }
+
+  .remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #ef4444;
+    color: white;
+    border: 2px solid white;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #dc2626;
+    }
+  }
+}
+
+.images-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+
+  .image-preview {
+    margin: 0;
+
+    img {
+      width: 100%;
+      height: 150px;
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .modal-large {
+    max-width: 95%;
+    margin: 20px auto;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .image-preview img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .images-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+
+    .image-preview img {
+      height: 100px;
+    }
+  }
+}

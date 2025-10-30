@@ -27,6 +27,21 @@ function ProductTrash() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = trashedProducts.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(trashedProducts.length / itemsPerPage);
+
+  // Helper function to get image URL
+  const getImageUrl = (imageData) => {
+    if (!imageData) return '/placeholder-image.jpg';
+
+    // If it's already a string URL
+    if (typeof imageData === 'string') return imageData;
+
+    // If it's an object with url property
+    if (typeof imageData === 'object' && imageData.url) return imageData.url;
+
+    // Fallback
+    return '/placeholder-image.jpg';
+  };
+
   const fetchTrashedProducts = async () => {
     try {
       setLoading(true);
@@ -71,9 +86,24 @@ function ProductTrash() {
     }).format(price);
   };
 
-  const getCategoryName = (categoryId) => {
-    const category = categories.find((cat) => cat.id === categoryId);
-    return category ? category.name : 'N/A';
+  // Updated to handle multiple categories
+  const getCategoryNames = (categoryIds) => {
+    if (
+      !categoryIds ||
+      !Array.isArray(categoryIds) ||
+      categoryIds.length === 0
+    ) {
+      return 'N/A';
+    }
+
+    const names = categoryIds
+      .map((id) => {
+        const category = categories.find((cat) => cat.id === id);
+        return category ? category.name : null;
+      })
+      .filter(Boolean);
+
+    return names.length > 0 ? names.join(', ') : 'N/A';
   };
 
   const handleSelectProduct = (productId) => {
@@ -321,87 +351,90 @@ function ProductTrash() {
               <span>Thao tác</span>
             </div>
 
-            {currentItems.map((product) => (
-              <div
-                key={product.id}
-                className={cx('table-row', {
-                  selected: selectedProducts.includes(product.id),
-                })}
-              >
-                <div className={cx('select-col')}>
-                  <label className={cx('checkbox-wrapper')}>
-                    <input
-                      type="checkbox"
-                      checked={selectedProducts.includes(product.id)}
-                      onChange={() => handleSelectProduct(product.id)}
+            {currentItems.map((product) => {
+              const categoryNames = getCategoryNames(product.category_ids);
+              return (
+                <div
+                  key={product.id}
+                  className={cx('table-row', {
+                    selected: selectedProducts.includes(product.id),
+                  })}
+                >
+                  <div className={cx('select-col')}>
+                    <label className={cx('checkbox-wrapper')}>
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(product.id)}
+                        onChange={() => handleSelectProduct(product.id)}
+                      />
+                      <span className={cx('checkmark')}></span>
+                    </label>
+                  </div>
+
+                  <span className={cx('product-id')}>#{product.id}</span>
+
+                  <div className={cx('product-image')}>
+                    <img
+                      src={getImageUrl(product.featured_image)}
+                      alt={product.name}
+                      onError={(e) => {
+                        e.target.src = '/placeholder-image.jpg';
+                      }}
                     />
-                    <span className={cx('checkmark')}></span>
-                  </label>
-                </div>
+                  </div>
 
-                <span className={cx('product-id')}>#{product.id}</span>
+                  <span className={cx('product-name')} title={product.name}>
+                    {product.name?.length > 10
+                      ? `${product.name.substring(0, 10)}...`
+                      : product.name}
+                  </span>
 
-                <div className={cx('product-image')}>
-                  <img
-                    src={product.featured_image}
-                    alt={product.name}
-                    onError={(e) => {
-                      e.target.src = '/placeholder-image.jpg';
-                    }}
-                  />
-                </div>
-
-                <span className={cx('product-name')} title={product.name}>
-                  {product.name?.length > 10
-                    ? `${product.name.substring(0, 10)}...`
-                    : product.name}
-                </span>
-
-                <span className={cx('product-category')}>
-                  {getCategoryName(product.category_id).length > 10
-                    ? `${getCategoryName(product.category_id).substring(
-                        0,
-                        10
-                      )}...`
-                    : getCategoryName(product.category_id)}
-                </span>
-
-                <span className={cx('product-price')}>
-                  {formatPrice(product.price)}
-                </span>
-
-                <span className={cx('product-sale-price')}>
-                  {product.sale_price ? formatPrice(product.sale_price) : '-'}
-                </span>
-
-                <span className={cx('product-stock')}>
-                  {product.stock_quantity}
-                </span>
-
-                <span className={cx('product-brand')}>{product.brand}</span>
-
-                <span className={cx('product-deleted')}>
-                  {formatDate(product.deleted_at)}
-                </span>
-
-                <div className={cx('product-actions')}>
-                  <button
-                    className={cx('action-btn', 'restore-btn')}
-                    onClick={() => handleRestoreProduct(product.id)}
-                    title="Khôi phục sản phẩm"
+                  <span
+                    className={cx('product-category')}
+                    title={categoryNames}
                   >
-                    <FontAwesomeIcon icon={faTrashRestore} />
-                  </button>
-                  <button
-                    className={cx('action-btn', 'force-delete-btn')}
-                    onClick={() => handleForceDeleteProduct(product.id)}
-                    title="Xóa vĩnh viễn"
-                  >
-                    <FontAwesomeIcon icon={faXmark} />
-                  </button>
+                    {categoryNames.length > 15
+                      ? `${categoryNames.substring(0, 15)}...`
+                      : categoryNames}
+                  </span>
+
+                  <span className={cx('product-price')}>
+                    {formatPrice(product.price)}
+                  </span>
+
+                  <span className={cx('product-sale-price')}>
+                    {product.sale_price ? formatPrice(product.sale_price) : '-'}
+                  </span>
+
+                  <span className={cx('product-stock')}>
+                    {product.stock_quantity}
+                  </span>
+
+                  <span className={cx('product-brand')}>{product.brand}</span>
+
+                  <span className={cx('product-deleted')}>
+                    {formatDate(product.deleted_at)}
+                  </span>
+
+                  <div className={cx('product-actions')}>
+                    <button
+                      className={cx('action-btn', 'restore-btn')}
+                      onClick={() => handleRestoreProduct(product.id)}
+                      title="Khôi phục sản phẩm"
+                    >
+                      <FontAwesomeIcon icon={faTrashRestore} />
+                    </button>
+                    <button
+                      className={cx('action-btn', 'force-delete-btn')}
+                      onClick={() => handleForceDeleteProduct(product.id)}
+                      title="Xóa vĩnh viễn"
+                    >
+                      <FontAwesomeIcon icon={faXmark} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <Pagination
             currentPage={currentPage}
