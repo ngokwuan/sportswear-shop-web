@@ -12,7 +12,6 @@ function Groups() {
   const [loading, setLoading] = useState(true);
   const [categoriesWithCount, setCategoriesWithCount] = useState({});
 
-  // Mapping tên hiển thị với tên category trong database
   const categoryMapping = {
     RUNNING: 'Running',
     YOGA: 'Yoga',
@@ -46,18 +45,17 @@ function Groups() {
         if (response.data && response.data.length > 0) {
           setCategories(response.data);
 
-          // ✅ Fetch product count cho mỗi category
           const countsMap = {};
           for (const category of response.data) {
             try {
               const productsResponse = await axios.get(
-                `/products/by-category?category_id=${category.id}`
+                `/products/by-category?category_id=${category.id}`,
               );
               countsMap[category.id] = productsResponse.data?.length || 0;
             } catch (error) {
               console.error(
                 `Error fetching products for category ${category.id}:`,
-                error
+                error,
               );
               countsMap[category.id] = 0;
             }
@@ -75,17 +73,13 @@ function Groups() {
   }, []);
 
   const handleCategoryClick = (displayName) => {
-    // Tìm category ID từ tên
     const categoryName = categoryMapping[displayName];
     const category = categories.find(
-      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase(),
     );
 
     if (category) {
-      // ✅ Điều hướng với category_ids (dạng số, không phải string)
       navigate(`/products?category_ids=${category.id}`);
-
-      // Scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       console.warn(`Category not found: ${categoryName}`);
@@ -93,23 +87,14 @@ function Groups() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className={cx('container')}>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className={cx('container')}>
       <div className={cx('team-grid')}>
         {displayCategories.map((item, index) => {
           const categoryName = categoryMapping[item.displayName];
           const category = categories.find(
-            (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+            (cat) => cat.name.toLowerCase() === categoryName.toLowerCase(),
           );
-
           const productCount = category
             ? categoriesWithCount[category.id] || 0
             : 0;
@@ -117,22 +102,34 @@ function Groups() {
           return (
             <div
               key={index}
-              className={cx('team-card')}
-              onClick={() => handleCategoryClick(item.displayName)}
-              style={{ cursor: 'pointer' }}
+              className={cx('team-card', { loading })}
+              onClick={() => !loading && handleCategoryClick(item.displayName)}
+              style={{ cursor: loading ? 'default' : 'pointer' }}
             >
-              <img
-                src={item.image}
-                alt={`${item.displayName} Category`}
-                className={cx('team-image')}
-              />
-              <div className={cx('team-overlay')}>
-                <h3 className={cx('team-title')}>{item.displayName}</h3>
-                <p className={cx('team-subtitle')}>
-                  {item.subtitle}
-                  {category && ` • ${productCount} products`}
-                </p>
-              </div>
+              {loading ? (
+                <>
+                  <div className={cx('image-skeleton')} />
+                  <div className={cx('team-overlay')}>
+                    <div className={cx('skeleton', 'title-skeleton')} />
+                    <div className={cx('skeleton', 'subtitle-skeleton')} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <img
+                    src={item.image}
+                    alt={`${item.displayName} Category`}
+                    className={cx('team-image')}
+                  />
+                  <div className={cx('team-overlay')}>
+                    <h3 className={cx('team-title')}>{item.displayName}</h3>
+                    <p className={cx('team-subtitle')}>
+                      {item.subtitle}
+                      {category && ` • ${productCount} products`}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           );
         })}

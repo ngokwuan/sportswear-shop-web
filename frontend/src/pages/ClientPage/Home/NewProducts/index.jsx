@@ -30,9 +30,12 @@ function NewProducts() {
     fetchNewProduct();
   }, []);
 
-  const renderProduct = (product) => <ProductCard product={product} />;
+  // Skeleton items — dùng id giả để ScrollContainer render bình thường
+  const skeletonItems = [1, 2, 3, 4].map((i) => ({ id: `skeleton-${i}` }));
 
-  if (loading) return <div className={cx('loading')}>Loading...</div>;
+  const renderProduct = (product) => (
+    <ProductCard product={product} isLoading={loading} />
+  );
 
   return (
     <div className={cx('container')}>
@@ -51,7 +54,7 @@ function NewProducts() {
           <HeaderSection title="New Products" viewAll=" View All →" />
 
           <ScrollContainer
-            items={newProducts}
+            items={loading ? skeletonItems : newProducts}
             itemsPreView={2}
             renderItem={renderProduct}
             className={cx('products-scroll')}

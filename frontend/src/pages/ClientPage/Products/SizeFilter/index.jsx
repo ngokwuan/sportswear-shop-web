@@ -27,11 +27,9 @@ const SizeFilter = ({ selectedSizes, onSizeChange }) => {
           }));
 
           const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-          sizeList.sort((a, b) => {
-            const aIndex = sizeOrder.indexOf(a.size);
-            const bIndex = sizeOrder.indexOf(b.size);
-            return aIndex - bIndex;
-          });
+          sizeList.sort(
+            (a, b) => sizeOrder.indexOf(a.size) - sizeOrder.indexOf(b.size),
+          );
 
           setAvailableSizes(sizeList);
         }
@@ -45,26 +43,26 @@ const SizeFilter = ({ selectedSizes, onSizeChange }) => {
     fetchSizes();
   }, []);
 
-  if (loading) {
-    return <div className={cx('filter-loading')}>Loading sizes...</div>;
-  }
-
   return (
     <div className={cx('filter-section')}>
       <h3 className={cx('filter-title')}>Size</h3>
       <div className={cx('size-grid')}>
-        {availableSizes.map(({ size, count }) => (
-          <button
-            key={size}
-            className={cx('size-btn', {
-              active: selectedSizes.includes(size),
-            })}
-            onClick={() => onSizeChange(size)}
-            title={`${count} products available`}
-          >
-            {size}
-          </button>
-        ))}
+        {loading
+          ? [1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className={cx('skeleton', 'size-btn-skeleton')} />
+            ))
+          : availableSizes.map(({ size, count }) => (
+              <button
+                key={size}
+                className={cx('size-btn', {
+                  active: selectedSizes.includes(size),
+                })}
+                onClick={() => onSizeChange(size)}
+                title={`${count} products available`}
+              >
+                {size}
+              </button>
+            ))}
       </div>
     </div>
   );

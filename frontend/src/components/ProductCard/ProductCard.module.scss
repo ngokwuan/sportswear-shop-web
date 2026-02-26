@@ -339,3 +339,55 @@
     }
   }
 }
+/* ===== SKELETON LOADING ===== */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+
+.product-card.loading {
+  pointer-events: none;
+  cursor: default;
+
+  .image-skeleton {
+    @extend .skeleton;
+    width: 100%;
+    aspect-ratio: 1 / 1; // giữ tỉ lệ giống ảnh sản phẩm
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .category-skeleton {
+    height: 12px;
+    width: 50%;
+    margin-bottom: 8px;
+  }
+
+  .name-skeleton {
+    height: 16px;
+    width: 80%;
+    margin-bottom: 8px;
+  }
+
+  .rating-skeleton {
+    height: 12px;
+    width: 60%;
+    margin-bottom: 8px;
+  }
+
+  .price-skeleton {
+    height: 18px;
+    width: 45%;
+  }
+}

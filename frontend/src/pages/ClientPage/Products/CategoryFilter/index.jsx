@@ -17,13 +17,8 @@ function CategoryFilter({ selectedCategories, onCategoryChange }) {
           const categoriesWithCount = await Promise.all(
             response.data.map(async (category) => {
               try {
-                // Sử dụng endpoint mới với JSON_CONTAINS
                 const productsResponse = await axios.get(
-                  `/products/by-category?category_id=${category.id}`
-                );
-                console.log(
-                  `Category ${category.name} (ID: ${category.id}):`,
-                  productsResponse.data.length
+                  `/products/by-category?category_id=${category.id}`,
                 );
                 return {
                   ...category,
@@ -32,13 +27,9 @@ function CategoryFilter({ selectedCategories, onCategoryChange }) {
                     : 0,
                 };
               } catch (error) {
-                console.error(
-                  `Error fetching products for category ${category.id}:`,
-                  error
-                );
                 return { ...category, count: 0 };
               }
-            })
+            }),
           );
           setCategories(categoriesWithCount);
         }
@@ -52,26 +43,29 @@ function CategoryFilter({ selectedCategories, onCategoryChange }) {
     fetchCategories();
   }, []);
 
-  if (loading) {
-    return <div className={cx('filter-loading')}>Loading categories...</div>;
-  }
-
   return (
     <div className={cx('filter-section')}>
       <h3 className={cx('filter-title')}>Categories</h3>
       <div className={cx('filter-list')}>
-        {categories.map((category) => (
-          <label key={category.id} className={cx('filter-item')}>
-            <input
-              type="checkbox"
-              checked={selectedCategories.includes(category.id)}
-              onChange={() => onCategoryChange(category.id)}
-            />
-            <span>
-              {category.name} ({category.count})
-            </span>
-          </label>
-        ))}
+        {loading
+          ? [1, 2, 3, 4].map((i) => (
+              <div key={i} className={cx('filter-item-skeleton')}>
+                <div className={cx('skeleton', 'checkbox-skeleton')} />
+                <div className={cx('skeleton', 'label-skeleton')} />
+              </div>
+            ))
+          : categories.map((category) => (
+              <label key={category.id} className={cx('filter-item')}>
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(category.id)}
+                  onChange={() => onCategoryChange(category.id)}
+                />
+                <span>
+                  {category.name} ({category.count})
+                </span>
+              </label>
+            ))}
       </div>
     </div>
   );

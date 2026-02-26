@@ -31,9 +31,13 @@ function Trending() {
     fetchTrendingProduct();
   }, []);
 
-  const renderProduct = (product) => <ProductCard product={product} />;
+  const skeletonItems = [1, 2, 3, 4, 5, 6].map((i) => ({
+    id: `skeleton-${i}`,
+  }));
 
-  if (loading) return <div className={cx('loading')}>Loading...</div>;
+  const renderProduct = (product) => (
+    <ProductCard product={product} isLoading={loading} />
+  );
 
   return (
     <div className={cx('container')}>
@@ -50,9 +54,8 @@ function Trending() {
           </div>
         </div>
 
-        {/* Bỏ div .trending-grid, để ScrollContainer tự xử lý layout */}
         <ScrollContainer
-          items={trendingProduct}
+          items={loading ? skeletonItems : trendingProduct}
           itemsPreView={6}
           renderItem={renderProduct}
           className={cx('products-scroll')}
