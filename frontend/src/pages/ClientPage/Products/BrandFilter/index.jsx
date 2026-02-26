@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames/bind';
 import styles from '../Products.module.scss';
 import axios from '../../../../setup/axios';
+
 const cx = classNames.bind(styles);
 
 function BrandFilter({ selectedBrands, onBrandChange }) {
@@ -25,7 +26,7 @@ function BrandFilter({ selectedBrands, onBrandChange }) {
               id: brand,
               name: brand,
               count: count,
-            })
+            }),
           );
 
           setBrands(brandList);
@@ -40,26 +41,29 @@ function BrandFilter({ selectedBrands, onBrandChange }) {
     fetchBrand();
   }, []);
 
-  if (loading) {
-    return <div className={cx('filter-loading')}>Loading brands...</div>;
-  }
-
   return (
     <div className={cx('filter-section')}>
       <h3 className={cx('filter-title')}>Brands</h3>
       <div className={cx('filter-list')}>
-        {brands.map((brand) => (
-          <label key={brand.id} className={cx('filter-item')}>
-            <input
-              type="checkbox"
-              checked={selectedBrands.includes(brand.id)}
-              onChange={() => onBrandChange(brand.id)}
-            />
-            <span>
-              {brand.name} ({brand.count})
-            </span>
-          </label>
-        ))}
+        {loading
+          ? [1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className={cx('filter-item-skeleton')}>
+                <div className={cx('skeleton', 'checkbox-skeleton')} />
+                <div className={cx('skeleton', 'label-skeleton')} />
+              </div>
+            ))
+          : brands.map((brand) => (
+              <label key={brand.id} className={cx('filter-item')}>
+                <input
+                  type="checkbox"
+                  checked={selectedBrands.includes(brand.id)}
+                  onChange={() => onBrandChange(brand.id)}
+                />
+                <span>
+                  {brand.name} ({brand.count})
+                </span>
+              </label>
+            ))}
       </div>
     </div>
   );

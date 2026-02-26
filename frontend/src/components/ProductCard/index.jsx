@@ -4,10 +4,8 @@ import {
   faStar,
   faShareNodes,
   faShoppingCart,
-  faCheck,
 } from '@fortawesome/free-solid-svg-icons';
-import { useState } from 'react';
-import axios from '../../setup/axios';
+
 import classNames from 'classnames/bind';
 import styles from './ProductCard.module.scss';
 import { useNavigate } from 'react-router-dom';
@@ -15,9 +13,25 @@ import { formatCurrency } from '../../utils/formatCurrency';
 
 const cx = classNames.bind(styles);
 
-function ProductCard({ product, viewMode }) {
+function ProductCard({ product, viewMode, isLoading }) {
   const navigate = useNavigate();
 
+  // --- SKELETON ---
+  if (isLoading) {
+    return (
+      <div className={cx('product-grid', viewMode)}>
+        <div className={cx('product-card', 'loading', viewMode)}>
+          <div className={cx('image-skeleton')} />
+          <div className={cx('product-info')}>
+            <div className={cx('skeleton', 'category-skeleton')} />
+            <div className={cx('skeleton', 'name-skeleton')} />
+            <div className={cx('skeleton', 'rating-skeleton')} />
+            <div className={cx('skeleton', 'price-skeleton')} />
+          </div>
+        </div>
+      </div>
+    );
+  }
   // Helper function to get image URL
   const getImageUrl = (imageData) => {
     if (!imageData) {

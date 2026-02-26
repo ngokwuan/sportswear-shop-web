@@ -55,63 +55,49 @@ function Products() {
     fetchProducts();
   }, []);
 
-  // ✅ THÊM: Đọc category_ids từ URL query params khi component mount hoặc URL thay đổi
   useEffect(() => {
     const categoryIdsParam = searchParams.get('category_ids');
 
     if (categoryIdsParam) {
-      // Parse category IDs từ URL: "1,2,3" -> [1, 2, 3]
       const categoryIds = categoryIdsParam
         .split(',')
         .map((id) => Number(id.trim()))
         .filter((id) => !isNaN(id));
 
-      console.log('🔗 URL params category_ids:', categoryIds);
-
       if (categoryIds.length > 0) {
         setSelectedCategories(categoryIds);
-
-        // Scroll to top khi filter từ URL
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else {
-      // Nếu không có query param, reset filter
       setSelectedCategories([]);
     }
-  }, [searchParams]); // Chạy lại mỗi khi URL thay đổi
+  }, [searchParams]);
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...allProducts];
 
-    // ✅ SỬA: Filter theo category_ids (array) - Handle type mismatch
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((product) => {
         const productCategories = product.category_ids || [];
-
-        // Debug log
-        console.log('Product:', product.name, 'Categories:', productCategories);
-
-        // Convert về cùng kiểu để so sánh (handle cả string và number)
         const normalizedProductCats = productCategories.map((id) => Number(id));
         const normalizedSelectedCats = selectedCategories.map((id) =>
-          Number(id)
+          Number(id),
         );
-
         return normalizedSelectedCats.some((selectedId) =>
-          normalizedProductCats.includes(selectedId)
+          normalizedProductCats.includes(selectedId),
         );
       });
     }
 
     if (selectedBrands.length > 0) {
       filtered = filtered.filter((product) =>
-        selectedBrands.includes(product.brand)
+        selectedBrands.includes(product.brand),
       );
     }
 
     if (selectedSizes.length > 0) {
       filtered = filtered.filter((product) =>
-        selectedSizes.includes(product.size)
+        selectedSizes.includes(product.size),
       );
     }
 
@@ -137,7 +123,7 @@ function Products() {
         break;
       case 'newest':
         filtered.sort(
-          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0),
         );
         break;
       case 'popularity':
@@ -171,15 +157,11 @@ function Products() {
   };
 
   const handlePrevPage = () => {
-    if (currentPage > 1) {
-      handlePageChange(currentPage - 1);
-    }
+    if (currentPage > 1) handlePageChange(currentPage - 1);
   };
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      handlePageChange(currentPage + 1);
-    }
+    if (currentPage < totalPages) handlePageChange(currentPage + 1);
   };
 
   const getPaginationNumbers = () => {
@@ -216,7 +198,7 @@ function Products() {
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   };
 
@@ -224,13 +206,13 @@ function Products() {
     setSelectedBrands((prev) =>
       prev.includes(brandId)
         ? prev.filter((id) => id !== brandId)
-        : [...prev, brandId]
+        : [...prev, brandId],
     );
   };
 
   const handleSizeChange = (size) => {
     setSelectedSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
     );
   };
 
@@ -252,14 +234,9 @@ function Products() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className={cx('loading')}>
-        <div className={cx('spinner')}></div>
-        <p>Đang tải sản phẩm...</p>
-      </div>
-    );
-  }
+  const skeletonItems = Array.from({ length: itemsPerPage }, (_, i) => ({
+    id: `skeleton-${i}`,
+  }));
 
   return (
     <div className={cx('products-page')}>
@@ -321,7 +298,15 @@ function Products() {
           </div>
 
           <div className={cx('products-grid', viewMode)}>
-            {currentProducts.length > 0 ? (
+            {loading ? (
+              skeletonItems.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  isLoading={true}
+                  viewMode={viewMode}
+                />
+              ))
+            ) : currentProducts.length > 0 ? (
               currentProducts.map((product) => (
                 <ProductCard
                   key={product.id}
