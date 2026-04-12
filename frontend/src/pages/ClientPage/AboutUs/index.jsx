@@ -112,7 +112,7 @@ function AboutUs() {
               <div className={cx('story-content')}>
                 <h2 className={cx('section-title')}>Our Story</h2>
                 <p className={cx('story-text')}>
-                  Welcome to our newly launched fashion store! We're excited to
+                  Welcometo our newly launched fashion store! We're excited to
                   bring you a fresh approach to fashion retail with a carefully
                   curated collection of stylish, high-quality clothing and
                   accessories.
