@@ -44,19 +44,15 @@ function Blogs() {
       setLoading(true);
       const params = new URLSearchParams();
       Object.keys(filters).forEach((key) => {
-        if (filters[key]) {
-          params.append(key, filters[key]);
-        }
+        if (filters[key]) params.append(key, filters[key]);
       });
 
       const response = await axios.get(`/blogs?${params.toString()}`);
-
       if (response.data.success) {
         setBlogs(response.data.data.blogs);
       }
     } catch (error) {
       console.error('Error fetching blogs:', error);
-      toast.error('Không thể tải danh sách bài viết');
     } finally {
       setLoading(false);
     }
@@ -65,7 +61,20 @@ function Blogs() {
   const fetchCategories = async () => {
     try {
       const response = await axios.get('/categories');
-      setCategories(response.data || []);
+
+      // ✅ Tự động detect format response từ server
+      let cats = [];
+      if (Array.isArray(response.data)) {
+        cats = response.data;
+      } else if (Array.isArray(response.data?.data)) {
+        cats = response.data.data;
+      } else if (Array.isArray(response.data?.data?.categories)) {
+        cats = response.data.data.categories;
+      } else if (Array.isArray(response.data?.categories)) {
+        cats = response.data.categories;
+      }
+
+      setCategories(cats);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -79,7 +88,6 @@ function Blogs() {
     fetchCategories();
   }, []);
 
-  // Pagination calculations
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentBlogs = blogs.slice(indexOfFirstItem, indexOfLastItem);
@@ -101,13 +109,11 @@ function Blogs() {
       published: 'status-published',
       archived: 'status-archived',
     };
-
     const statusLabels = {
       draft: 'Bản nháp',
       published: 'Đã xuất bản',
       archived: 'Lưu trữ',
     };
-
     return (
       <span className={cx('status-badge', statusClasses[status])}>
         {statusLabels[status]}
@@ -116,11 +122,7 @@ function Blogs() {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-      page: 1,
-    }));
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
   };
 
   const handleSearch = (e) => {
@@ -129,35 +131,34 @@ function Blogs() {
   };
 
   const handleBlogCreated = (newBlog) => {
-    setBlogs((prevBlogs) => [newBlog, ...prevBlogs]);
+    setBlogs((prev) => [newBlog, ...prev]);
   };
 
   const handleBlogUpdated = (updatedBlog) => {
-    setBlogs((prevBlogs) =>
-      prevBlogs.map((blog) => (blog.id === updatedBlog.id ? updatedBlog : blog))
+    setBlogs((prev) =>
+      prev.map((blog) => (blog.id === updatedBlog.id ? updatedBlog : blog)),
     );
   };
 
   const handleDeleteBlog = async (blogId) => {
     if (
-      window.confirm('Bạn có chắc chắn muốn chuyển bài viết này vào thùng rác?')
-    ) {
-      try {
-        await axios.delete(`/blogs/${blogId}`);
+      !window.confirm(
+        'Bạn có chắc chắn muốn chuyển bài viết này vào thùng rác?',
+      )
+    )
+      return;
 
-        setBlogs((prevBlogs) => prevBlogs.filter((blog) => blog.id !== blogId));
-        toast.success('Đã chuyển bài viết vào thùng rác!');
+    try {
+      await axios.delete(`/blogs/${blogId}`);
+      setBlogs((prev) => prev.filter((blog) => blog.id !== blogId));
+      toast.success('Đã chuyển bài viết vào thùng rác!');
 
-        // Adjust page if current page is empty after deletion
-        const newTotalItems = blogs.length - 1;
-        const newTotalPages = Math.ceil(newTotalItems / itemsPerPage);
-        if (currentPage > newTotalPages && newTotalPages > 0) {
-          setCurrentPage(newTotalPages);
-        }
-      } catch (error) {
-        console.error('Error deleting blog:', error);
-        toast.error('Lỗi xóa bài viết');
+      const newTotalPages = Math.ceil((blogs.length - 1) / itemsPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
       }
+    } catch (error) {
+      console.error('Error deleting blog:', error);
     }
   };
 
@@ -169,7 +170,23 @@ function Blogs() {
       }
     } catch (error) {
       console.error('Error fetching blog details:', error);
-      toast.error('Không thể tải chi tiết bài viết');
+    }
+  };
+
+  // ✅ Khi click edit — fetch đầy đủ data blog trước khi mở modal
+  const handleEditBlog = async (blog) => {
+    try {
+      console.log('Blog object:', blog);
+      console.log('Blog ID:', blog.id, typeof blog.id);
+      const response = await axios.get(`/blogs/${blog.id}`);
+      if (response.data.success) {
+        setEditingBlog(response.data.data);
+      } else {
+        setEditingBlog(blog);
+      }
+    } catch (error) {
+      console.error('Error fetching blog for edit:', error);
+      setEditingBlog(blog); // fallback dùng data từ list
     }
   };
 
@@ -190,15 +207,13 @@ function Blogs() {
             Quản lý tất cả bài viết blog trong hệ thống
           </p>
         </div>
-
         <div className={cx('header-actions')}>
           <Link
             to="/admin/blogs/trash"
             className={cx('trash-link')}
             title="Xem thùng rác"
           >
-            <FontAwesomeIcon icon={faTrash} />
-            Thùng rác
+            <FontAwesomeIcon icon={faTrash} /> Thùng rác
           </Link>
           <button
             className={cx('create-btn')}
@@ -221,7 +236,6 @@ function Blogs() {
               onChange={(e) => handleFilterChange('search', e.target.value)}
             />
           </div>
-
           <div className={cx('form-group')}>
             <label>Trạng thái</label>
             <select
@@ -235,7 +249,6 @@ function Blogs() {
               ))}
             </select>
           </div>
-
           <div className={cx('form-group')}>
             <label>Danh mục</label>
             <select
@@ -252,7 +265,6 @@ function Blogs() {
               ))}
             </select>
           </div>
-
           <div className={cx('form-group')}>
             <button type="submit" className={cx('search-btn')}>
               Tìm kiếm
@@ -286,7 +298,10 @@ function Blogs() {
                 {blog.author?.name || 'N/A'}
               </span>
               <span className={cx('blog-category')}>
-                {blog.category?.name || 'Chưa phân loại'}
+                {/* ✅ Hiển thị categories array thay vì category.name */}
+                {blog.categories?.length > 0
+                  ? blog.categories.map((c) => c.name).join(', ')
+                  : 'Chưa phân loại'}
               </span>
               <div className={cx('status-col')}>
                 {getStatusBadge(blog.status)}
@@ -304,7 +319,7 @@ function Blogs() {
                 </button>
                 <button
                   className={cx('action-btn', 'edit-btn')}
-                  onClick={() => setEditingBlog(blog)}
+                  onClick={() => handleEditBlog(blog)} // ✅ dùng handleEditBlog
                   title="Chỉnh sửa"
                 >
                   <FontAwesomeIcon icon={faEdit} />
@@ -331,7 +346,6 @@ function Blogs() {
         itemName="bài viết"
       />
 
-      {/* Create Blog Modal */}
       <CreateBlogModal
         showModal={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -339,20 +353,26 @@ function Blogs() {
         categories={categories}
       />
 
-      {/* Edit Blog Modal */}
-      <EditBlogModal
-        blog={editingBlog}
-        onClose={() => setEditingBlog(null)}
-        onBlogUpdated={handleBlogUpdated}
-        categories={categories}
-      />
+      {/* ✅ Chỉ render EditBlogModal khi có editingBlog */}
+      {editingBlog && (
+        <EditBlogModal
+          blog={editingBlog}
+          onClose={() => setEditingBlog(null)}
+          onBlogUpdated={handleBlogUpdated}
+          categories={categories}
+        />
+      )}
 
-      {/* View Blog Modal */}
-      <ViewBlogModal
-        blog={viewingBlog}
-        onClose={() => setViewingBlog(null)}
-        onEdit={setEditingBlog}
-      />
+      {viewingBlog && (
+        <ViewBlogModal
+          blog={viewingBlog}
+          onClose={() => setViewingBlog(null)}
+          onEdit={(blog) => {
+            setViewingBlog(null);
+            setEditingBlog(blog);
+          }}
+        />
+      )}
     </div>
   );
 }

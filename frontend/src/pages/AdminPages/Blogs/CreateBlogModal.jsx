@@ -6,68 +6,76 @@ import styles from './Blogs.module.scss';
 
 const cx = classNames.bind(styles);
 
+const initialState = {
+  title: '',
+  excerpt: '',
+  content: '',
+  featured_image: '',
+  category_ids: [],
+  status: 'draft',
+  meta_title: '',
+  meta_description: '',
+};
+
 function CreateBlogModal({ showModal, onClose, onBlogCreated, categories }) {
-  const [newBlog, setNewBlog] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    featured_image: '',
-    category_id: '',
-    status: 'draft',
-    meta_title: '',
-    meta_description: '',
-  });
+  const [newBlog, setNewBlog] = useState(initialState);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleCategoryChange = (categoryId) => {
+    const id = parseInt(categoryId);
+    setNewBlog((prev) => ({
+      ...prev,
+      category_ids: prev.category_ids.includes(id)
+        ? prev.category_ids.filter((c) => c !== id)
+        : [...prev.category_ids, id],
+    }));
+  };
 
   const handleCreateBlog = async (e) => {
     e.preventDefault();
 
-    if (!newBlog.title || !newBlog.content) {
+    if (!newBlog.title?.trim() || !newBlog.content?.trim()) {
       toast.error('Vui lòng điền tiêu đề và nội dung bài viết');
       return;
     }
 
-    try {
-      const userId = 1;
+    if (newBlog.category_ids.length === 0) {
+      toast.error('Vui lòng chọn ít nhất 1 danh mục');
+      return;
+    }
 
-      const blogData = {
-        ...newBlog,
-        author_id: userId,
+    try {
+      setSubmitting(true);
+
+      const payload = {
+        title: newBlog.title,
+        excerpt: newBlog.excerpt,
+        content: newBlog.content,
+        featured_image: newBlog.featured_image,
+        category_ids: newBlog.category_ids.map(Number),
+        status: newBlog.status,
+        meta_title: newBlog.meta_title,
+        meta_description: newBlog.meta_description,
       };
 
-      const response = await axios.post('/blogs', blogData);
+      const response = await axios.post('/blogs', payload);
 
       if (response.data.success) {
         toast.success('Thêm bài viết thành công!');
-        setNewBlog({
-          title: '',
-          excerpt: '',
-          content: '',
-          featured_image: '',
-          category_id: '',
-          status: 'draft',
-          meta_title: '',
-          meta_description: '',
-        });
+        setNewBlog(initialState);
         onBlogCreated(response.data.data);
         onClose();
       }
     } catch (error) {
       console.error('Error creating blog:', error);
-      toast.error('Lỗi tạo bài viết');
+      console.error('Response data:', error.response?.data);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    setNewBlog({
-      title: '',
-      excerpt: '',
-      content: '',
-      featured_image: '',
-      category_id: '',
-      status: 'draft',
-      meta_title: '',
-      meta_description: '',
-    });
+    setNewBlog(initialState);
     onClose();
   };
 
@@ -78,11 +86,17 @@ function CreateBlogModal({ showModal, onClose, onBlogCreated, categories }) {
       <div className={cx('modal', 'blog-modal')}>
         <div className={cx('modal-header')}>
           <h3>Thêm bài viết mới</h3>
-          <button className={cx('close-btn')} onClick={handleClose}>
+          <button
+            className={cx('close-btn')}
+            onClick={handleClose}
+            type="button"
+          >
             ×
           </button>
         </div>
+
         <form onSubmit={handleCreateBlog} className={cx('modal-form')}>
+          {/* Tiêu đề + Trạng thái */}
           <div className={cx('form-row')}>
             <div className={cx('form-group')}>
               <label>
@@ -97,65 +111,6 @@ function CreateBlogModal({ showModal, onClose, onBlogCreated, categories }) {
                 required
               />
             </div>
-
-            <div className={cx('form-group')}>
-              <label>Danh mục</label>
-              <select
-                value={newBlog.category_id}
-                onChange={(e) =>
-                  setNewBlog({ ...newBlog, category_id: e.target.value })
-                }
-              >
-                <option value="">Chọn danh mục</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className={cx('form-group')}>
-            <label>Tóm tắt</label>
-            <textarea
-              value={newBlog.excerpt}
-              onChange={(e) =>
-                setNewBlog({ ...newBlog, excerpt: e.target.value })
-              }
-              rows="3"
-              placeholder="Nhập tóm tắt bài viết..."
-            />
-          </div>
-
-          <div className={cx('form-group')}>
-            <label>
-              Nội dung <span style={{ color: 'red' }}>*</span>
-            </label>
-            <textarea
-              value={newBlog.content}
-              onChange={(e) =>
-                setNewBlog({ ...newBlog, content: e.target.value })
-              }
-              required
-              rows="8"
-              placeholder="Nhập nội dung bài viết..."
-            />
-          </div>
-
-          <div className={cx('form-row')}>
-            <div className={cx('form-group')}>
-              <label>Hình ảnh đại diện</label>
-              <input
-                type="url"
-                value={newBlog.featured_image}
-                onChange={(e) =>
-                  setNewBlog({ ...newBlog, featured_image: e.target.value })
-                }
-                placeholder="URL hình ảnh"
-              />
-            </div>
-
             <div className={cx('form-group')}>
               <label>Trạng thái</label>
               <select
@@ -171,6 +126,77 @@ function CreateBlogModal({ showModal, onClose, onBlogCreated, categories }) {
             </div>
           </div>
 
+          {/* Danh mục checkbox */}
+          <div className={cx('form-group')}>
+            <label>
+              Danh mục <span style={{ color: 'red' }}>*</span>
+            </label>
+            {categories.length === 0 ? (
+              <p style={{ color: '#999', fontSize: '13px' }}>
+                Không có danh mục nào
+              </p>
+            ) : (
+              <div className={cx('checkbox-group')}>
+                {categories.map((category) => (
+                  <label key={category.id} className={cx('checkbox-label')}>
+                    <input
+                      type="checkbox"
+                      value={category.id}
+                      checked={newBlog.category_ids.includes(
+                        parseInt(category.id),
+                      )}
+                      onChange={() => handleCategoryChange(category.id)}
+                    />
+                    {category.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Tóm tắt */}
+          <div className={cx('form-group')}>
+            <label>Tóm tắt</label>
+            <textarea
+              value={newBlog.excerpt}
+              onChange={(e) =>
+                setNewBlog({ ...newBlog, excerpt: e.target.value })
+              }
+              rows="3"
+              placeholder="Nhập tóm tắt bài viết..."
+            />
+          </div>
+
+          {/* Nội dung */}
+          <div className={cx('form-group')}>
+            <label>
+              Nội dung <span style={{ color: 'red' }}>*</span>
+            </label>
+            <textarea
+              value={newBlog.content}
+              onChange={(e) =>
+                setNewBlog({ ...newBlog, content: e.target.value })
+              }
+              required
+              rows="8"
+              placeholder="Nhập nội dung bài viết..."
+            />
+          </div>
+
+          {/* Hình ảnh */}
+          <div className={cx('form-group')}>
+            <label>Hình ảnh đại diện</label>
+            <input
+              type="url"
+              value={newBlog.featured_image}
+              onChange={(e) =>
+                setNewBlog({ ...newBlog, featured_image: e.target.value })
+              }
+              placeholder="URL hình ảnh"
+            />
+          </div>
+
+          {/* SEO */}
           <div className={cx('form-row')}>
             <div className={cx('form-group')}>
               <label>Meta Title</label>
@@ -202,11 +228,16 @@ function CreateBlogModal({ showModal, onClose, onBlogCreated, categories }) {
               type="button"
               className={cx('cancel-btn')}
               onClick={handleClose}
+              disabled={submitting}
             >
               Hủy
             </button>
-            <button type="submit" className={cx('submit-btn')}>
-              Thêm bài viết
+            <button
+              type="submit"
+              className={cx('submit-btn')}
+              disabled={submitting}
+            >
+              {submitting ? 'Đang thêm...' : 'Thêm bài viết'}
             </button>
           </div>
         </form>
