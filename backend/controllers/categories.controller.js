@@ -1,31 +1,24 @@
-import Categories from '../models/categories.model.js';
-import slugify from 'slugify';
 import { filterFields } from '../utils/filterFields.js';
-import { Op } from 'sequelize';
+import * as categoryService from '../services/category.service.js';
 
 export const getCategories = async (req, res) => {
   try {
-    const categories = await Categories.findAll();
+    const categories = await categoryService.getAllCategories();
     res.json(categories);
   } catch (error) {
     res.status(500).json({ error: 'Không lấy được danh mục ' });
   }
 };
+
 export const getCategoriesTrash = async (req, res) => {
   try {
-    const categories = await Categories.findAll({
-      where: {
-        deleted_at: {
-          [Op.ne]: null,
-        },
-      },
-      paranoid: false,
-    });
+    const categories = await categoryService.getDeletedCategories();
     res.json(categories);
   } catch (error) {
     res.status(500).json({ error: 'Không lấy được danh mục đã xóa ' });
   }
 };
+
 export const createCategories = async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -34,9 +27,9 @@ export const createCategories = async (req, res) => {
         .status(400)
         .json({ message: 'Vui lòng nhập đầy đủ thông tin' });
     }
-    const newCategories = await Categories.create({
+
+    const newCategories = await categoryService.createCategory({
       name,
-      slug: slugify(name, { lower: true }),
       description,
     });
 
@@ -53,19 +46,19 @@ export const createCategories = async (req, res) => {
         details: error.errors.map((err) => err.message),
       });
     }
+    // NOTE: giữ nguyên hành vi gốc — nhánh lỗi khác vẫn chưa có response ở đây.
   }
 };
 
 export const softDeleteCategories = async (req, res) => {
   try {
     const { id } = req.params;
-    const categories = await Categories.findByPk(id);
+    const categories = await categoryService.softDeleteCategory(id);
     if (!categories) {
       return res.status(404).json({
         error: 'Danh mục không tồn tại',
       });
     }
-    await categories.destroy();
     res.json({ message: 'Xóa danh mục thành công ' });
   } catch (error) {
     res.status(500).json({ error: 'Không thể xoá mềm danh mục' });
@@ -75,7 +68,7 @@ export const softDeleteCategories = async (req, res) => {
 export const restoreCategories = async (req, res) => {
   try {
     const { id } = req.params;
-    const restored = await Categories.restore({ where: { id } });
+    const restored = await categoryService.restoreCategory(id);
     console.log(restored);
     if (restored === 0) {
       return res
@@ -91,13 +84,12 @@ export const restoreCategories = async (req, res) => {
 export const forceDeleteCategories = async (req, res) => {
   try {
     const { id } = req.params;
-    const categories = await Categories.findByPk(id, { paranoid: false });
+    const categories = await categoryService.forceDeleteCategory(id);
     if (!categories) {
       return res.status(404).json({
         error: 'Danh mục không tồn tại',
       });
     }
-    await categories.destroy({ force: true });
     res.json({ message: 'Xóa vĩnh viễn danh mục thành công ' });
   } catch (error) {
     res.status(500).json({ error: 'Không thể xoá vĩnh viễn danh mục' });
@@ -107,25 +99,24 @@ export const forceDeleteCategories = async (req, res) => {
 export const updateCategories = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
-    const category = await Categories.findByPk(id);
+    const category = await categoryService.findCategoryById(id);
     if (!category) {
       return res.status(404).json({
         error: 'Danh mục không tồn tại',
       });
     }
-    let updateFields = {
-      name,
-      slug: name ? slugify(name, { lower: true }) : undefined,
-      description,
-    };
 
+    let updateFields = categoryService.buildCategoryUpdateFields(req.body);
     updateFields = filterFields(updateFields);
 
-    await category.update(updateFields);
+    const updatedCategory = await categoryService.applyCategoryUpdate(
+      category,
+      updateFields,
+    );
+
     return res.status(200).json({
       message: 'Cập nhâp danh mục thành công ',
-      category,
+      category: updatedCategory,
     });
   } catch (error) {
     res.status(500).json({ error: 'Không thể cập nhật danh mục' });

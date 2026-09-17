@@ -1,7 +1,6 @@
-import { Blog, User, Category } from '../models/index.js';
 import sequelize from '../config/database.js';
-import { Op } from 'sequelize';
 import slugify from 'slugify';
+import * as blogService from '../services/blog.service.js';
 
 export const createBlog = async (req, res) => {
   const transaction = await sequelize.transaction();
@@ -21,6 +20,7 @@ export const createBlog = async (req, res) => {
     } = req.body;
 
     if (!title || !content) {
+      await transaction.rollback();
       return res.status(400).json({
         success: false,
         message: 'Thiếu thông tin bắt buộc: title, content',
@@ -33,6 +33,7 @@ export const createBlog = async (req, res) => {
       !Array.isArray(category_ids) ||
       category_ids.length === 0
     ) {
+      await transaction.rollback();
       return res.status(400).json({
         success: false,
         message: 'Phải chọn ít nhất 1 danh mục',
@@ -41,14 +42,16 @@ export const createBlog = async (req, res) => {
 
     const author_id = req.user?.id;
     if (!author_id) {
+      await transaction.rollback();
       return res.status(401).json({
         success: false,
         message: 'Bạn cần đăng nhập để tạo bài viết',
       });
     }
 
-    const author = await User.findByPk(author_id);
+    const author = await blogService.findUserById(author_id);
     if (!author) {
+      await transaction.rollback();
       return res.status(404).json({
         success: false,
         message: 'Người dùng không tồn tại',
@@ -56,11 +59,10 @@ export const createBlog = async (req, res) => {
     }
 
     // Validate tất cả categories có tồn tại không
-    const categories = await Category.findAll({
-      where: { id: category_ids },
-    });
+    const categories = await blogService.findCategoriesByIds(category_ids);
 
     if (categories.length !== category_ids.length) {
+      await transaction.rollback();
       return res.status(404).json({
         success: false,
         message: 'Một hoặc nhiều danh mục không tồn tại',
@@ -86,26 +88,17 @@ export const createBlog = async (req, res) => {
       blogData.published_at = new Date();
     }
 
-    const blog = await Blog.create(blogData, { transaction });
+    const blog = await blogService.createBlogRecord(blogData, transaction);
 
     await transaction.commit();
 
     // Lấy thông tin blog vừa tạo
-    const createdBlog = await Blog.findByPk(blog.id, {
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'email'],
-        },
-      ],
-    });
+    const createdBlog = await blogService.getBlogWithAuthor(blog.id);
 
-    // Lấy categories thủ công
-    const blogCategories = await Category.findAll({
-      where: { id: createdBlog.category_ids },
-      attributes: ['id', 'name', 'slug'],
-    });
+    // Lấy categories
+    const blogCategories = await blogService.getCategoriesForIds(
+      createdBlog.category_ids,
+    );
 
     const response = {
       ...createdBlog.toJSON(),
@@ -118,7 +111,9 @@ export const createBlog = async (req, res) => {
       data: response,
     });
   } catch (error) {
-    await transaction.rollback();
+    if (!transaction.finished) {
+      await transaction.rollback();
+    }
     console.error('Create blog error:', error);
     return res.status(500).json({
       success: false,
@@ -141,72 +136,21 @@ export const getAllBlogs = async (req, res) => {
     } = req.query;
 
     const offset = (page - 1) * limit;
-    const whereCondition = {};
 
-    if (status) whereCondition.status = status;
-    if (author_id) whereCondition.author_id = author_id;
-    if (is_featured !== undefined)
-      whereCondition.is_featured = is_featured === 'true';
-
-    // Tìm kiếm theo category_id trong JSON array
-    if (category_id) {
-      whereCondition[Op.and] = sequelize.literal(
-        `JSON_CONTAINS(category_ids, '${parseInt(category_id)}')`,
-      );
-    }
-
-    if (search) {
-      whereCondition[Op.or] = [
-        { title: { [Op.like]: `%${search}%` } },
-        { content: { [Op.like]: `%${search}%` } },
-        { excerpt: { [Op.like]: `%${search}%` } },
-      ];
-    }
-
-    const { count, rows: blogs } = await Blog.findAndCountAll({
-      where: whereCondition,
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'email'],
-        },
-      ],
-      order: [['created_at', 'DESC']],
+    const { count, blogs } = await blogService.getAllBlogs({
+      status,
+      categoryId: category_id,
+      authorId: author_id,
+      search,
+      isFeatured: is_featured,
       limit: parseInt(limit),
       offset: parseInt(offset),
-    });
-
-    // Lấy tất cả category_ids từ blogs
-    const allCategoryIds = [
-      ...new Set(blogs.flatMap((blog) => blog.category_ids || [])),
-    ];
-
-    // Lấy thông tin categories
-    const categories =
-      allCategoryIds.length > 0
-        ? await Category.findAll({
-            where: { id: allCategoryIds },
-            attributes: ['id', 'name', 'slug'],
-          })
-        : [];
-
-    // Map categories vào từng blog
-    const blogsWithCategories = blogs.map((blog) => {
-      const blogCategories = categories.filter((cat) =>
-        (blog.category_ids || []).includes(cat.id),
-      );
-
-      return {
-        ...blog.toJSON(),
-        categories: blogCategories,
-      };
     });
 
     return res.status(200).json({
       success: true,
       data: {
-        blogs: blogsWithCategories,
+        blogs,
         pagination: {
           total: count,
           page: parseInt(page),
@@ -236,72 +180,19 @@ export const getPublishedBlogs = async (req, res) => {
     } = req.query;
 
     const offset = (page - 1) * limit;
-    const whereCondition = {
-      status: 'published',
-      published_at: { [Op.lte]: new Date() },
-    };
 
-    if (is_featured !== undefined)
-      whereCondition.is_featured = is_featured === 'true';
-
-    // Tìm kiếm theo category_id trong JSON array
-    if (category_id) {
-      whereCondition[Op.and] = sequelize.literal(
-        `JSON_CONTAINS(category_ids, '${parseInt(category_id)}')`,
-      );
-    }
-
-    if (search) {
-      whereCondition[Op.or] = [
-        { title: { [Op.like]: `%${search}%` } },
-        { excerpt: { [Op.like]: `%${search}%` } },
-      ];
-    }
-
-    const { count, rows: blogs } = await Blog.findAndCountAll({
-      where: whereCondition,
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name'],
-        },
-      ],
-      order: [['published_at', 'DESC']],
+    const { count, blogs } = await blogService.getPublishedBlogs({
+      categoryId: category_id,
+      search,
+      isFeatured: is_featured,
       limit: parseInt(limit),
       offset: parseInt(offset),
-    });
-
-    // Lấy tất cả category_ids từ blogs
-    const allCategoryIds = [
-      ...new Set(blogs.flatMap((blog) => blog.category_ids || [])),
-    ];
-
-    // Lấy thông tin categories
-    const categories =
-      allCategoryIds.length > 0
-        ? await Category.findAll({
-            where: { id: allCategoryIds },
-            attributes: ['id', 'name', 'slug'],
-          })
-        : [];
-
-    // Map categories vào từng blog
-    const blogsWithCategories = blogs.map((blog) => {
-      const blogCategories = categories.filter((cat) =>
-        (blog.category_ids || []).includes(cat.id),
-      );
-
-      return {
-        ...blog.toJSON(),
-        categories: blogCategories,
-      };
     });
 
     return res.status(200).json({
       success: true,
       data: {
-        blogs: blogsWithCategories,
+        blogs,
         pagination: {
           total: count,
           page: parseInt(page),
@@ -325,15 +216,7 @@ export const getBlogById = async (req, res) => {
     const { id } = req.params;
     const { increment_view = 'false' } = req.query;
 
-    const blog = await Blog.findByPk(id, {
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'email'],
-        },
-      ],
-    });
+    const blog = await blogService.getBlogById(id);
 
     if (!blog) {
       return res.status(404).json({
@@ -342,14 +225,7 @@ export const getBlogById = async (req, res) => {
       });
     }
 
-    // Lấy thông tin categories
-    const categories =
-      blog.category_ids && blog.category_ids.length > 0
-        ? await Category.findAll({
-            where: { id: blog.category_ids },
-            attributes: ['id', 'name', 'slug'],
-          })
-        : [];
+    const categories = await blogService.getCategoriesForIds(blog.category_ids);
 
     const response = {
       ...blog.toJSON(),
@@ -357,8 +233,7 @@ export const getBlogById = async (req, res) => {
     };
 
     if (increment_view === 'true') {
-      await blog.increment('views');
-      response.views = blog.views + 1;
+      response.views = await blogService.incrementBlogViews(blog);
     }
 
     return res.status(200).json({
@@ -380,16 +255,7 @@ export const getBlogBySlug = async (req, res) => {
     const { slug } = req.params;
     const { increment_view = 'false' } = req.query;
 
-    const blog = await Blog.findOne({
-      where: { slug },
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'email'],
-        },
-      ],
-    });
+    const blog = await blogService.getBlogBySlug(slug);
 
     if (!blog) {
       return res.status(404).json({
@@ -398,14 +264,7 @@ export const getBlogBySlug = async (req, res) => {
       });
     }
 
-    // Lấy thông tin categories
-    const categories =
-      blog.category_ids && blog.category_ids.length > 0
-        ? await Category.findAll({
-            where: { id: blog.category_ids },
-            attributes: ['id', 'name', 'slug'],
-          })
-        : [];
+    const categories = await blogService.getCategoriesForIds(blog.category_ids);
 
     const response = {
       ...blog.toJSON(),
@@ -413,8 +272,7 @@ export const getBlogBySlug = async (req, res) => {
     };
 
     if (increment_view === 'true') {
-      await blog.increment('views');
-      response.views = blog.views + 1;
+      response.views = await blogService.incrementBlogViews(blog);
     }
 
     return res.status(200).json({
@@ -447,7 +305,7 @@ export const updateBlog = async (req, res) => {
       });
     }
 
-    const blog = await Blog.findByPk(id, { transaction });
+    const blog = await blogService.findBlogForUpdate(id, transaction);
     if (!blog) {
       await transaction.rollback();
       return res.status(404).json({
@@ -476,10 +334,10 @@ export const updateBlog = async (req, res) => {
         });
       }
 
-      const foundCategories = await Category.findAll({
-        where: { id: updateData.category_ids },
+      const foundCategories = await blogService.findCategoriesByIds(
+        updateData.category_ids,
         transaction,
-      });
+      );
 
       if (foundCategories.length !== updateData.category_ids.length) {
         await transaction.rollback();
@@ -494,11 +352,15 @@ export const updateBlog = async (req, res) => {
       updateData.title &&
       (!updateData.slug || updateData.slug === blog.slug)
     ) {
-      const newSlug = slugify(updateData.title, { lower: true, strict: true });
-      const existingBlog = await Blog.findOne({
-        where: { slug: newSlug, id: { [Op.ne]: id } },
-        transaction,
+      const newSlug = slugify(updateData.title, {
+        lower: true,
+        strict: true,
       });
+      const existingBlog = await blogService.findBlogBySlugExcludingId(
+        newSlug,
+        id,
+        transaction,
+      );
       updateData.slug = existingBlog ? `${newSlug}-${Date.now()}` : newSlug;
     }
 
@@ -508,26 +370,14 @@ export const updateBlog = async (req, res) => {
       updateData.published_at = null;
     }
 
-    await blog.update(updateData, { transaction });
+    await blogService.applyBlogUpdate(blog, updateData, transaction);
     await transaction.commit();
 
-    const updatedBlog = await Blog.findByPk(id, {
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'email'],
-        },
-      ],
-    });
+    const updatedBlog = await blogService.getBlogWithAuthor(id);
 
-    const categories =
-      updatedBlog.category_ids?.length > 0
-        ? await Category.findAll({
-            where: { id: updatedBlog.category_ids },
-            attributes: ['id', 'name', 'slug'],
-          })
-        : [];
+    const categories = await blogService.getCategoriesForIds(
+      updatedBlog.category_ids,
+    );
 
     return res.status(200).json({
       success: true,
@@ -551,15 +401,13 @@ export const deleteBlog = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const blog = await Blog.findByPk(id);
+    const blog = await blogService.softDeleteBlog(id);
     if (!blog) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy bài viết',
       });
     }
-
-    await blog.destroy();
 
     return res.status(200).json({
       success: true,
@@ -580,53 +428,15 @@ export const getTrashedBlogs = async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
 
-    const { count, rows: blogs } = await Blog.findAndCountAll({
-      where: {
-        deleted_at: { [Op.ne]: null },
-      },
-      paranoid: false,
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'email'],
-        },
-      ],
-      order: [['deleted_at', 'DESC']],
+    const { count, blogs } = await blogService.getTrashedBlogs({
       limit: parseInt(limit),
       offset: parseInt(offset),
-    });
-
-    // Lấy tất cả category_ids từ blogs
-    const allCategoryIds = [
-      ...new Set(blogs.flatMap((blog) => blog.category_ids || [])),
-    ];
-
-    // Lấy thông tin categories
-    const categories =
-      allCategoryIds.length > 0
-        ? await Category.findAll({
-            where: { id: allCategoryIds },
-            attributes: ['id', 'name', 'slug'],
-          })
-        : [];
-
-    // Map categories vào từng blog
-    const blogsWithCategories = blogs.map((blog) => {
-      const blogCategories = categories.filter((cat) =>
-        (blog.category_ids || []).includes(cat.id),
-      );
-
-      return {
-        ...blog.toJSON(),
-        categories: blogCategories,
-      };
     });
 
     return res.status(200).json({
       success: true,
       data: {
-        blogs: blogsWithCategories,
+        blogs,
         pagination: {
           total: count,
           page: parseInt(page),
@@ -649,7 +459,7 @@ export const restoreBlog = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const blog = await Blog.findByPk(id, { paranoid: false });
+    const blog = await blogService.findBlogIncludingTrashed(id);
     if (!blog) {
       return res.status(404).json({
         success: false,
@@ -664,7 +474,7 @@ export const restoreBlog = async (req, res) => {
       });
     }
 
-    await blog.restore();
+    await blogService.restoreBlogRecord(blog);
 
     return res.status(200).json({
       success: true,
@@ -684,7 +494,7 @@ export const forceDeleteBlog = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const blog = await Blog.findByPk(id, { paranoid: false });
+    const blog = await blogService.findBlogIncludingTrashed(id);
     if (!blog) {
       return res.status(404).json({
         success: false,
@@ -692,7 +502,7 @@ export const forceDeleteBlog = async (req, res) => {
       });
     }
 
-    await blog.destroy({ force: true });
+    await blogService.forceDeleteBlogRecord(blog);
 
     return res.status(200).json({
       success: true,

@@ -74,7 +74,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(
   express.urlencoded({
     extended: true,
-  })
+  }),
 );
 
 app.use(express.json());
@@ -105,6 +105,6 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`App listening at http://localhost:${port}`);
 });

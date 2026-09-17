@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 import { createJWT } from '../middleware/JWTActions.js';
-import User from '../models/users.model.js';
-import { getRoleByEmail } from '../services/jwt.service.js';
-
+import { loginAccount } from '../services/auth.service.js';
+import { getUserProfile } from '../services/users.service.js';
 dotenv.config();
 
 const getCookieOptions = (maxAge) => {
@@ -27,24 +26,22 @@ export const login = async (req, res) => {
       });
     }
 
-    const existUser = await User.findOne({
-      where: { email: email },
-    });
+    const result = await loginAccount(email, password);
 
-    if (!existUser) {
+    if (result.error === 'USER_NOT_FOUND') {
       return res.status(401).json({
         error: 'Email hoặc mật khẩu không đúng',
       });
     }
 
-    const isValidPassword = await existUser.checkPassword(password);
-    if (!isValidPassword) {
+    if (result.error === 'INVALID_PASSWORD') {
       return res.status(401).json({
         error: 'Mật khẩu không chính xác',
       });
     }
 
-    const role = await getRoleByEmail(email);
+    const { user: existUser, role } = result;
+
     const payload = {
       id: existUser.id,
       email: existUser.email,
@@ -125,9 +122,7 @@ export const me = async (req, res) => {
       });
     }
 
-    const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'email', 'role', 'name', 'avatar', 'phone', 'address'],
-    });
+    const user = await getUserProfile(req.user.id);
 
     if (!user) {
       res.clearCookie('jwt', getCookieOptions(0));
