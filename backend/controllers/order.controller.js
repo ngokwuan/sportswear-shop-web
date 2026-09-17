@@ -1,6 +1,19 @@
-import { Order, OrderItem, Cart, Product, User } from '../models/index.js';
 import sequelize from '../config/database.js';
-import { Op } from 'sequelize';
+import * as orderService from '../services/order.service.js';
+
+/**
+ * Rollback an toàn: chỉ rollback nếu transaction chưa commit/rollback trước đó.
+ */
+const safeRollback = async (transaction) => {
+  if (!transaction.finished) {
+    try {
+      await transaction.rollback();
+    } catch (rollbackError) {
+      console.error('Rollback error:', rollbackError);
+    }
+  }
+};
+
 export const createOrder = async (req, res) => {
   const transaction = await sequelize.transaction();
 
@@ -17,6 +30,7 @@ export const createOrder = async (req, res) => {
     } = req.body;
 
     if (!user_id || !items || !Array.isArray(items) || items.length === 0) {
+      await safeRollback(transaction);
       return res.status(400).json({
         success: false,
         message: 'Thiếu thông tin bắt buộc: user_id, items',
@@ -24,74 +38,33 @@ export const createOrder = async (req, res) => {
     }
 
     if (!shipping_address || !phone || !email || !name) {
+      await safeRollback(transaction);
       return res.status(400).json({
         success: false,
         message: 'Thiếu thông tin giao hàng',
       });
     }
 
-    const user = await User.findByPk(user_id);
+    const user = await orderService.findUserById(user_id);
     if (!user) {
+      await safeRollback(transaction);
       return res.status(404).json({
         success: false,
         message: 'Người dùng không tồn tại',
       });
     }
 
-    const generateOrderNumber = () => {
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, '0');
-      return `ORD${timestamp}${random}`;
-    };
+    const orderNumber = orderService.generateOrderNumber();
 
-    const orderNumber = generateOrderNumber();
-
-    let subtotal = 0;
-    const orderItems = [];
-
-    for (const item of items) {
-      const product = await Product.findByPk(item.product_id, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
-      if (!product) {
-        await transaction.rollback();
-        return res.status(404).json({
-          success: false,
-          message: `Sản phẩm ID ${item.product_id} không tồn tại`,
-        });
-      }
-
-      // determine available stock (support both fields)
-      const availableStock = product.stock ?? product.stock_quantity ?? 0;
-      if (availableStock < item.quantity) {
-        await transaction.rollback();
-        return res.status(400).json({
-          success: false,
-          message: `Sản phẩm "${product.name}" không đủ hàng trong kho`,
-        });
-      }
-
-      const price = item.price || product.sale_price || product.price;
-      const totalPrice = price * item.quantity;
-      subtotal += totalPrice;
-
-      orderItems.push({
-        product_id: item.product_id,
-        product_name: product.name,
-        product_price: price,
-        quantity: item.quantity,
-        total_price: totalPrice,
-        size: item.size || null,
-      });
-    }
+    const { orderItems, subtotal } = await orderService.buildOrderItems(
+      items,
+      transaction,
+    );
 
     const shippingFee = 0;
     const totalAmount = subtotal + shippingFee;
 
-    const order = await Order.create(
+    const order = await orderService.createOrderRecord(
       {
         user_id,
         order_number: orderNumber,
@@ -107,56 +80,16 @@ export const createOrder = async (req, res) => {
         status: 'pending',
         notes: notes || null,
       },
-      { transaction }
+      transaction,
     );
 
-    // bulk create order items
-    const orderItemsWithOrderId = orderItems.map((it) => ({
-      ...it,
-      order_id: order.id,
-    }));
-    await OrderItem.bulkCreate(orderItemsWithOrderId, { transaction });
-
-    // decrement global stock for each item (respect transaction)
-    for (const item of items) {
-      const product = await Product.findByPk(item.product_id, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
-      if (product) {
-        const currentStock = product.stock ?? product.stock_quantity ?? 0;
-        const newStock = Math.max(0, currentStock - Number(item.quantity));
-
-        const updateData = {};
-        if (product.stock !== undefined) updateData.stock = newStock;
-        if (product.stock_quantity !== undefined)
-          updateData.stock_quantity = newStock;
-
-        // if model uses different column names, update whichever exists
-        await product.update(updateData, { transaction });
-      }
-    }
-
-    // clear cart for user
-    await Cart.destroy({ where: { user_id }, transaction });
+    await orderService.createOrderItems(orderItems, order.id, transaction);
+    await orderService.decrementStock(items, transaction);
+    await orderService.clearCartForUser(user_id, transaction);
 
     await transaction.commit();
 
-    const createdOrder = await Order.findByPk(order.id, {
-      include: [
-        {
-          model: OrderItem,
-          as: 'items',
-          include: [
-            {
-              model: Product,
-              as: 'product',
-              attributes: ['id', 'name', 'featured_image'],
-            },
-          ],
-        },
-      ],
-    });
+    const createdOrder = await orderService.getOrderWithItems(order.id);
 
     return res.status(201).json({
       success: true,
@@ -169,11 +102,11 @@ export const createOrder = async (req, res) => {
       },
     });
   } catch (error) {
-    await transaction.rollback();
+    await safeRollback(transaction);
     console.error('Create order error:', error);
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       success: false,
-      message: 'Lỗi tạo đơn hàng',
+      message: error.status ? error.message : 'Lỗi tạo đơn hàng',
       error: error.message,
     });
   }
@@ -183,30 +116,11 @@ export const getUserOrders = async (req, res) => {
   try {
     const { user_id } = req.params;
     const { page = 1, limit = 10, status } = req.query;
-
     const offset = (page - 1) * limit;
-    const whereCondition = { user_id };
 
-    if (status) {
-      whereCondition.status = status;
-    }
-
-    const { count, rows: orders } = await Order.findAndCountAll({
-      where: whereCondition,
-      include: [
-        {
-          model: OrderItem,
-          as: 'items',
-          include: [
-            {
-              model: Product,
-              as: 'product',
-              attributes: ['id', 'name', 'featured_image', 'slug'],
-            },
-          ],
-        },
-      ],
-      order: [['created_at', 'DESC']],
+    const { count, rows: orders } = await orderService.getOrdersByUser({
+      userId: user_id,
+      status,
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
@@ -238,38 +152,7 @@ export const getOrderById = async (req, res) => {
     const { order_id } = req.params;
     const { user_id } = req.query;
 
-    const whereCondition = { id: order_id };
-    if (user_id) {
-      whereCondition.user_id = user_id;
-    }
-
-    const order = await Order.findOne({
-      where: whereCondition,
-      include: [
-        {
-          model: OrderItem,
-          as: 'items',
-          include: [
-            {
-              model: Product,
-              as: 'product',
-              attributes: [
-                'id',
-                'name',
-                'featured_image',
-                'slug',
-                'description',
-              ],
-            },
-          ],
-        },
-        {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'email', 'name'],
-        },
-      ],
-    });
+    const order = await orderService.getOrderDetail(order_id, user_id);
 
     if (!order) {
       return res.status(404).json({
@@ -295,9 +178,9 @@ export const getOrderById = async (req, res) => {
 export const updatePaymentStatus = async (req, res) => {
   try {
     const { order_id } = req.params;
-    const { payment_status, transaction_id, payment_info } = req.body;
+    const { payment_status } = req.body;
 
-    const order = await Order.findByPk(order_id);
+    const order = await orderService.findOrderById(order_id);
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -313,12 +196,12 @@ export const updatePaymentStatus = async (req, res) => {
       updateData.status = 'cancelled';
     }
 
-    await order.update(updateData);
+    const updatedOrder = await orderService.updateOrder(order, updateData);
 
     return res.status(200).json({
       success: true,
       message: 'Cập nhật trạng thái thanh toán thành công',
-      data: order,
+      data: updatedOrder,
     });
   } catch (error) {
     console.error('Update payment status error:', error);
@@ -349,7 +232,7 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    const order = await Order.findByPk(order_id);
+    const order = await orderService.findOrderById(order_id);
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -362,12 +245,12 @@ export const updateOrderStatus = async (req, res) => {
       updateData.notes = notes;
     }
 
-    await order.update(updateData);
+    const updatedOrder = await orderService.updateOrder(order, updateData);
 
     return res.status(200).json({
       success: true,
       message: 'Cập nhật trạng thái đơn hàng thành công',
-      data: order,
+      data: updatedOrder,
     });
   } catch (error) {
     console.error('Update order status error:', error);
@@ -386,17 +269,10 @@ export const cancelOrder = async (req, res) => {
     const { order_id } = req.params;
     const { user_id } = req.body;
 
-    const order = await Order.findOne({
-      where: { id: order_id, user_id },
-      include: [
-        {
-          model: OrderItem,
-          as: 'items',
-        },
-      ],
-    });
+    const order = await orderService.findOrderForCancel(order_id, user_id);
 
     if (!order) {
+      await safeRollback(transaction);
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy đơn hàng',
@@ -404,34 +280,22 @@ export const cancelOrder = async (req, res) => {
     }
 
     if (!['pending', 'processing'].includes(order.status)) {
+      await safeRollback(transaction);
       return res.status(400).json({
         success: false,
         message: 'Không thể hủy đơn hàng ở trạng thái hiện tại',
       });
     }
 
-    for (const item of order.items) {
-      const product = await Product.findByPk(item.product_id, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
-      if (product) {
-        const currentStock = product.stock ?? product.stock_quantity ?? 0;
-        const newStock = currentStock + Number(item.quantity);
-        const updateData = {};
-        if (product.stock !== undefined) updateData.stock = newStock;
-        if (product.stock_quantity !== undefined)
-          updateData.stock_quantity = newStock;
-        await product.update(updateData, { transaction });
-      }
-    }
+    await orderService.restoreStock(order.items, transaction);
 
-    await order.update(
+    await orderService.updateOrder(
+      order,
       {
         status: 'cancelled',
         notes: (order.notes || '') + '\nĐơn hàng đã được hủy bởi khách hàng.',
       },
-      { transaction }
+      transaction,
     );
 
     await transaction.commit();
@@ -441,7 +305,7 @@ export const cancelOrder = async (req, res) => {
       message: 'Hủy đơn hàng thành công',
     });
   } catch (error) {
-    await transaction.rollback();
+    await safeRollback(transaction);
     console.error('Cancel order error:', error);
     return res.status(500).json({
       success: false,
@@ -456,38 +320,10 @@ export const getAllOrders = async (req, res) => {
     const { page = 1, limit = 10, status, payment_status, search } = req.query;
     const offset = (page - 1) * limit;
 
-    const whereCondition = {};
-    if (status) whereCondition.status = status;
-    if (payment_status) whereCondition.payment_status = payment_status;
-    if (search) {
-      whereCondition[Op.or] = [
-        { order_number: { [Op.like]: `%${search}%` } },
-        { customer_name: { [Op.like]: `%${search}%` } },
-        { customer_email: { [Op.like]: `%${search}%` } },
-      ];
-    }
-
-    const { count, rows: orders } = await Order.findAndCountAll({
-      where: whereCondition,
-      include: [
-        {
-          model: OrderItem,
-          as: 'items',
-          include: [
-            {
-              model: Product,
-              as: 'product',
-              attributes: ['id', 'name', 'featured_image'],
-            },
-          ],
-        },
-        {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'email', 'name'],
-        },
-      ],
-      order: [['created_at', 'DESC']],
+    const { count, rows: orders } = await orderService.getAllOrdersAdmin({
+      status,
+      paymentStatus: payment_status,
+      search,
       limit: parseInt(limit),
       offset: parseInt(offset),
     });

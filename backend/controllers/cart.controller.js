@@ -1,67 +1,9 @@
-import { Cart, Product } from '../models/index.js';
-
-// export const addToCart = async (req, res) => {
-//   try {
-//     const userId = req.user?.id || req.body.user_id;
-//     const { productId, quantity = 1, size = null } = req.body;
-
-//     if (!userId)
-//       return res.status(401).json({ success: false, message: 'Unauthorized' });
-//     if (!productId)
-//       return res
-//         .status(400)
-//         .json({ success: false, message: 'productId required' });
-
-//     // check product exists and global stock
-//     const product = await Product.findByPk(productId);
-//     if (!product)
-//       return res
-//         .status(404)
-//         .json({ success: false, message: 'Product not found' });
-
-//     const availableStock = product.stock ?? product.stock_quantity ?? 0;
-//     if (availableStock < quantity) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: 'Not enough stock' });
-//     }
-
-//     // try find existing cart item with same size (size can be null)
-//     const where = {
-//       user_id: userId,
-//       product_id: productId,
-//       size: size || null,
-//     };
-
-//     let item = await Cart.findOne({ where });
-
-//     if (item) {
-//       item.quantity = item.quantity + Number(quantity);
-//       await item.save();
-//     } else {
-//       item = await Cart.create({
-//         user_id: userId,
-//         product_id: productId,
-//         quantity: Number(quantity),
-//         size: size || null,
-//       });
-//     }
-
-//     return res.json({ success: true, message: 'Added to cart', data: item });
-//   } catch (error) {
-//     console.error('Add to cart error:', error);
-//     return res
-//       .status(500)
-//       .json({ success: false, message: 'Server error', error: error.message });
-//   }
-// };
+import * as cartService from '../services/cart.service.js';
 
 export const addToCart = async (req, res) => {
   try {
     const userId = req.user?.id || req.body.user_id;
     const { productId, quantity = 1, size = null } = req.body;
-
-    console.log('Add to cart request:', { userId, productId, quantity, size });
 
     if (!userId)
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -70,70 +12,38 @@ export const addToCart = async (req, res) => {
         .status(400)
         .json({ success: false, message: 'productId required' });
 
-    // check product exists and global stock
-    const product = await Product.findByPk(productId);
+    const product = await cartService.findProductById(productId);
     if (!product) {
-      console.log('Product not found:', productId);
       return res
         .status(404)
         .json({ success: false, message: 'Product not found' });
     }
 
-    const availableStock = product.stock ?? product.stock_quantity ?? 0;
+    const availableStock = cartService.getAvailableStock(product);
     if (availableStock < quantity) {
       return res
         .status(400)
         .json({ success: false, message: 'Not enough stock' });
     }
 
-    // Tìm cart item với cùng user_id, product_id VÀ size
-    // Nếu size là null, tìm item có size = null
-    const where = {
-      user_id: userId,
-      product_id: productId,
-    };
-
-    // Xử lý size: nếu size được truyền thì match size đó, nếu không thì match null
-    if (size) {
-      where.size = size;
-    } else {
-      where.size = null;
-    }
-
-    console.log('Finding existing cart item with:', where);
-
-    let item = await Cart.findOne({ where });
-
-    if (item) {
-      // Cập nhật số lượng
-      console.log('Updating existing cart item');
-      item.quantity = item.quantity + Number(quantity);
-      await item.save();
-    } else {
-      // Tạo mới
-      console.log('Creating new cart item');
-      item = await Cart.create({
-        user_id: userId,
-        product_id: productId,
-        quantity: Number(quantity),
-        size: size || null,
-      });
-    }
-
-    console.log('Cart item saved:', item.toJSON());
+    const item = await cartService.addOrUpdateCartItem({
+      userId,
+      productId,
+      quantity,
+      size,
+    });
 
     return res.json({ success: true, message: 'Added to cart', data: item });
   } catch (error) {
     console.error('Add to cart error:', error);
-    console.error('Error stack:', error.stack);
     return res.status(500).json({
       success: false,
       message: 'Server error',
       error: error.message,
-      details: error.stack,
     });
   }
 };
+
 export const getCart = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -144,44 +54,7 @@ export const getCart = async (req, res) => {
       });
     }
 
-    const cart = await Cart.findAll({
-      where: { user_id: userId },
-      include: [
-        {
-          model: Product,
-          as: 'product',
-          attributes: [
-            'id',
-            'name',
-            'price',
-            'sale_price',
-            'featured_image',
-            'size',
-            'brand',
-          ],
-        },
-      ],
-      order: [['created_at', 'DESC']],
-      raw: false,
-    });
-
-    // Serialize và format featured_image
-    const serializedCart = cart.map((item) => {
-      const plain = item.toJSON();
-
-      // Format featured_image
-      if (plain.product?.featured_image) {
-        const img = plain.product.featured_image;
-        if (typeof img === 'object' && img.url) {
-          plain.product.featured_image = img.url;
-        } else if (typeof img !== 'string') {
-          plain.product.featured_image = null;
-        }
-      }
-
-      return plain;
-    });
-
+    const serializedCart = await cartService.getCartByUser(userId);
     res.json(serializedCart);
   } catch (error) {
     console.error('Error getting cart:', error);
@@ -191,6 +64,7 @@ export const getCart = async (req, res) => {
     });
   }
 };
+
 export const getCountCart = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -199,12 +73,7 @@ export const getCountCart = async (req, res) => {
       return res.json({ count: 0 });
     }
 
-    const cartItems = await Cart.findAll({
-      where: { user_id: userId },
-      attributes: ['quantity'],
-    });
-
-    const count = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+    const count = await cartService.getCartCountByUser(userId);
     return res.json({ count });
   } catch (error) {
     console.error('Error getting cart count:', error);
@@ -234,12 +103,7 @@ export const updateCartItem = async (req, res) => {
       });
     }
 
-    const cartItem = await Cart.findOne({
-      where: {
-        id: cartId,
-        user_id: userId,
-      },
-    });
+    const cartItem = await cartService.findCartItemForUpdate(cartId, userId);
 
     if (!cartItem) {
       return res.status(404).json({
@@ -248,13 +112,15 @@ export const updateCartItem = async (req, res) => {
       });
     }
 
-    cartItem.quantity = parseInt(quantity);
-    await cartItem.save();
+    const updatedItem = await cartService.updateCartItemQuantity(
+      cartItem,
+      quantity,
+    );
 
     return res.status(200).json({
       success: true,
       message: 'Đã cập nhật số lượng sản phẩm',
-      cartItem: cartItem,
+      cartItem: updatedItem,
     });
   } catch (error) {
     console.error('Error updating cart item:', error);
@@ -277,12 +143,7 @@ export const removeFromCart = async (req, res) => {
       });
     }
 
-    const deletedRows = await Cart.destroy({
-      where: {
-        id: cart_id,
-        user_id: userId,
-      },
-    });
+    const deletedRows = await cartService.deleteCartItem(cart_id, userId);
 
     if (deletedRows === 0) {
       return res.status(404).json({
@@ -315,11 +176,7 @@ export const clearCart = async (req, res) => {
       });
     }
 
-    const deletedRows = await Cart.destroy({
-      where: {
-        user_id: userId,
-      },
-    });
+    const deletedRows = await cartService.clearCartByUser(userId);
 
     return res.status(200).json({
       success: true,
