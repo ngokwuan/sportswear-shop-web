@@ -8,13 +8,13 @@
 
 ## Tech Stack
 
-| Layer | Công nghệ |
-|-------|-----------|
+| Layer    | Công nghệ                                            |
+| -------- | ---------------------------------------------------- |
 | Frontend | React 19, Vite, Redux Toolkit, React Router v7, SASS |
-| Backend | Node.js, Express.js, Sequelize ORM, JWT, VNPay |
-| Database | MySQL — Aiven Cloud |
-| DevOps | Docker, Docker Compose, Nginx |
-| Hosting | Vercel (FE) · Render.com (BE) · Aiven (DB) |
+| Backend  | Node.js, Express.js, Sequelize ORM, JWT, VNPay       |
+| Database | MySQL — Aiven Cloud                                  |
+| DevOps   | Docker, Docker Compose, Nginx                        |
+| Hosting  | Vercel (FE) · Render.com (BE) · Aiven (DB)           |
 
 ---
 
@@ -63,10 +63,10 @@ docker compose -f docker-compose.dev.yml up --build
 docker compose up -d --build
 ```
 
-| Mode | Frontend | Backend |
-|------|----------|---------|
-| Dev | http://localhost:5173 | http://localhost:3000 |
-| Prod | http://localhost | http://localhost:3000 |
+| Mode | Frontend              | Backend               |
+| ---- | --------------------- | --------------------- |
+| Dev  | http://localhost:5173 | http://localhost:3000 |
+| Prod | http://localhost      | http://localhost:3000 |
 
 ### npm (truyền thống)
 
@@ -82,23 +82,23 @@ cd frontend && npm install && npm run dev
 
 ## Deployment
 
-| Service | Platform | Cấu hình |
-|---------|----------|----------|
-| Backend | Render.com | Build: `npm install` · Start: `npm start` |
-| Frontend | Vercel | Root: `frontend` · Preset: Vite |
-| Database | Aiven Cloud | Connection string trong `backend/.env` |
+| Service  | Platform    | Cấu hình                                  |
+| -------- | ----------- | ----------------------------------------- |
+| Backend  | Render.com  | Build: `npm install` · Start: `npm start` |
+| Frontend | Vercel      | Root: `frontend` · Preset: Vite           |
+| Database | Aiven Cloud | Connection string trong `backend/.env`    |
 
 ---
 
 ## API chính
 
 ```
-POST   /api/auth/register          Đăng ký
-POST   /api/auth/login             Đăng nhập
-GET    /api/products               Danh sách sản phẩm
-POST   /api/orders                 Tạo đơn hàng
-POST   /api/payment/vnpay/create   Tạo URL thanh toán
-GET    /health                     Health check
+POST   /auth/register          Đăng ký
+POST   /auth/login             Đăng nhập
+GET    /products               Danh sách sản phẩm
+POST   /orders                 Tạo đơn hàng
+POST   /payment/vnpay/create   Tạo URL thanh toán
+
 ```
 
 ---

@@ -1,46 +1,47 @@
-// ProductCard.module.scss - Simple & Clean
+// ProductCard.module.scss - Vibrant Sportswear Aesthetic
 .product-card {
   cursor: pointer;
-  background: var(--white);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  border: 2px solid var(--border-light);
+  border-radius: 0; // sharp edges
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  transition: all var(--transition-fast);
   position: relative;
+  box-shadow: none;
 
   &:hover {
-    transform: translateY(-8px);
-    border-color: var(--primary-red);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-5px) skew(-2deg);
+    border-color: var(--bg-dark);
+    box-shadow: 8px 8px 0 var(--primary-neon);
   }
 
   .sale-badge,
   .new-badge {
     position: absolute;
     right: 12px;
-    padding: 6px 12px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    height: 32px;
-    min-width: 55px;
-    color: var(--white);
+    padding: 6px 14px;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-inverse);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.05em;
     z-index: 3;
+    transform: skew(-10deg);
   }
 
   .sale-badge {
-    background: var(--primary-red);
+    background: #ff4500; // Electric Orange for sale
     top: 12px;
   }
 
   .new-badge {
-    background: var(--success-color);
+    background: var(--bg-dark);
+    color: var(--primary-neon);
     top: 50px;
     z-index: 2;
   }
@@ -52,13 +53,16 @@
   .product-image {
     position: relative;
     overflow: hidden;
-    background: var(--light-gray);
+    background: var(--bg-tertiary);
+    aspect-ratio: 4/5;
+    border-bottom: 2px solid var(--border-light);
+    transition: border-color var(--transition-fast);
 
     img {
       width: 100%;
-      height: 280px;
+      height: 100%;
       object-fit: cover;
-      transition: transform 0.5s ease;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .product-overlay {
@@ -67,34 +71,34 @@
       left: 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       opacity: 0;
-      transition: all var(--transition-base);
+      transition: all var(--transition-fast);
       z-index: 2;
     }
 
     .overlay-btn {
       width: 40px;
       height: 40px;
-      border: 1px solid var(--border-medium);
-      background: var(--white);
-      color: var(--text-dark);
+      border: 2px solid var(--bg-dark);
+      background: var(--bg-primary);
+      color: var(--bg-dark);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all var(--transition-base);
-      border-radius: 50%;
-      box-shadow: var(--shadow-sm);
-
-      svg {
-        font-size: 14px;
-      }
+      transition: all var(--transition-fast);
+      border-radius: 0;
+      transform: skew(-10deg);
 
       &:hover {
-        background: var(--primary-red);
-        color: var(--white);
-        border-color: var(--primary-red);
+        background: var(--primary-neon);
+        box-shadow: 4px 4px 0 var(--bg-dark);
+        transform: skew(-10deg) translateY(-2px);
+      }
+      
+      svg {
+        transform: skew(10deg);
       }
     }
 
@@ -103,59 +107,34 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: var(--primary-red);
-      color: var(--white);
+      background: var(--bg-dark);
+      color: var(--primary-neon);
       border: none;
-      padding: 14px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
+      padding: 18px;
+      font-family: 'Teko', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       cursor: pointer;
       transform: translateY(100%);
-      transition: all var(--transition-base);
+      transition: all var(--transition-fast);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
       z-index: 2;
 
-      svg {
-        font-size: 16px;
-      }
-
       &:hover:not(:disabled) {
-        background: var(--primary-red-dark);
-      }
-
-      &.adding {
-        background: var(--text-secondary);
-        cursor: wait;
-      }
-
-      &.added {
-        background: var(--success-color);
-        cursor: default;
-      }
-
-      &:disabled {
-        cursor: not-allowed;
-        opacity: 0.8;
-      }
-
-      .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top-color: var(--white);
-        border-radius: 50%;
-        animation: spin 0.6s linear infinite;
+        background: var(--primary-neon);
+        color: var(--bg-dark);
       }
     }
 
     &:hover {
+      border-color: var(--bg-dark);
+      
       img {
-        transform: scale(1.1);
+        transform: scale(1.08);
       }
 
       .product-overlay {
@@ -169,29 +148,31 @@
   }
 
   .product-info {
-    padding: 24px;
+    padding: 20px;
 
     .product-category {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
+      font-size: 0.75rem;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.1em;
       margin-bottom: 8px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .product-name {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin: 0 0 12px 0;
+      font-family: 'Teko', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 8px 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      transition: color var(--transition-base);
+      transition: color var(--transition-fast);
+      text-transform: uppercase;
 
       &:hover {
-        color: var(--primary-red);
+        color: var(--accent-blue); // Or neon
       }
     }
 
@@ -199,32 +180,21 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 12px 0;
+      margin: 8px 0;
       gap: 8px;
     }
 
     .product-rating {
       display: flex;
-      gap: 4px;
-    }
-
-    .size-tag {
-      background: var(--light-gray);
-      color: var(--text-dark);
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-medium);
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
+      gap: 2px;
     }
 
     .star {
-      color: var(--border-medium);
+      color: var(--border-light);
       font-size: 14px;
 
       &.filled {
-        color: #ffc107;
+        color: #000;
       }
     }
 
@@ -235,13 +205,15 @@
       margin-top: 12px;
 
       .current-price {
-        font-size: 1.3rem;
-        font-weight: 800;
-        color: var(--primary-red);
+        font-family: 'Teko', sans-serif;
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--text-primary);
       }
 
       .old-price {
-        font-size: 1rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
         color: var(--text-muted);
         text-decoration: line-through;
         font-weight: 600;
@@ -250,144 +222,52 @@
   }
 }
 
-// Grid View
-.product-grid:not(.list) {
-  .product-card {
-    .add-to-cart {
-      transform: translateY(100%);
-    }
-
-    &:hover {
-      .add-to-cart {
-        transform: translateY(0);
-      }
-    }
+// Grid View Hover Logic
+.product-grid:not(.list) .product-card {
+  .add-to-cart {
+    transform: translateY(100%);
+  }
+  &:hover .add-to-cart {
+    transform: translateY(0);
   }
 }
 
-// List View
-.list {
-  .product-card {
-    display: flex;
-    align-items: stretch;
-
-    .product-image {
-      width: 250px;
-      min-width: 250px;
-      flex-shrink: 0;
-
-      img {
-        height: 100%;
-        min-height: 200px;
-      }
-
-      .add-to-cart {
-        position: relative;
-        transform: translateY(0);
-      }
-    }
-
-    .product-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      .product-name {
-        white-space: normal;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-      }
-    }
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 768px) {
-  .product-card {
-    .product-image {
-      img {
-        height: 220px;
-      }
-
-      .add-to-cart {
-        transform: translateY(0);
-        position: relative;
-      }
-    }
-
-    .product-info {
-      padding: 20px 16px;
-    }
-  }
-
-  .list .product-card {
-    flex-direction: column;
-
-    .product-image {
-      width: 100%;
-
-      img {
-        height: 220px;
-      }
-    }
-  }
-}
-/* ===== SKELETON LOADING ===== */
-@keyframes shimmer {
-  0% {
-    background-position: -400px 0;
-  }
-  100% {
-    background-position: 400px 0;
-  }
+// Skeleton Bright Theme
+@keyframes shimmerBright {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
 }
 
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 400px 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 6px;
+  animation: shimmerBright 1.4s infinite;
+  border-radius: 0;
 }
 
 .product-card.loading {
-  pointer-events: none;
-  cursor: default;
+  background: var(--bg-primary);
+  border-color: var(--border-light);
+  box-shadow: none;
+  transform: none;
 
   .image-skeleton {
     @extend .skeleton;
     width: 100%;
-    aspect-ratio: 1 / 1; // giữ tỉ lệ giống ảnh sản phẩm
-    border-radius: 8px;
+    aspect-ratio: 4/5;
+    margin-bottom: 0;
+  }
+  
+  .category-skeleton,
+  .name-skeleton,
+  .rating-skeleton,
+  .price-skeleton {
+    @extend .skeleton;
     margin-bottom: 12px;
   }
-
-  .category-skeleton {
-    height: 12px;
-    width: 50%;
-    margin-bottom: 8px;
-  }
-
-  .name-skeleton {
-    height: 16px;
-    width: 80%;
-    margin-bottom: 8px;
-  }
-
-  .rating-skeleton {
-    height: 12px;
-    width: 60%;
-    margin-bottom: 8px;
-  }
-
-  .price-skeleton {
-    height: 18px;
-    width: 45%;
-  }
+  
+  .category-skeleton { height: 12px; width: 40%; margin-top: 20px;}
+  .name-skeleton { height: 28px; width: 80%; }
+  .rating-skeleton { height: 12px; width: 60%; }
+  .price-skeleton { height: 28px; width: 50%; }
 }

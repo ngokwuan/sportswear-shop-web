@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import classNames from 'classnames/bind';
+import { motion } from 'framer-motion';
 import axios from '../../../setup/axios';
 import styles from './Register.module.scss';
 import Logo from '../../../components/Logo';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 const cx = classNames.bind(styles);
+
+// Cùng "ngôn ngữ chuyển động" với Login/Home/BlogDetail/AboutUs/Profile
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const speedLines = [
+  { top: '15%', width: '32%', duration: 2.4, delay: 0 },
+  { top: '38%', width: '44%', duration: 3, delay: 0.7 },
+  { top: '60%', width: '26%', duration: 2, delay: 1.2 },
+  { top: '82%', width: '38%', duration: 2.6, delay: 0.3 },
+];
+
+// Không dùng cờ `g` để tránh lỗi lastIndex khi gọi .test() nhiều lần
+const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const regexPhoneNumber =
+  /^(0|84)(2(0[3-9]|1[0-689]|2[0-25-9]|3[2-9]|4[0-9]|5[124-9]|6[0369]|7[0-7]|8[0-9]|9[012346789])|3[2-9]|5[25689]|7[06-9]|8[0-9]|9[012346789])([0-9]{7})$/;
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -45,11 +61,11 @@ function Register() {
         confirmPassword: '',
       });
 
-      toast.success(res.data.message || 'Thêm người dùng thành công!');
+      toast.success(res.data.message || 'Đăng ký thành công!');
 
       return res.data;
     } catch (error) {
-      console.error('Lỗi khi thêm người dùng:', error);
+      console.error('Lỗi khi đăng ký:', error);
 
       if (error.response) {
         const errorMessage =
@@ -57,7 +73,7 @@ function Register() {
         toast.error(errorMessage);
       } else if (error.request) {
         toast.error(
-          'Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.'
+          'Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng.',
         );
       } else {
         toast.error('Có lỗi xảy ra: ' + error.message);
@@ -70,7 +86,10 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setObjectCheckInput(defaultValidInput);
+
     if (!formData.fullName.trim()) {
+      setObjectCheckInput({ ...defaultValidInput, isValidFullName: false });
       toast.error('Vui lòng nhập họ và tên');
       return;
     }
@@ -78,33 +97,25 @@ function Register() {
     if (!formData.email.trim()) {
       setObjectCheckInput({ ...defaultValidInput, isValidEmail: false });
       toast.error('Vui lòng nhập email');
-
       return;
     }
-    const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!regexEmail.test(formData.email.trim())) {
       setObjectCheckInput({ ...defaultValidInput, isValidEmail: false });
-
-      toast.error('Vui lòng nhập email hợp lệ ');
+      toast.error('Vui lòng nhập email hợp lệ');
       return;
     }
     if (!formData.phone.trim()) {
       setObjectCheckInput({ ...defaultValidInput, isValidPhone: false });
-
-      toast.error('Vui lòng nhập sdt');
+      toast.error('Vui lòng nhập số điện thoại');
       return;
     }
-    const regexPhoneNumber =
-      /^(0|84)(2(0[3-9]|1[0-689]|2[0-25-9]|3[2-9]|4[0-9]|5[124-9]|6[0369]|7[0-7]|8[0-9]|9[012346789])|3[2-9]|5[25689]|7[06-9]|8[0-9]|9[012346789])([0-9]{7})$/gm;
     if (!regexPhoneNumber.test(formData.phone.trim())) {
       setObjectCheckInput({ ...defaultValidInput, isValidPhone: false });
-
-      toast.error('Vui lòng nhập sdt hợp lệ ');
+      toast.error('Vui lòng nhập số điện thoại hợp lệ');
       return;
     }
     if (formData.password.length < 6) {
       setObjectCheckInput({ ...defaultValidInput, isValidPassword: false });
-
       toast.error('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
@@ -113,26 +124,42 @@ function Register() {
         ...defaultValidInput,
         isValidConfirmPassword: false,
       });
-
-      toast.error('Nhập lại mật khẩu không trùng khớp ');
+      toast.error('Nhập lại mật khẩu không trùng khớp');
       return;
     }
 
-    console.log('Dữ liệu người dùng chuẩn bị gửi:', formData);
     await submitUserData(formData);
   };
 
   const handleGoogleSignup = () => {
-    console.log('Google signup');
+    toast.info('Tính năng đang phát triển');
   };
 
   const handleAppleSignup = () => {
-    console.log('Apple signup');
+    toast.info('Tính năng đang phát triển');
   };
 
   return (
     <div className={cx('wrapper')}>
-      <div className={cx('register-container')}>
+      {speedLines.map((line, i) => (
+        <span
+          key={i}
+          className={cx('speed-line')}
+          style={{
+            top: line.top,
+            width: line.width,
+            animationDuration: `${line.duration}s`,
+            animationDelay: `${line.delay}s`,
+          }}
+        />
+      ))}
+
+      <motion.div
+        className={cx('register-container')}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE_BURST }}
+      >
         <div className={cx('logo-container')}>
           <Logo />
         </div>
@@ -158,6 +185,7 @@ function Register() {
               value={formData.fullName}
               onChange={handleChange}
               placeholder="Enter your full name"
+              autoComplete="name"
               minLength="2"
               maxLength="100"
             />
@@ -177,6 +205,7 @@ function Register() {
               value={formData.email}
               onChange={handleChange}
               placeholder="example@email.com"
+              autoComplete="email"
               maxLength="100"
             />
           </div>
@@ -186,7 +215,7 @@ function Register() {
               Phone number
             </label>
             <input
-              type="text"
+              type="tel"
               name="phone"
               id="phone"
               className={cx('input', {
@@ -195,10 +224,12 @@ function Register() {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Enter your phone number"
+              autoComplete="tel"
               minLength="6"
               maxLength="11"
             />
           </div>
+
           <div className={cx('input-group')}>
             <label htmlFor="password" className={cx('label')}>
               Password
@@ -213,10 +244,12 @@ function Register() {
               value={formData.password}
               onChange={handleChange}
               placeholder="At least 6 characters"
+              autoComplete="new-password"
               minLength="6"
               maxLength="255"
             />
           </div>
+
           <div className={cx('input-group')}>
             <label htmlFor="re-enter-password" className={cx('label')}>
               Re-Enter Password
@@ -230,7 +263,8 @@ function Register() {
               })}
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Re-enter-password"
+              placeholder="Re-enter password"
+              autoComplete="new-password"
               minLength="6"
               maxLength="255"
             />
@@ -284,7 +318,7 @@ function Register() {
             </Link>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

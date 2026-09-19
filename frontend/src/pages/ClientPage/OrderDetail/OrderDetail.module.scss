@@ -1,116 +1,166 @@
+// OrderDetail.module.scss - cùng theme "Vibrant Sportswear" nhưng dịu mắt hơn:
+// - Nền xám nhạt (--bg-secondary), thẻ trắng (--bg-primary), viền mảnh 1px
+// - Bóng mềm thay cho bóng cứng; KHÔNG skew ở nội dung
+// - Neon chỉ dùng làm điểm nhấn nhỏ (vạch tiêu đề, chấm trạng thái, tổng tiền)
+// - Một khối tối duy nhất: thanh "Tổng cộng" ở cuối để chốt trang
+// Dùng chung CSS variables: --bg-primary, --bg-secondary, --bg-dark, --primary-neon,
+// --text-primary, --text-secondary, --text-muted, --text-inverse, --border-light,
+// --spacing-*, --transition-fast/base. Font 'Teko' chỉ cho tiêu đề.
+
+$soft-shadow:
+  0 2px 4px rgba(0, 0, 0, 0.04),
+  0 8px 24px rgba(0, 0, 0, 0.06);
+$soft-shadow-hover:
+  0 4px 8px rgba(0, 0, 0, 0.05),
+  0 12px 32px rgba(0, 0, 0, 0.09);
+
 .order-detail {
   min-height: 100vh;
-  background-color: var(--bg-primary);
-  padding: 40px 110px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 110px var(--spacing-xxl) 72px; // chừa chỗ cho header cố định
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow-x: clip;
 
-  h2 {
-    color: var(--text-primary);
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 32px;
-    text-align: center;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 3px;
-      background: var(--primary-color);
-    }
+  ::selection {
+    background: var(--primary-neon);
+    color: var(--bg-dark);
   }
 
   @media (max-width: 768px) {
-    padding: 24px 16px;
-
-    h2 {
-      font-size: 28px;
-      margin-bottom: 24px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    padding: 20px 12px;
-
-    h2 {
-      font-size: 24px;
-    }
+    padding: 96px var(--spacing-lg) 48px;
   }
 }
 
-// Loading State
-.loading {
+// ================== HEADER ==================
+.page-header {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.back-link {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 20px;
+  gap: 8px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
 
   svg {
-    font-size: 40px;
-    color: var(--primary-color);
+    transition: transform var(--transition-fast);
   }
 
-  p {
-    font-size: 15px;
-    color: var(--text-secondary);
-    font-weight: 500;
-    margin: 0;
+  &:hover {
+    color: var(--text-primary);
+
+    svg {
+      transform: translateX(-3px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--bg-dark);
+    outline-offset: 4px;
   }
 }
 
-// Error State
+.title {
+  position: relative;
+  margin: 0;
+  padding-bottom: 14px;
+  font-family: 'Teko', sans-serif;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--text-primary);
+
+  // Vạch neon nhỏ dưới tiêu đề (thay cho vệt highlight lớn của Home)
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 72px;
+    height: 5px;
+    background: var(--primary-neon);
+    transform: skew(-20deg);
+  }
+}
+
+// ================== LOADING / ERROR ==================
+.loading,
 .error {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  gap: 24px;
-  padding: 40px;
+  min-height: 60vh;
+  gap: 16px;
   text-align: center;
+}
+
+.loading {
+  svg {
+    font-size: 2.2rem;
+    color: var(--bg-dark);
+  }
 
   p {
-    font-size: 15px;
-    color: var(--error-color);
     margin: 0;
+    font-size: 1rem;
     font-weight: 500;
+    color: var(--text-secondary);
+  }
+}
+
+.error {
+  p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #c62828; // đỏ dịu, dễ đọc trên nền sáng
   }
 
   button {
-    background-color: var(--primary-color);
-    color: var(--white);
-    border: none;
     padding: 12px 24px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 600;
+    border: none;
+    background: var(--bg-dark);
+    color: var(--primary-neon);
+    font-family: 'Teko', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all var(--transition-base);
-    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
 
     &:hover {
-      background-color: var(--primary-hover);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
     }
 
-    &:active {
-      transform: translateY(0);
+    &:focus-visible {
+      outline: 2px solid var(--bg-dark);
+      outline-offset: 4px;
     }
   }
 }
 
-// Order Info Grid
+// ================== INFO GRID ==================
 .order-info {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
-  margin-bottom: 32px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -118,334 +168,288 @@
   }
 }
 
-// Info Sections
 .info-section,
-.shipping-info {
-  background-color: var(--white);
-  padding: 28px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-  transition: all var(--transition-base);
-
-  &:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-    border-color: var(--border-medium);
-  }
-
-  h3 {
-    color: var(--text-primary);
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--border-light);
-  }
-
-  p {
-    margin: 12px 0;
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    &:first-of-type {
-      margin-top: 0;
-    }
-
-    strong {
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-  }
-
-  @media (max-width: 768px) {
-    padding: 20px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 16px;
-
-    h3 {
-      font-size: 18px;
-    }
-  }
-}
-
-.info-section {
-  h3::before {
-    content: '📄';
-    font-size: 20px;
-  }
-}
-
-.shipping-info {
-  h3::before {
-    content: '🚚';
-    font-size: 20px;
-  }
-}
-
-// Products List
+.shipping-info,
 .products-list {
-  background-color: var(--white);
-  padding: 32px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: var(--bg-primary);
   border: 1px solid var(--border-light);
-  grid-column: 1 / -1;
-
-  h3 {
-    color: var(--text-primary);
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 24px;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid var(--border-light);
-
-    &::before {
-      content: '🛍️';
-      font-size: 24px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    padding: 20px;
-  }
+  box-shadow: $soft-shadow;
+  padding: 28px;
 
   @media (max-width: 480px) {
-    padding: 16px;
-
-    h3 {
-      font-size: 20px;
-    }
+    padding: 20px 16px;
   }
 }
 
-// Product Item
-.product-item {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-  margin: 0 -20px;
-  border-bottom: 1px solid var(--border-light);
-  align-items: center;
-  transition: all var(--transition-base);
+.products-list {
+  grid-column: 1 / -1;
+  padding-bottom: 0; // thanh tổng cộng sát đáy thẻ
+  overflow: hidden;
+}
 
-  &:hover {
-    background-color: var(--bg-tertiary);
-    transform: translateX(4px);
+// Tiêu đề thẻ: vạch neon dọc bên trái, không dùng emoji
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px;
+  font-family: 'Teko', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: var(--text-primary);
+
+  &::before {
+    content: '';
+    flex-shrink: 0;
+    width: 5px;
+    height: 1.2em;
+    background: var(--primary-neon);
+    transform: skew(-10deg);
   }
+}
+
+// Dòng nhãn - giá trị
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-light);
 
   &:last-child {
     border-bottom: none;
-    margin-bottom: 0;
-  }
-
-  &:first-child {
-    margin-top: 0;
-  }
-
-  img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-light);
-    flex-shrink: 0;
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--transition-base);
-
-    &:hover {
-      transform: scale(1.05);
-    }
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px;
-
-    img {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 16px;
-    }
+    padding-bottom: 0;
   }
 
   @media (max-width: 480px) {
-    padding: 12px;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-    img {
-      width: 100px;
-      height: 100px;
+  .detail-label {
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .detail-value {
+    min-width: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: right;
+    color: var(--text-primary);
+    word-break: break-word;
+
+    @media (max-width: 480px) {
+      text-align: left;
     }
   }
 }
 
-// Product Info
+// Trạng thái: chữ dễ đọc + chấm màu (không dùng nền màu chói)
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--status-color, var(--text-muted));
+  }
+}
+
+.price-highlight {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+// ================== PRODUCTS ==================
+.product-list {
+  margin: 8px -28px 0;
+
+  @media (max-width: 480px) {
+    margin: 8px -16px 0;
+  }
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 28px;
+  border-top: 1px solid var(--border-light);
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--bg-secondary);
+  }
+
+  @media (max-width: 640px) {
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  img {
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+
+    @media (max-width: 640px) {
+      width: 72px;
+      height: 72px;
+    }
+  }
+}
+
 .product-info {
   flex: 1;
   min-width: 0;
 
   h4 {
-    color: var(--text-primary);
-    font-size: 18px;
+    margin: 0 0 8px;
+    font-size: 1.05rem;
     font-weight: 600;
-    margin: 0 0 12px 0;
     line-height: 1.4;
-  }
-
-  p {
-    margin: 6px 0;
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-weight: 500;
-
-    &:last-child {
-      margin-bottom: 0;
-      color: var(--success-color);
-      font-weight: 700;
-      font-size: 16px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    width: 100%;
-    text-align: left;
-  }
-
-  @media (max-width: 480px) {
-    h4 {
-      font-size: 16px;
-    }
-
-    p {
-      font-size: 13px;
-    }
+    color: var(--text-primary);
   }
 }
 
-// Status Badges
-.status-badge {
+.product-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+// Chip nhỏ cho size / số lượng / đơn giá
+.chip {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  gap: 6px;
+  padding: 3px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
 
-  &.pending {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: var(--warning-color);
-    border: 1px solid var(--warning-color);
-  }
-
-  &.processing {
-    background-color: rgba(177, 37, 53, 0.1);
-    color: var(--primary-color);
-    border: 1px solid var(--primary-color);
-  }
-
-  &.completed {
-    background-color: rgba(76, 175, 80, 0.1);
-    color: var(--success-color);
-    border: 1px solid var(--success-color);
-  }
-
-  &.shipped {
-    background-color: rgba(33, 150, 243, 0.1);
-    color: var(--info-color);
-    border: 1px solid var(--info-color);
-  }
-
-  &.delivered {
-    background-color: rgba(76, 175, 80, 0.1);
-    color: var(--success-color);
-    border: 1px solid var(--success-color);
-  }
-
-  &.cancelled {
-    background-color: rgba(244, 67, 54, 0.1);
-    color: var(--error-color);
-    border: 1px solid var(--error-color);
+  strong {
+    font-weight: 600;
+    color: var(--text-primary);
   }
 }
 
-// Price Highlighting
-.price-highlight {
-  color: var(--success-color);
-  font-weight: 700;
+.product-total {
+  flex-shrink: 0;
+  text-align: right;
+
+  .product-total-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .product-total-value {
+    font-family: 'Teko', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 640px) {
+    align-self: flex-end;
+  }
 }
 
-// Order Summary
+// ================== SUMMARY ==================
+// Khối tối duy nhất của trang, chốt tổng tiền
 .order-summary {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 2px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 -28px;
+  padding: 18px 28px;
+  background: var(--bg-dark);
+
+  @media (max-width: 480px) {
+    margin: 0 -16px;
+    padding: 16px;
+  }
 }
 
 .summary-row {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
+  gap: 24px;
+  width: 100%;
+  max-width: 420px;
+  color: var(--text-inverse);
+
+  > span:first-child {
+    font-family: 'Teko', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 
   .total-price {
-    color: var(--success-color);
-    font-size: 20px;
+    font-family: 'Teko', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--primary-neon);
   }
 }
 
-// Utility Classes
-.text-success {
-  color: var(--success-color);
+// Tôn trọng người dùng bật "giảm chuyển động"
+@media (prefers-reduced-motion: reduce) {
+  .back-link svg,
+  .error button,
+  .product-item {
+    transition: none;
+  }
+
+  .back-link:hover svg,
+  .error button:hover {
+    transform: none;
+  }
 }
 
-.text-warning {
-  color: var(--warning-color);
-}
+// In hóa đơn: bỏ nút, bóng; giữ nội dung
+@media print {
+  .order-detail {
+    background: #fff;
+    padding: 0;
+  }
 
-.text-error {
-  color: var(--error-color);
-}
+  .back-link {
+    display: none;
+  }
 
-.text-primary {
-  color: var(--primary-color);
-}
-
-.bg-success-light {
-  background-color: rgba(76, 175, 80, 0.1);
-}
-
-.bg-warning-light {
-  background-color: rgba(245, 158, 11, 0.1);
-}
-
-.bg-error-light {
-  background-color: rgba(244, 67, 54, 0.1);
-}
-
-.bg-primary-light {
-  background-color: rgba(177, 37, 53, 0.1);
+  .info-section,
+  .shipping-info,
+  .products-list {
+    box-shadow: none;
+  }
 }

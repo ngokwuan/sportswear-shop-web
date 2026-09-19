@@ -11,11 +11,31 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import classNames from 'classnames/bind';
+import { motion, useReducedMotion } from 'framer-motion';
 import styles from './AboutUs.module.scss';
 
 const cx = classNames.bind(styles);
 
+// Cùng "ngôn ngữ chuyển động" với Home
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const stagger = (gap = 0.1) => ({
+  visible: { transition: { staggerChildren: gap } },
+});
+
+const dash = {
+  hidden: { opacity: 0, x: -60, skewX: 12 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    skewX: 0,
+    transition: { duration: 0.6, ease: EASE_BURST },
+  },
+};
+
 function AboutUs() {
+  const reduce = useReducedMotion();
+
   const stats = [
     { icon: faUsers, number: 'New', label: 'Fresh Start' },
     { icon: faShoppingBag, number: '200+', label: 'Products' },
@@ -77,6 +97,13 @@ function AboutUs() {
     },
   ];
 
+  const speedLines = [
+    { top: '18%', width: '30%', duration: 2.2, delay: 0 },
+    { top: '40%', width: '42%', duration: 2.8, delay: 0.6 },
+    { top: '62%', width: '24%', duration: 1.9, delay: 1.1 },
+    { top: '82%', width: '36%', duration: 2.4, delay: 0.3 },
+  ];
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form submitted');
@@ -87,13 +114,32 @@ function AboutUs() {
       <main className={cx('main-content')}>
         {/* Hero Section */}
         <section className={cx('hero-section')}>
+          {speedLines.map((line, i) => (
+            <span
+              key={i}
+              className={cx('speed-line')}
+              style={{
+                top: line.top,
+                width: line.width,
+                animationDuration: `${line.duration}s`,
+                animationDelay: `${line.delay}s`,
+              }}
+            />
+          ))}
           <div className={cx('container')}>
-            <div className={cx('hero-content')}>
-              <h1 className={cx('hero-title')}>ABOUT US</h1>
-              <p className={cx('hero-subtitle')}>
+            <motion.div
+              className={cx('hero-content')}
+              initial="hidden"
+              animate="visible"
+              variants={stagger(0.12)}
+            >
+              <motion.h1 className={cx('hero-title')} variants={dash}>
+                ABOUT US
+              </motion.h1>
+              <motion.p className={cx('hero-subtitle')} variants={dash}>
                 Your New Destination for Fashion Excellence
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
           </div>
         </section>
 
@@ -101,35 +147,49 @@ function AboutUs() {
         <section className={cx('story-section')}>
           <div className={cx('container')}>
             <div className={cx('story-grid')}>
-              <div className={cx('story-image')}>
+              <motion.div
+                className={cx('story-image')}
+                initial={{ opacity: 0, x: -60 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, ease: EASE_BURST }}
+              >
                 <div className={cx('image-placeholder')}>
                   <FontAwesomeIcon
                     icon={faHeart}
                     className={cx('placeholder-icon')}
                   />
                 </div>
-              </div>
-              <div className={cx('story-content')}>
-                <h2 className={cx('section-title')}>Our Story</h2>
-                <p className={cx('story-text')}>
-                  Welcometo our newly launched fashion store! We're excited to
+              </motion.div>
+              <motion.div
+                className={cx('story-content')}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={stagger(0.1)}
+              >
+                <motion.h2 className={cx('section-title')} variants={dash}>
+                  Our Story
+                </motion.h2>
+                <motion.p className={cx('story-text')} variants={dash}>
+                  Welcome to our newly launched fashion store! We're excited to
                   bring you a fresh approach to fashion retail with a carefully
                   curated collection of stylish, high-quality clothing and
                   accessories.
-                </p>
-                <p className={cx('story-text')}>
+                </motion.p>
+                <motion.p className={cx('story-text')} variants={dash}>
                   As a new business, we're building our brand on the foundation
                   of excellent customer service, quality products, and
                   affordable prices. We believe that everyone deserves to look
                   and feel their best, and we're here to make that happen.
-                </p>
-                <p className={cx('story-text')}>
+                </motion.p>
+                <motion.p className={cx('story-text')} variants={dash}>
                   Our team is dedicated to creating an exceptional shopping
                   experience, whether you're browsing online or visiting our
                   store. We're just getting started, and we can't wait to grow
                   with you!
-                </p>
-              </div>
+                </motion.p>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -139,14 +199,25 @@ function AboutUs() {
           <div className={cx('container')}>
             <div className={cx('stats-grid')}>
               {stats.map((stat, index) => (
-                <div key={index} className={cx('stat-card')}>
+                <motion.div
+                  key={index}
+                  className={cx('stat-card')}
+                  initial={{ opacity: 0, x: -40 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{
+                    duration: 0.5,
+                    delay: reduce ? 0 : index * 0.1,
+                    ease: EASE_BURST,
+                  }}
+                >
                   <FontAwesomeIcon
                     icon={stat.icon}
                     className={cx('stat-icon')}
                   />
                   <h3 className={cx('stat-number')}>{stat.number}</h3>
                   <p className={cx('stat-label')}>{stat.label}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -163,16 +234,31 @@ function AboutUs() {
             </div>
             <div className={cx('values-grid')}>
               {values.map((value, index) => (
-                <div key={index} className={cx('value-card')}>
-                  <div className={cx('value-icon-wrapper')}>
-                    <FontAwesomeIcon
-                      icon={value.icon}
-                      className={cx('value-icon')}
-                    />
+                <motion.div
+                  key={index}
+                  className={cx('value-card')}
+                  initial={{ opacity: 0, x: -80 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{
+                    duration: 0.6,
+                    delay: reduce ? 0 : index * 0.12,
+                    ease: EASE_BURST,
+                  }}
+                >
+                  <div className={cx('value-inner')}>
+                    <div className={cx('value-icon-wrapper')}>
+                      <FontAwesomeIcon
+                        icon={value.icon}
+                        className={cx('value-icon')}
+                      />
+                    </div>
+                    <h3 className={cx('value-title')}>{value.title}</h3>
+                    <p className={cx('value-description')}>
+                      {value.description}
+                    </p>
                   </div>
-                  <h3 className={cx('value-title')}>{value.title}</h3>
-                  <p className={cx('value-description')}>{value.description}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -190,7 +276,13 @@ function AboutUs() {
 
             <div className={cx('contact-wrapper')}>
               {/* Contact Form */}
-              <div className={cx('contact-form-container')}>
+              <motion.div
+                className={cx('contact-form-container')}
+                initial={{ opacity: 0, x: -40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, ease: EASE_BURST }}
+              >
                 <h3 className={cx('form-heading')}>Send Us A Message</h3>
                 <form className={cx('contact-form')} onSubmit={handleSubmit}>
                   <div className={cx('form-group')}>
@@ -241,10 +333,16 @@ function AboutUs() {
                     Send Message
                   </button>
                 </form>
-              </div>
+              </motion.div>
 
               {/* Contact Info */}
-              <div className={cx('contact-info-container')}>
+              <motion.div
+                className={cx('contact-info-container')}
+                initial={{ opacity: 0, x: 40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, ease: EASE_BURST, delay: 0.1 }}
+              >
                 <h3 className={cx('form-heading')}>Contact Information</h3>
                 <div className={cx('contact-info-list')}>
                   {contactInfo.map((info, index) => (
@@ -265,7 +363,7 @@ function AboutUs() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -273,7 +371,13 @@ function AboutUs() {
         {/* Map Section */}
         <section className={cx('map-section')}>
           <div className={cx('container')}>
-            <div className={cx('map-container')}>
+            <motion.div
+              className={cx('map-container')}
+              initial={{ opacity: 0, scale: 0.97 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: EASE_BURST }}
+            >
               <div className={cx('map-placeholder')}>
                 <div className={cx('map-content')}>
                   <FontAwesomeIcon
@@ -291,7 +395,7 @@ function AboutUs() {
                   <button className={cx('map-button')}>Get Directions</button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
       </main>

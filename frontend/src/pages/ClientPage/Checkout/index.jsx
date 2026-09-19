@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowLeft,
   faCreditCard,
-  faUser,
+  faMoneyBillWave,
   faShoppingBag,
   faExclamationTriangle,
   faSpinner,
@@ -13,16 +13,36 @@ import {
   faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames/bind';
+import { motion, MotionConfig } from 'framer-motion';
 import styles from './Checkout.module.scss';
 import { UserContext } from '../../../context/UserContext';
 import { formatCurrency } from '../../../utils/formatCurrency';
 
 const cx = classNames.bind(styles);
 
+// Cùng "ngôn ngữ chuyển động" với Home/OrderDetail: trượt lên nhẹ và hiện dần
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const stagger = (gap = 0.08) => ({
+  visible: { transition: { staggerChildren: gap } },
+});
+
+const rise = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: EASE_BURST },
+  },
+};
+
+const PLACEHOLDER = '/placeholder-image.jpg';
+
 function Checkout() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  // '' | 'vnpay' | 'cod' - phương thức đang xử lý (chỉ nút được bấm hiện spinner)
+  const [processing, setProcessing] = useState('');
   const [errors, setErrors] = useState({});
   const [notification, setNotification] = useState({ type: '', message: '' });
   const [orderInfo, setOrderInfo] = useState({
@@ -34,6 +54,7 @@ function Checkout() {
 
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
+  const notificationTimer = useRef(null);
 
   useEffect(() => {
     if (!user) {
@@ -41,11 +62,17 @@ function Checkout() {
       return;
     }
     fetchCartItems();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, navigate]);
+
+  // Dọn timer khi rời trang
+  useEffect(() => () => clearTimeout(notificationTimer.current), []);
 
   const showNotification = (type, message, duration = 5000) => {
+    // Huỷ timer cũ để thông báo mới không bị tắt sớm
+    clearTimeout(notificationTimer.current);
     setNotification({ type, message });
-    setTimeout(() => {
+    notificationTimer.current = setTimeout(() => {
       setNotification({ type: '', message: '' });
     }, duration);
   };
@@ -68,7 +95,7 @@ function Checkout() {
       if (error.response?.status === 401) {
         showNotification(
           'error',
-          'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại'
+          'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại',
         );
         navigate('/login');
       } else {
@@ -132,7 +159,7 @@ function Checkout() {
     }, 0);
   };
 
-  const createOrder = async () => {
+  const createOrder = async (paymentMethod = 'vnpay') => {
     try {
       if (!user) {
         throw new Error('Không tìm thấy thông tin người dùng');
@@ -143,7 +170,7 @@ function Checkout() {
           item.product &&
           item.product.id &&
           item.quantity > 0 &&
-          (item.product.price || item.product.sale_price)
+          (item.product.price || item.product.sale_price),
       );
 
       if (validItems.length === 0) {
@@ -163,14 +190,10 @@ function Checkout() {
         phone: orderInfo.phone.replace(/\s/g, ''),
         email: orderInfo.email.toLowerCase().trim(),
         name: orderInfo.fullName.trim(),
-        payment_method: 'vnpay',
+        payment_method: paymentMethod,
       };
 
-      console.log('Sending order data:', orderData);
-
       const response = await axios.post('/orders/create', orderData);
-
-      console.log('Create order response:', response.data);
 
       if (response.data && response.data.success && response.data.data) {
         return {
@@ -186,15 +209,15 @@ function Checkout() {
 
       if (error.response) {
         const errorData = error.response.data;
-        console.log('Create order error response:', errorData);
         throw new Error(
-          errorData.message || `Lỗi server: ${error.response.status}`
+          errorData.message || `Lỗi server: ${error.response.status}`,
         );
       }
 
       throw error;
     }
   };
+
   const handleVnPayment = async () => {
     try {
       if (!validateForm()) {
@@ -207,7 +230,7 @@ function Checkout() {
         return;
       }
 
-      setProcessing(true);
+      setProcessing('vnpay');
 
       const total = calculateTotal();
       if (total <= 0) {
@@ -220,8 +243,7 @@ function Checkout() {
 
       let orderResult;
       try {
-        orderResult = await createOrder();
-        console.log('Order created result:', orderResult);
+        orderResult = await createOrder('vnpay');
       } catch (orderError) {
         console.error('Failed to create order:', orderError);
         showNotification('error', `Lỗi tạo đơn hàng: ${orderError.message}`);
@@ -246,15 +268,12 @@ function Checkout() {
         order_number: orderNumber, // TRUYỀN ORDER_NUMBER
       };
 
-      console.log('Creating VNPay payment URL with data:', paymentData);
       showNotification('info', 'Đang tạo liên kết thanh toán...', 2000);
 
       const response = await axios.post(
         '/payment/vnpay/create-payment-url',
-        paymentData
+        paymentData,
       );
-
-      console.log('VNPay payment response:', response.data);
 
       if (
         response.data &&
@@ -271,7 +290,7 @@ function Checkout() {
             order_id: orderId,
             order_number: orderNumber,
             amount: total,
-          })
+          }),
         );
 
         // Chuyển hướng đến VNPay
@@ -282,7 +301,7 @@ function Checkout() {
         console.error('VNPay payment creation failed:', response.data);
         showNotification(
           'error',
-          `Lỗi tạo liên kết thanh toán: ${errorMessage}`
+          `Lỗi tạo liên kết thanh toán: ${errorMessage}`,
         );
       }
     } catch (error) {
@@ -293,8 +312,6 @@ function Checkout() {
       if (error.response) {
         const status = error.response.status;
         const data = error.response.data;
-
-        console.log('Error response:', data);
 
         if (status === 400) {
           errorMessage = data.message || 'Thông tin thanh toán không hợp lệ';
@@ -308,7 +325,56 @@ function Checkout() {
 
       showNotification('error', errorMessage);
     } finally {
-      setProcessing(false);
+      setProcessing('');
+    }
+  };
+
+  // Thanh toán tiền mặt khi nhận hàng (COD): chỉ tạo đơn, không qua VNPay
+  const handleCashPayment = async () => {
+    let redirected = false;
+    try {
+      if (!validateForm()) {
+        showNotification('error', 'Vui lòng điền đầy đủ thông tin giao hàng');
+        return;
+      }
+
+      if (!cartItems || cartItems.length === 0) {
+        showNotification('error', 'Giỏ hàng trống');
+        return;
+      }
+
+      if (calculateTotal() <= 0) {
+        showNotification('error', 'Số tiền thanh toán không hợp lệ');
+        return;
+      }
+
+      setProcessing('cod');
+      showNotification('info', 'Đang tạo đơn hàng...', 2000);
+
+      let orderResult;
+      try {
+        orderResult = await createOrder('cod');
+      } catch (orderError) {
+        console.error('Failed to create order:', orderError);
+        showNotification('error', `Lỗi tạo đơn hàng: ${orderError.message}`);
+        return;
+      }
+
+      sessionStorage.removeItem('pending_order');
+      showNotification(
+        'success',
+        'Đặt hàng thành công! Bạn sẽ thanh toán khi nhận hàng.',
+        3000,
+      );
+
+      // Giữ nút bị khóa trong lúc chờ chuyển trang để tránh tạo trùng đơn
+      redirected = true;
+      setTimeout(() => navigate(`/orders/${orderResult.order_id}`), 1500);
+    } catch (error) {
+      console.error('Cash payment error:', error);
+      showNotification('error', 'Có lỗi xảy ra khi đặt hàng');
+    } finally {
+      if (!redirected) setProcessing('');
     }
   };
 
@@ -318,7 +384,7 @@ function Checkout() {
         !item.product ||
         !item.product.id ||
         item.quantity <= 0 ||
-        (!item.product.price && !item.product.sale_price)
+        (!item.product.price && !item.product.sale_price),
     );
 
     return invalidItems.length === 0;
@@ -387,234 +453,250 @@ function Checkout() {
   }
 
   return (
-    <div className={cx('checkout-page')}>
-      <div className={cx('checkout-container')}>
-        {/* Notification */}
-        {notification.message && (
-          <div className={cx('notification', notification.type)}>
-            <FontAwesomeIcon
-              icon={
-                notification.type === 'success'
-                  ? faCheckCircle
-                  : notification.type === 'info'
-                  ? faSpinner
-                  : faTimesCircle
-              }
-              spin={notification.type === 'info'}
-            />
-            <span>{notification.message}</span>
-            <button
-              className={cx('close-notification')}
-              onClick={() => setNotification({ type: '', message: '' })}
+    <MotionConfig reducedMotion="user">
+      <div className={cx('checkout-page')}>
+        <motion.div
+          className={cx('checkout-container')}
+          initial="hidden"
+          animate="visible"
+          variants={stagger(0.08)}
+        >
+          {/* Notification */}
+          {notification.message && (
+            <motion.div
+              className={cx('notification', notification.type)}
+              role="status"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, ease: EASE_BURST }}
             >
-              ×
-            </button>
-          </div>
-        )}
-
-        <div className={cx('checkout-header')}>
-          <button className={cx('back-btn')} onClick={() => navigate('/cart')}>
-            <FontAwesomeIcon icon={faArrowLeft} />
-            Quay lại giỏ hàng
-          </button>
-          <h1>
-            <FontAwesomeIcon icon={faCreditCard} />
-            Thanh toán
-          </h1>
-          <p className={cx('subtitle')}>
-            Vui lòng điền thông tin để hoàn tất đơn hàng
-          </p>
-        </div>
-
-        <div className={cx('checkout-content')}>
-          <div className={cx('order-form')}>
-            <h2>
-              <FontAwesomeIcon icon={faUser} />
-              Thông tin giao hàng
-            </h2>
-
-            <div className={cx('form-row')}>
-              <div className={cx('form-group')}>
-                <label htmlFor="fullName">
-                  Họ và tên <span className={cx('required')}>*</span>
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  placeholder="Nhập họ và tên"
-                  value={orderInfo.fullName}
-                  onChange={(e) =>
-                    handleInputChange('fullName', e.target.value)
-                  }
-                  className={errors.fullName ? cx('error') : ''}
-                  maxLength={50}
-                />
-                {errors.fullName && (
-                  <div className={cx('form-error')}>
-                    <FontAwesomeIcon icon={faExclamationTriangle} />
-                    {errors.fullName}
-                  </div>
-                )}
-              </div>
-
-              <div className={cx('form-group')}>
-                <label htmlFor="phone">
-                  Số điện thoại <span className={cx('required')}>*</span>
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  placeholder="Nhập số điện thoại (10-11 số)"
-                  value={orderInfo.phone}
-                  onChange={(e) => {
-                    // Only allow numbers and spaces
-                    const value = e.target.value.replace(/[^\d\s]/g, '');
-                    handleInputChange('phone', value);
-                  }}
-                  className={errors.phone ? cx('error') : ''}
-                  maxLength={15}
-                />
-                {errors.phone && (
-                  <div className={cx('form-error')}>
-                    <FontAwesomeIcon icon={faExclamationTriangle} />
-                    {errors.phone}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className={cx('form-group')}>
-              <label htmlFor="email">
-                Email <span className={cx('required')}>*</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                placeholder="Nhập địa chỉ email"
-                value={orderInfo.email}
-                onChange={(e) =>
-                  handleInputChange('email', e.target.value.toLowerCase())
+              <FontAwesomeIcon
+                icon={
+                  notification.type === 'success'
+                    ? faCheckCircle
+                    : notification.type === 'info'
+                      ? faSpinner
+                      : faTimesCircle
                 }
-                className={errors.email ? cx('error') : ''}
-                maxLength={100}
+                spin={notification.type === 'info'}
               />
-              {errors.email && (
-                <div className={cx('form-error')}>
-                  <FontAwesomeIcon icon={faExclamationTriangle} />
-                  {errors.email}
+              <span>{notification.message}</span>
+              <button
+                className={cx('close-notification')}
+                aria-label="Đóng thông báo"
+                onClick={() => setNotification({ type: '', message: '' })}
+              >
+                ×
+              </button>
+            </motion.div>
+          )}
+
+          <motion.div className={cx('checkout-header')} variants={rise}>
+            <button
+              className={cx('back-btn')}
+              onClick={() => navigate('/cart')}
+            >
+              <FontAwesomeIcon icon={faArrowLeft} />
+              Quay lại giỏ hàng
+            </button>
+            <h1>
+              <FontAwesomeIcon icon={faCreditCard} />
+              Thanh toán
+            </h1>
+            <p className={cx('subtitle')}>
+              Vui lòng điền thông tin để hoàn tất đơn hàng
+            </p>
+          </motion.div>
+
+          <div className={cx('checkout-content')}>
+            <motion.div className={cx('order-form')} variants={rise}>
+              <h2>Thông tin giao hàng</h2>
+
+              <div className={cx('form-row')}>
+                <div className={cx('form-group')}>
+                  <label htmlFor="fullName">
+                    Họ và tên <span className={cx('required')}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    placeholder="Nhập họ và tên"
+                    autoComplete="name"
+                    value={orderInfo.fullName}
+                    onChange={(e) =>
+                      handleInputChange('fullName', e.target.value)
+                    }
+                    className={errors.fullName ? cx('input-error') : ''}
+                    maxLength={50}
+                  />
+                  {errors.fullName && (
+                    <div className={cx('form-error')}>
+                      <FontAwesomeIcon icon={faExclamationTriangle} />
+                      {errors.fullName}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className={cx('form-group')}>
-              <label htmlFor="address">
-                Địa chỉ giao hàng <span className={cx('required')}>*</span>
-              </label>
-              <textarea
-                id="address"
-                placeholder="Nhập địa chỉ chi tiết (số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành)"
-                value={orderInfo.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                className={errors.address ? cx('error') : ''}
-                rows={3}
-                maxLength={200}
-              />
-              {errors.address && (
-                <div className={cx('form-error')}>
-                  <FontAwesomeIcon icon={faExclamationTriangle} />
-                  {errors.address}
+                <div className={cx('form-group')}>
+                  <label htmlFor="phone">
+                    Số điện thoại <span className={cx('required')}>*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    placeholder="Nhập số điện thoại (10-11 số)"
+                    autoComplete="tel"
+                    value={orderInfo.phone}
+                    onChange={(e) => {
+                      // Only allow numbers and spaces
+                      const value = e.target.value.replace(/[^\d\s]/g, '');
+                      handleInputChange('phone', value);
+                    }}
+                    className={errors.phone ? cx('input-error') : ''}
+                    maxLength={15}
+                  />
+                  {errors.phone && (
+                    <div className={cx('form-error')}>
+                      <FontAwesomeIcon icon={faExclamationTriangle} />
+                      {errors.phone}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          <div className={cx('order-summary')}>
-            <div className={cx('summary-header')}>
-              <h3>
-                <FontAwesomeIcon icon={faShoppingBag} />
-                Đơn hàng ({cartItems.length} sản phẩm)
-              </h3>
-            </div>
+              <div className={cx('form-group')}>
+                <label htmlFor="email">
+                  Email <span className={cx('required')}>*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="Nhập địa chỉ email"
+                  autoComplete="email"
+                  value={orderInfo.email}
+                  onChange={(e) =>
+                    handleInputChange('email', e.target.value.toLowerCase())
+                  }
+                  className={errors.email ? cx('input-error') : ''}
+                  maxLength={100}
+                />
+                {errors.email && (
+                  <div className={cx('form-error')}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} />
+                    {errors.email}
+                  </div>
+                )}
+              </div>
 
-            <div className={cx('order-items')}>
-              {cartItems.map((item) => {
-                const currentPrice =
-                  item.product?.sale_price || item.product?.price || 0;
-                const originalPrice = item.product?.price || 0;
-                const hasDiscount =
-                  item.product?.sale_price &&
-                  item.product.sale_price < originalPrice;
+              <div className={cx('form-group')}>
+                <label htmlFor="address">
+                  Địa chỉ giao hàng <span className={cx('required')}>*</span>
+                </label>
+                <textarea
+                  id="address"
+                  placeholder="Nhập địa chỉ chi tiết (số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành)"
+                  autoComplete="street-address"
+                  value={orderInfo.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  className={errors.address ? cx('input-error') : ''}
+                  rows={3}
+                  maxLength={200}
+                />
+                {errors.address && (
+                  <div className={cx('form-error')}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} />
+                    {errors.address}
+                  </div>
+                )}
+              </div>
+            </motion.div>
 
-                return (
-                  <div key={item.id} className={cx('order-item')}>
-                    <img
-                      src={item.product?.featured_image}
-                      alt={item.product?.name}
-                      className={cx('item-image')}
-                      onError={(e) => {
-                        e.target.src =
-                          'https://via.placeholder.com/60x60/f0f0f0/666?text=Product';
-                      }}
-                    />
-                    <div className={cx('item-details')}>
-                      <div className={cx('item-name')}>
-                        {item.product?.name}
-                      </div>
-                      <div className={cx('item-info')}>
-                        <span className={cx('size')}>{item?.size}</span>
-                        <span className={cx('quantity')}>x{item.quantity}</span>
-                        <div className={cx('price-info')}>
-                          {hasDiscount && (
-                            <span className={cx('original-price')}>
-                              {formatCurrency(originalPrice * item.quantity)}
-                            </span>
-                          )}
-                          <span
-                            className={cx(
-                              'price',
-                              hasDiscount ? 'sale-price' : ''
-                            )}
-                          >
-                            {formatCurrency(currentPrice * item.quantity)}
+            <motion.div className={cx('order-summary')} variants={rise}>
+              <div className={cx('summary-header')}>
+                <h3>Đơn hàng ({cartItems.length} sản phẩm)</h3>
+              </div>
+
+              <div className={cx('order-items')}>
+                {cartItems.map((item) => {
+                  const currentPrice =
+                    item.product?.sale_price || item.product?.price || 0;
+                  const originalPrice = item.product?.price || 0;
+                  const hasDiscount =
+                    item.product?.sale_price &&
+                    item.product.sale_price < originalPrice;
+
+                  return (
+                    <div key={item.id} className={cx('order-item')}>
+                      <img
+                        src={item.product?.featured_image || PLACEHOLDER}
+                        alt={item.product?.name}
+                        className={cx('item-image')}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.onerror = null; // tránh lặp vô hạn
+                          e.target.src = PLACEHOLDER;
+                        }}
+                      />
+                      <div className={cx('item-details')}>
+                        <div className={cx('item-name')}>
+                          {item.product?.name}
+                        </div>
+                        <div className={cx('item-info')}>
+                          <span className={cx('size')}>{item?.size}</span>
+                          <span className={cx('quantity')}>
+                            x{item.quantity}
                           </span>
+                          <div className={cx('price-info')}>
+                            {hasDiscount && (
+                              <span className={cx('original-price')}>
+                                {formatCurrency(originalPrice * item.quantity)}
+                              </span>
+                            )}
+                            <span
+                              className={cx(
+                                'price',
+                                hasDiscount ? 'sale-price' : '',
+                              )}
+                            >
+                              {formatCurrency(currentPrice * item.quantity)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
 
-            <div className={cx('summary-calculations')}>
-              <div className={cx('summary-row')}>
-                <span>Tạm tính:</span>
-                <span>{formatCurrency(calculateTotal())}</span>
+              <div className={cx('summary-calculations')}>
+                <div className={cx('summary-row')}>
+                  <span>Tạm tính:</span>
+                  <span>{formatCurrency(calculateTotal())}</span>
+                </div>
+                <div className={cx('summary-row')}>
+                  <span>Phí vận chuyển:</span>
+                  <span className={cx('shipping-free')}>Miễn phí</span>
+                </div>
+                <div className={cx('summary-row')}>
+                  <span>Thuế:</span>
+                  <span>0.00đ</span>
+                </div>
+                <div className={cx('summary-row', 'total-row')}>
+                  <span>Tổng cộng:</span>
+                  <span className={cx('total-amount')}>
+                    {formatCurrency(calculateTotal())}
+                  </span>
+                </div>
               </div>
-              <div className={cx('summary-row')}>
-                <span>Phí vận chuyển:</span>
-                <span className={cx('shipping-free')}>Miễn phí</span>
-              </div>
-              <div className={cx('summary-row')}>
-                <span>Thuế:</span>
-                <span>0.00đ</span>
-              </div>
-              <div className={cx('summary-row', 'total-row')}>
-                <span>Tổng cộng:</span>
-                <span className={cx('total-amount')}>
-                  {formatCurrency(calculateTotal())}
-                </span>
-              </div>
-            </div>
 
-            <div className={cx('payment-section')}>
-              <div className={cx('payment-methods')}>
-                <div className={cx('payment-method')}>
+              <div className={cx('payment-section')}>
+                <div className={cx('payment-methods')}>
                   <button
                     className={cx('payment-btn', 'vnpay-btn')}
                     onClick={handleVnPayment}
-                    disabled={processing || cartItems.length === 0}
+                    disabled={Boolean(processing) || cartItems.length === 0}
                   >
-                    {processing ? (
+                    {processing === 'vnpay' ? (
                       <>
                         <FontAwesomeIcon icon={faSpinner} spin />
                         Đang xử lý...
@@ -626,6 +708,28 @@ function Checkout() {
                       </>
                     )}
                   </button>
+
+                  <div className={cx('method-divider')}>
+                    <span>hoặc</span>
+                  </div>
+
+                  <button
+                    className={cx('payment-btn', 'cash-btn')}
+                    onClick={handleCashPayment}
+                    disabled={Boolean(processing) || cartItems.length === 0}
+                  >
+                    {processing === 'cod' ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} spin />
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faMoneyBillWave} />
+                        Thanh toán khi nhận hàng
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 <div className={cx('payment-info')}>
@@ -634,15 +738,16 @@ function Checkout() {
                     Thanh toán an toàn và bảo mật
                   </p>
                   <p className={cx('support-info')}>
-                    Hỗ trợ thanh toán qua ví VNPay, thẻ ngân hàng, QR Code
+                    Hỗ trợ ví VNPay, thẻ ngân hàng, QR Code hoặc tiền mặt khi
+                    nhận hàng
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
 

@@ -6,13 +6,13 @@ import axios from '../../../setup/axios';
 import classNames from 'classnames/bind';
 import styles from './Header.module.scss';
 import {
-  faSearch,
   faShoppingCart,
   faUserAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import Logo from '../../../components/Logo';
 import UserMenu from '../../../components/UserMenu';
 import { UserContext } from '../../../context/UserContext';
+import { motion } from 'framer-motion';
 
 const cx = classNames.bind(styles);
 
@@ -20,6 +20,7 @@ function Header() {
   const [cartCount, setCartCount] = useState(0);
   const { user, loading } = useContext(UserContext);
   const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
 
   const isHomePage = location.pathname === '/';
 
@@ -34,12 +35,10 @@ function Header() {
   };
 
   useEffect(() => {
-    if (!loading) {
-      if (user) {
-        fetchCartCount();
-      } else {
-        setCartCount(0);
-      }
+    if (!loading && user) {
+      fetchCartCount();
+    } else {
+      setCartCount(0);
     }
   }, [user, loading]);
 
@@ -51,44 +50,58 @@ function Header() {
         fetchCartCount();
       }
     };
-
     window.addEventListener('cartUpdated', handleCartUpdate);
-    return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
     };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <div className={cx('wrapper', { 'home-layout': isHomePage })}>
+    <motion.header
+      className={cx('header', { scrolled })}
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+    >
       <div className={cx('logo')}>
         <Logo />
       </div>
 
-      {/* Icons */}
+      <nav className={cx('nav-menu')}>
+        <NavLink to="/products" className={(nav) => cx('nav-link', { active: nav.isActive })}>
+          COLLECTION
+        </NavLink>
+        <NavLink to="/blogs" className={(nav) => cx('nav-link', { active: nav.isActive })}>
+          JOURNAL
+        </NavLink>
+        <NavLink to="/aboutus" className={(nav) => cx('nav-link', { active: nav.isActive })}>
+          STUDIO
+        </NavLink>
+      </nav>
+
       <div className={cx('nav-icons')}>
         {!loading && user ? (
           <UserMenu user={user} />
         ) : (
           !loading && (
-            <NavLink to="/login" className={cx('nav-link')}>
-              <button className={cx('icon-btn', 'login-btn')}>
-                <FontAwesomeIcon icon={faUserAlt} />
-                SIGN IN
-              </button>
+            <NavLink to="/login" className={cx('icon-btn')}>
+              <FontAwesomeIcon icon={faUserAlt} />
             </NavLink>
           )
         )}
 
-        <NavLink to="/cart" className={cx('nav-link')}>
-          <button className={cx('icon-btn', 'cart-btn')}>
-            <FontAwesomeIcon icon={faShoppingCart} />
-            {cartCount > 0 && (
-              <span className={cx('cart-badge')}>{cartCount}</span>
-            )}
-          </button>
+        <NavLink to="/cart" className={cx('icon-btn', 'cart-btn')}>
+          <FontAwesomeIcon icon={faShoppingCart} />
+          {cartCount > 0 && <span className={cx('cart-badge')}>{cartCount}</span>}
         </NavLink>
       </div>
-    </div>
+    </motion.header>
   );
 }
 

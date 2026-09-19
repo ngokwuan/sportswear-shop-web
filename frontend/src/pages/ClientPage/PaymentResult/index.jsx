@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from '../../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCheckCircle,
@@ -13,12 +12,47 @@ import {
   faArrowLeft,
   faClock,
   faInfoCircle,
+  faPhone,
+  faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames/bind';
+import { motion, MotionConfig } from 'framer-motion';
 import styles from './PaymentResult.module.scss';
 import { toast } from 'react-toastify';
 
 const cx = classNames.bind(styles);
+
+// Cùng "ngôn ngữ chuyển động" với Home/Login/Register
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const speedLines = [
+  { top: '15%', width: '32%', duration: 2.4, delay: 0 },
+  { top: '38%', width: '44%', duration: 3, delay: 0.7 },
+  { top: '60%', width: '26%', duration: 2, delay: 1.2 },
+  { top: '82%', width: '38%', duration: 2.6, delay: 0.3 },
+];
+
+const VNPAY_ERRORS = {
+  '00': 'Giao dịch thành công',
+  '07': 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
+  '09': 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.',
+  10: 'Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần',
+  11: 'Giao dịch không thành công do: Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch.',
+  12: 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa.',
+  13: 'Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP).',
+  24: 'Giao dịch không thành công do: Khách hàng hủy giao dịch',
+  51: 'Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch.',
+  65: 'Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày.',
+  75: 'Ngân hàng thanh toán đang bảo trì.',
+  79: 'Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định.',
+  99: 'Các lỗi khác (lỗi còn lại, không có trong danh sách mã lỗi đã liệt kê)',
+};
+
+const STATUS_LABELS = {
+  success: 'Thành công',
+  failed: 'Thất bại',
+  error: 'Lỗi',
+};
 
 function PaymentResult() {
   const [searchParams] = useSearchParams();
@@ -132,28 +166,26 @@ function PaymentResult() {
     }
   };
 
-  const getVNPayErrorMessage = (code) => {
-    const errorMessages = {
-      '00': 'Giao dịch thành công',
-      '07': 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
-      '09': 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.',
-      10: 'Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần',
-      11: 'Giao dịch không thành công do: Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch.',
-      12: 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa.',
-      13: 'Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP).',
-      24: 'Giao dịch không thành công do: Khách hàng hủy giao dịch',
-      51: 'Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch.',
-      65: 'Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày.',
-      75: 'Ngân hàng thanh toán đang bảo trì.',
-      79: 'Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định.',
-      99: 'Các lỗi khác (lỗi còn lại, không có trong danh sách mã lỗi đã liệt kê)',
-    };
-    return errorMessages[code] || 'Lỗi không xác định';
-  };
+  const getVNPayErrorMessage = (code) =>
+    VNPAY_ERRORS[code] || 'Lỗi không xác định';
+
+  const speedLineElements = speedLines.map((line, i) => (
+    <span
+      key={i}
+      className={cx('speed-line')}
+      style={{
+        top: line.top,
+        width: line.width,
+        animationDuration: `${line.duration}s`,
+        animationDelay: `${line.delay}s`,
+      }}
+    />
+  ));
 
   if (loading) {
     return (
-      <div className={cx('container')}>
+      <div className={cx('wrapper')}>
+        {speedLineElements}
         <div className={cx('loading-wrapper')}>
           <FontAwesomeIcon
             icon={faSpinner}
@@ -167,180 +199,198 @@ function PaymentResult() {
   }
 
   const statusInfo = getStatusMessage();
+  const statusLabel = STATUS_LABELS[paymentInfo.status];
 
   return (
-    <div className={cx('container')}>
-      <div className={cx('result-wrapper')}>
-        <div className={cx('result-card')}>
-          <div className={cx('status-section')}>
-            <div className={cx('status-icon', paymentInfo.status)}>
-              <FontAwesomeIcon icon={getStatusIcon()} />
+    <MotionConfig reducedMotion="user">
+      <div className={cx('wrapper')}>
+        {speedLineElements}
+
+        <motion.div
+          className={cx('result-wrapper')}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE_BURST }}
+        >
+          <div className={cx('result-card')}>
+            <div className={cx('status-section')}>
+              <div className={cx('status-icon', paymentInfo.status)}>
+                <FontAwesomeIcon icon={getStatusIcon()} />
+              </div>
+
+              <h1 className={cx('status-title')}>{statusInfo.title}</h1>
+              <p className={cx('status-subtitle')}>{statusInfo.subtitle}</p>
+              <p className={cx('status-description')}>
+                {statusInfo.description}
+              </p>
             </div>
 
-            <h1 className={cx('status-title')}>{statusInfo.title}</h1>
-            <p className={cx('status-subtitle')}>{statusInfo.subtitle}</p>
-            <p className={cx('status-description')}>{statusInfo.description}</p>
-          </div>
-
-          {/* Thông tin giao dịch */}
-          <div className={cx('transaction-info')}>
-            <h3 className={cx('section-title')}>
-              <FontAwesomeIcon icon={faReceipt} />
-              Thông tin giao dịch
-            </h3>
-
-            <div className={cx('info-grid')}>
-              {paymentInfo.vnpayOrderId && (
-                <div className={cx('info-item')}>
-                  <span className={cx('info-label')}>Mã giao dịch VNPay:</span>
-                  <span className={cx('info-value', 'transaction-id')}>
-                    {paymentInfo.vnpayOrderId}
-                  </span>
-                </div>
-              )}
-
-              {orderDetails && (
-                <div className={cx('info-item')}>
-                  <span className={cx('info-label')}>Mã đơn hàng:</span>
-                  <span className={cx('info-value')}>
-                    #{orderDetails.order_id}
-                  </span>
-                </div>
-              )}
-
-              {paymentInfo.amount > 0 && (
-                <div className={cx('info-item')}>
-                  <span className={cx('info-label')}>Số tiền:</span>
-                  <span className={cx('info-value', 'amount')}>
-                    {paymentInfo.amount.toLocaleString('vi-VN')}đ
-                  </span>
-                </div>
-              )}
-
-              <div className={cx('info-item')}>
-                <span className={cx('info-label')}>Thời gian:</span>
-                <span className={cx('info-value')}>
-                  <FontAwesomeIcon icon={faClock} />
-                  {new Date().toLocaleString('vi-VN')}
-                </span>
-              </div>
-
-              <div className={cx('info-item')}>
-                <span className={cx('info-label')}>Trạng thái:</span>
-                <span
-                  className={cx('info-value', 'status', paymentInfo.status)}
-                >
-                  {paymentInfo.status === 'success' && 'Thành công'}
-                  {paymentInfo.status === 'failed' && 'Thất bại'}
-                  {paymentInfo.status === 'error' && 'Lỗi'}
-                </span>
-              </div>
-            </div>
-
-            {/* Hiển thị chi tiết lỗi nếu có */}
-            {paymentInfo.status === 'failed' && paymentInfo.code && (
-              <div className={cx('error-details')}>
-                <h4 className={cx('error-title')}>Chi tiết lỗi:</h4>
-                <p className={cx('error-message')}>
-                  <strong>Mã lỗi:</strong> {paymentInfo.code}
-                </p>
-                <p className={cx('error-description')}>
-                  {getVNPayErrorMessage(paymentInfo.code)}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Thông tin đơn hàng (chỉ hiển thị khi thanh toán thành công) */}
-          {paymentInfo.status === 'success' && orderDetails && (
-            <div className={cx('order-info')}>
+            {/* Thông tin giao dịch */}
+            <div className={cx('transaction-info')}>
               <h3 className={cx('section-title')}>
-                <FontAwesomeIcon icon={faShoppingBag} />
-                Thông tin đơn hàng
+                <FontAwesomeIcon icon={faReceipt} />
+                Thông tin giao dịch
               </h3>
 
-              <div className={cx('success-message')}>
-                <FontAwesomeIcon icon={faCheckCircle} />
-                <p>
-                  Đơn hàng #{orderDetails.order_id} đã được xác nhận và sẽ được
-                  xử lý trong thời gian sớm nhất.
-                </p>
+              <div className={cx('info-grid')}>
+                {paymentInfo.vnpayOrderId && (
+                  <div className={cx('info-item')}>
+                    <span className={cx('info-label')}>
+                      Mã giao dịch VNPay:
+                    </span>
+                    <span className={cx('info-value', 'transaction-id')}>
+                      {paymentInfo.vnpayOrderId}
+                    </span>
+                  </div>
+                )}
+
+                {orderDetails && (
+                  <div className={cx('info-item')}>
+                    <span className={cx('info-label')}>Mã đơn hàng:</span>
+                    <span className={cx('info-value')}>
+                      #{orderDetails.order_id}
+                    </span>
+                  </div>
+                )}
+
+                {paymentInfo.amount > 0 && (
+                  <div className={cx('info-item')}>
+                    <span className={cx('info-label')}>Số tiền:</span>
+                    <span className={cx('info-value', 'amount')}>
+                      {paymentInfo.amount.toLocaleString('vi-VN')}đ
+                    </span>
+                  </div>
+                )}
+
+                <div className={cx('info-item')}>
+                  <span className={cx('info-label')}>Thời gian:</span>
+                  <span className={cx('info-value')}>
+                    <FontAwesomeIcon icon={faClock} />
+                    {new Date().toLocaleString('vi-VN')}
+                  </span>
+                </div>
+
+                {statusLabel && (
+                  <div className={cx('info-item')}>
+                    <span className={cx('info-label')}>Trạng thái:</span>
+                    <span
+                      className={cx('info-value', 'status', paymentInfo.status)}
+                    >
+                      {statusLabel}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div className={cx('next-steps')}>
-                <h4 className={cx('steps-title')}>Các bước tiếp theo:</h4>
-                <ul className={cx('steps-list')}>
-                  <li>✓ Đơn hàng đã được xác nhận thanh toán</li>
-                  <li>📦 Chúng tôi sẽ chuẩn bị và đóng gói sản phẩm</li>
-                  <li>🚚 Giao hàng trong vòng 2-3 ngày làm việc</li>
-                  <li>📧 Thông tin chi tiết sẽ được gửi qua email</li>
-                </ul>
-              </div>
+              {/* Hiển thị chi tiết lỗi nếu có */}
+              {paymentInfo.status === 'failed' && paymentInfo.code && (
+                <div className={cx('error-details')}>
+                  <h4 className={cx('error-title')}>Chi tiết lỗi</h4>
+                  <p className={cx('error-message')}>
+                    <strong>Mã lỗi:</strong> {paymentInfo.code}
+                  </p>
+                  <p className={cx('error-description')}>
+                    {getVNPayErrorMessage(paymentInfo.code)}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Hành động */}
-          <div className={cx('actions-section')}>
-            {paymentInfo.status === 'success' ? (
-              <>
-                <button
-                  className={cx('action-btn', 'primary')}
-                  onClick={() => navigate('/orders')}
-                >
-                  <FontAwesomeIcon icon={faReceipt} />
-                  Xem đơn hàng của tôi
-                </button>
-                <button
-                  className={cx('action-btn', 'secondary')}
-                  onClick={() => navigate('/products')}
-                >
+            {/* Thông tin đơn hàng (chỉ hiển thị khi thanh toán thành công) */}
+            {paymentInfo.status === 'success' && orderDetails && (
+              <div className={cx('order-info')}>
+                <h3 className={cx('section-title')}>
                   <FontAwesomeIcon icon={faShoppingBag} />
-                  Tiếp tục mua sắm
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  className={cx('action-btn', 'primary')}
-                  onClick={() => navigate('/cart')}
-                >
-                  <FontAwesomeIcon icon={faArrowLeft} />
-                  Quay lại giỏ hàng
-                </button>
-                <button
-                  className={cx('action-btn', 'secondary')}
-                  onClick={() => navigate('/products')}
-                >
-                  <FontAwesomeIcon icon={faShoppingBag} />
-                  Tiếp tục mua sắm
-                </button>
-              </>
+                  Thông tin đơn hàng
+                </h3>
+
+                <div className={cx('success-message')}>
+                  <FontAwesomeIcon icon={faCheckCircle} />
+                  <p>
+                    Đơn hàng #{orderDetails.order_id} đã được xác nhận và sẽ
+                    được xử lý trong thời gian sớm nhất.
+                  </p>
+                </div>
+
+                <div className={cx('next-steps')}>
+                  <h4 className={cx('steps-title')}>Các bước tiếp theo</h4>
+                  <ul className={cx('steps-list')}>
+                    <li>Đơn hàng đã được xác nhận thanh toán</li>
+                    <li>Chúng tôi sẽ chuẩn bị và đóng gói sản phẩm</li>
+                    <li>Giao hàng trong vòng 2-3 ngày làm việc</li>
+                    <li>Thông tin chi tiết sẽ được gửi qua email</li>
+                  </ul>
+                </div>
+              </div>
             )}
 
-            <button
-              className={cx('action-btn', 'tertiary')}
-              onClick={() => navigate('/')}
-            >
-              <FontAwesomeIcon icon={faHome} />
-              Về trang chủ
-            </button>
-          </div>
+            {/* Hành động */}
+            <div className={cx('actions-section')}>
+              {paymentInfo.status === 'success' ? (
+                <>
+                  <button
+                    className={cx('action-btn', 'primary')}
+                    onClick={() => navigate('/orders')}
+                  >
+                    <FontAwesomeIcon icon={faReceipt} />
+                    Xem đơn hàng của tôi
+                  </button>
+                  <button
+                    className={cx('action-btn', 'secondary')}
+                    onClick={() => navigate('/products')}
+                  >
+                    <FontAwesomeIcon icon={faShoppingBag} />
+                    Tiếp tục mua sắm
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className={cx('action-btn', 'primary')}
+                    onClick={() => navigate('/cart')}
+                  >
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                    Quay lại giỏ hàng
+                  </button>
+                  <button
+                    className={cx('action-btn', 'secondary')}
+                    onClick={() => navigate('/products')}
+                  >
+                    <FontAwesomeIcon icon={faShoppingBag} />
+                    Tiếp tục mua sắm
+                  </button>
+                </>
+              )}
 
-          {/* Thông tin hỗ trợ */}
-          <div className={cx('support-section')}>
-            <p className={cx('support-text')}>
-              Cần hỗ trợ? Liên hệ với chúng tôi qua:
-            </p>
-            <div className={cx('support-contacts')}>
-              <span className={cx('support-item')}>📞 Hotline: 1900-xxxx</span>
-              <span className={cx('support-item')}>
-                ✉️ Email: support@example.com
-              </span>
+              <button
+                className={cx('action-btn', 'tertiary')}
+                onClick={() => navigate('/')}
+              >
+                <FontAwesomeIcon icon={faHome} />
+                Về trang chủ
+              </button>
+            </div>
+
+            {/* Thông tin hỗ trợ */}
+            <div className={cx('support-section')}>
+              <p className={cx('support-text')}>
+                Cần hỗ trợ? Liên hệ với chúng tôi qua
+              </p>
+              <div className={cx('support-contacts')}>
+                <span className={cx('support-item')}>
+                  <FontAwesomeIcon icon={faPhone} />
+                  Hotline: 1900-xxxx
+                </span>
+                <span className={cx('support-item')}>
+                  <FontAwesomeIcon icon={faEnvelope} />
+                  Email: support@example.com
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
 

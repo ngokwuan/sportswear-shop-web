@@ -1,11 +1,6 @@
 // Blogs.module.scss - Simple & Clean
 .container {
   max-width: 100%;
-  padding: 0 56px;
-
-  @media (max-width: 768px) {
-    padding: 0 1rem;
-  }
 }
 
 .blog-grid {
@@ -20,7 +15,6 @@
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 20px;
   }
 }
 
@@ -32,9 +26,9 @@
   transition: all var(--transition-base);
   cursor: pointer;
   text-decoration: none;
-  display: block;
+  display: flex;
   border: 1px solid var(--border-light);
-
+  flex-direction: column;
   &:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-lg);
@@ -80,6 +74,9 @@
 
 .blog-content {
   padding: 28px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 768px) {
     padding: 24px 20px;

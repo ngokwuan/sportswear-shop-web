@@ -1,369 +1,381 @@
-.container {
+// PaymentResult.module.scss - đồng bộ theme "Vibrant Sportswear" với Home / Login
+// Dùng chung CSS variables: --bg-primary, --bg-secondary, --bg-dark, --primary-neon,
+// --text-primary, --text-secondary, --text-muted, --text-inverse, --border-light,
+// --spacing-*, --transition-fast/base. Font 'Teko' cho heading/label.
+// Skew chỉ dùng ở điểm nhấn (badge trạng thái, nút, vạch trang trí);
+// nội dung đọc (dòng thông tin, danh sách) giữ thẳng để dễ đọc.
+
+$ease-burst: cubic-bezier(0.16, 1, 0.3, 1);
+$color-error: #f31d33;
+$color-warning: #ff9800;
+
+.wrapper {
   min-height: 100vh;
-  background-color: var(--bg-secondary);
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow-x: hidden; // chỉ chặn speed-line tràn ngang
+  overflow-y: auto;
+  box-sizing: border-box;
+  background: var(--bg-dark);
   padding: 40px 20px;
 
   @media (max-width: 768px) {
-    padding: 20px 10px;
     align-items: flex-start;
-    padding-top: 50px;
+    padding: 24px 12px;
   }
 
-  @media (max-width: 480px) {
-    padding: 20px 5px;
+  .speed-line {
+    position: absolute;
+    left: -40%;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary-neon));
+    opacity: 0.2;
+    animation: speed-line linear infinite;
+    pointer-events: none;
   }
 }
 
-// Loading State
+@keyframes speed-line {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(160vw);
+  }
+}
+
+// ================== LOADING ==================
 .loading-wrapper {
+  position: relative;
+  z-index: 1;
   text-align: center;
-  color: var(--text-primary);
 
   .loading-spinner {
-    font-size: 48px;
-    margin-bottom: 20px;
-    color: var(--primary-color);
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: var(--primary-neon);
   }
 
   .loading-text {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-family: 'Teko', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-inverse);
   }
 }
 
-// Result Wrapper
+// ================== CARD ==================
 .result-wrapper {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 800px;
-
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
 }
 
-// Result Card
 .result-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  padding: 40px;
-  box-shadow: var(--shadow-lg);
   position: relative;
-  overflow: hidden;
-  border: 1px solid var(--border-light);
+  background: var(--bg-primary);
+  border: 2px solid var(--border-light);
+  box-shadow: 10px 10px 0 var(--primary-neon);
+  padding: 56px 44px 40px;
 
+  // Vạch đích caro phía trên, giống Home .cta-box / Login
   &::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: var(--primary-color);
+    height: 10px;
+    background-image: repeating-conic-gradient(
+      var(--bg-dark) 0 25%,
+      var(--bg-primary) 0 50%
+    );
+    background-size: 20px 20px;
   }
 
   @media (max-width: 768px) {
-    padding: 30px 20px;
-    border-radius: var(--radius-md);
+    padding: 44px 24px 28px;
   }
 
   @media (max-width: 480px) {
-    padding: 25px 15px;
-    border-radius: var(--radius-md);
+    padding: 40px 16px 24px;
+    box-shadow: 6px 6px 0 var(--primary-neon);
   }
 }
 
-// Status Section
+// ================== STATUS ==================
 .status-section {
   text-align: center;
-  margin-bottom: 40px;
-  padding-bottom: 30px;
+  margin-bottom: 36px;
+  padding-bottom: 28px;
   border-bottom: 2px solid var(--border-light);
 
+  // Badge vuông skew, màu theo trạng thái
   .status-icon {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 25px;
-    border-radius: 50%;
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 48px;
-    position: relative;
+    font-size: 2.8rem;
+    background: var(--bg-dark);
+    color: var(--primary-neon);
+    transform: skew(-10deg);
+    box-shadow: 6px 6px 0 var(--primary-neon);
+    animation: pop-in 0.6s $ease-burst both;
 
-    &.success {
-      color: var(--success-color);
-      background: rgba(76, 175, 80, 0.1);
-      border: 3px solid var(--success-color);
+    svg {
+      transform: skew(10deg); // un-skew icon
     }
 
     &.failed {
-      color: var(--error-color);
-      background: rgba(244, 67, 54, 0.1);
-      border: 3px solid var(--error-color);
+      background: $color-error;
+      color: #fff;
+      box-shadow: 6px 6px 0 var(--bg-dark);
     }
 
     &.error {
-      color: var(--warning-color);
-      background: rgba(255, 152, 0, 0.1);
-      border: 3px solid var(--warning-color);
-    }
-
-    svg {
-      z-index: 1;
+      background: $color-warning;
+      color: var(--bg-dark);
+      box-shadow: 6px 6px 0 var(--bg-dark);
     }
   }
 
   .status-title {
-    font-size: 32px;
+    font-family: 'Teko', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
     font-weight: 700;
-    margin-bottom: 15px;
+    line-height: 1;
+    margin-bottom: 12px;
     color: var(--text-primary);
   }
 
   .status-subtitle {
-    font-size: 18px;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
-    font-weight: 500;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
   }
 
   .status-description {
-    font-size: 15px;
-    color: var(--text-muted);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
     line-height: 1.6;
     max-width: 500px;
     margin: 0 auto;
   }
 
   @media (max-width: 768px) {
-    margin-bottom: 30px;
+    margin-bottom: 28px;
     padding-bottom: 20px;
 
     .status-icon {
       width: 80px;
       height: 80px;
-      font-size: 40px;
-    }
-
-    .status-title {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    .status-subtitle {
-      font-size: 16px;
-    }
-
-    .status-description {
-      font-size: 14px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .status-title {
-      font-size: 24px;
-    }
-
-    .status-subtitle {
-      font-size: 15px;
+      font-size: 2.2rem;
     }
   }
 }
 
-// Transaction Info & Order Info
+// ================== SECTIONS ==================
 .transaction-info,
 .order-info {
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 
   .section-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 18px;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-primary);
 
     svg {
-      color: var(--primary-color);
-    }
-  }
-
-  @media (max-width: 768px) {
-    .section-title {
-      font-size: 18px;
-      margin-bottom: 15px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .section-title {
-      font-size: 16px;
+      color: var(--bg-dark);
+      background: var(--primary-neon);
+      padding: 6px;
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+      transform: skew(-10deg);
     }
   }
 }
 
-// Info Grid
 .info-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 
   .info-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    border-left: 3px solid var(--primary-color);
-    transition: all var(--transition-base);
+    gap: 16px;
+    padding: 14px 18px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-light);
+    border-left: 6px solid var(--bg-dark);
+    transition: all var(--transition-fast);
 
     &:hover {
+      border-color: var(--bg-dark);
+      border-left-color: var(--primary-neon);
       transform: translateX(4px);
-      box-shadow: var(--shadow-sm);
-      background: var(--bg-secondary);
     }
 
     @media (max-width: 768px) {
       flex-direction: column;
       align-items: flex-start;
       gap: 6px;
-      padding: 14px 16px;
-    }
-
-    @media (max-width: 480px) {
-      padding: 12px 14px;
     }
 
     .info-label {
-      font-weight: 500;
+      font-family: 'Teko', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
       color: var(--text-secondary);
-      font-size: 14px;
     }
 
     .info-value {
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 0.95rem;
       color: var(--text-primary);
-      font-size: 14px;
-
-      &.transaction-id {
-        font-family: 'Courier New', monospace;
-        background: var(--bg-secondary);
-        padding: 6px 12px;
-        border-radius: var(--radius-sm);
-        font-size: 13px;
-        border: 1px solid var(--border-light);
-      }
-
-      &.amount {
-        color: var(--success-color);
-        font-size: 16px;
-      }
-
-      &.status {
-        padding: 6px 16px;
-        border-radius: var(--radius-sm);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-
-        &.success {
-          background: rgba(76, 175, 80, 0.1);
-          color: var(--success-color);
-          border: 1px solid var(--success-color);
-        }
-
-        &.failed {
-          background: rgba(244, 67, 54, 0.1);
-          color: var(--error-color);
-          border: 1px solid var(--error-color);
-        }
-
-        &.error {
-          background: rgba(255, 152, 0, 0.1);
-          color: var(--warning-color);
-          border: 1px solid var(--warning-color);
-        }
-      }
+      word-break: break-all;
 
       svg {
         margin-right: 6px;
         color: var(--text-muted);
       }
+
+      &.transaction-id {
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        padding: 4px 10px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border-light);
+      }
+
+      &.amount {
+        font-family: 'Teko', sans-serif;
+        font-size: 1.6rem;
+        line-height: 1;
+        letter-spacing: 0.03em;
+        color: var(--text-primary);
+        background: var(--primary-neon);
+        padding: 4px 12px;
+        transform: skew(-10deg);
+      }
+
+      // Nhãn trạng thái dạng tem skew
+      &.status {
+        font-family: 'Teko', sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 14px;
+        transform: skew(-10deg);
+        background: var(--bg-dark);
+        color: var(--text-inverse);
+
+        &.success {
+          color: var(--primary-neon);
+        }
+
+        &.failed {
+          background: $color-error;
+          color: #fff;
+        }
+
+        &.error {
+          background: $color-warning;
+          color: var(--bg-dark);
+        }
+      }
     }
   }
 }
 
-// Error Details
+// ================== ERROR / SUCCESS BLOCKS ==================
 .error-details {
-  margin-top: 20px;
-  padding: 20px;
-  background: rgba(244, 67, 54, 0.05);
-  border-radius: var(--radius-sm);
-  border-left: 3px solid var(--error-color);
+  margin-top: 18px;
+  padding: 18px 20px;
+  background: rgba(243, 29, 51, 0.06);
+  border: 2px solid $color-error;
+  border-left-width: 6px;
 
   .error-title {
-    color: var(--error-color);
-    font-size: 16px;
-    margin-bottom: 10px;
-    font-weight: 600;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $color-error;
+    margin-bottom: 8px;
   }
 
   .error-message {
-    margin-bottom: 8px;
-    color: var(--error-color);
-    font-size: 14px;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: $color-error;
 
     strong {
-      font-weight: 600;
+      font-weight: 700;
     }
   }
 
   .error-description {
-    color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 0.9rem;
     line-height: 1.5;
+    color: var(--text-secondary);
   }
 }
 
-// Success Message
 .success-message {
-  background: rgba(76, 175, 80, 0.05);
-  padding: 20px;
-  border-radius: var(--radius-sm);
-  border-left: 3px solid var(--success-color);
-  margin-bottom: 25px;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  box-shadow: 6px 6px 0 var(--primary-neon);
 
   svg {
-    color: var(--success-color);
-    font-size: 24px;
     flex-shrink: 0;
+    font-size: 1.6rem;
+    color: var(--primary-neon);
   }
 
   p {
     margin: 0;
-    color: var(--text-primary);
+    font-size: 0.95rem;
     font-weight: 500;
     line-height: 1.6;
-    font-size: 14px;
   }
 }
 
-// Next Steps
 .next-steps {
   .steps-title {
-    font-size: 16px;
-    font-weight: 600;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     color: var(--text-primary);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
 
   .steps-list {
@@ -372,28 +384,40 @@
     margin: 0;
 
     li {
-      padding: 12px 0;
-      color: var(--text-secondary);
-      font-size: 14px;
-      line-height: 1.6;
       position: relative;
-      padding-left: 25px;
+      padding: 12px 0 12px 28px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
 
       &:not(:last-child) {
         border-bottom: 1px solid var(--border-light);
+      }
+
+      // Bullet hình thoi skew neon
+      &::before {
+        content: '';
+        position: absolute;
+        left: 2px;
+        top: 20px;
+        width: 10px;
+        height: 10px;
+        background: var(--primary-neon);
+        border: 2px solid var(--bg-dark);
+        transform: skew(-10deg);
       }
     }
   }
 }
 
-// Actions Section
+// ================== ACTIONS ==================
 .actions-section {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 18px;
   justify-content: center;
-  margin-bottom: 30px;
-  padding-top: 30px;
+  margin-bottom: 28px;
+  padding: 32px 6px 0;
   border-top: 2px solid var(--border-light);
 
   @media (max-width: 768px) {
@@ -401,152 +425,157 @@
   }
 
   .action-btn {
-    padding: 14px 28px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    transition: all var(--transition-base);
-    display: flex;
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    text-decoration: none;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border: 2px solid transparent;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     white-space: nowrap;
+    cursor: pointer;
+    transform: skew(-10deg);
+    transition: all var(--transition-fast);
 
-    @media (max-width: 768px) {
-      justify-content: center;
-      padding: 12px 24px;
+    // Vệt sáng quét qua khi hover (giống Home .btn-primary)
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        100deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.35) 50%,
+        transparent 70%
+      );
+      transform: translateX(-120%);
+      transition: transform 0.6s ease;
+      pointer-events: none;
     }
 
     svg {
-      font-size: 16px;
+      transform: skew(10deg);
     }
 
-    &.primary {
-      background: var(--primary-color);
-      color: var(--white);
-      box-shadow: var(--shadow-sm);
+    &:hover {
+      transform: skew(-10deg) translate(-2px, -2px);
 
-      &:hover {
-        background: var(--primary-hover);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-      }
-    }
-
-    &.secondary {
-      background: var(--success-color);
-      color: var(--white);
-      box-shadow: var(--shadow-sm);
-
-      &:hover {
-        background: var(--bg-hover-add);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-      }
-    }
-
-    &.tertiary {
-      background: var(--white);
-      color: var(--text-secondary);
-      border: 2px solid var(--border-medium);
-
-      &:hover {
-        background: var(--bg-tertiary);
-        color: var(--text-primary);
-        border-color: var(--border-dark);
-        transform: translateY(-1px);
+      &::after {
+        transform: translateX(120%);
       }
     }
 
     &:active {
-      transform: translateY(0);
+      transform: skew(-10deg) translate(0, 0);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--bg-dark);
+      outline-offset: 5px;
+    }
+
+    &.primary {
+      background: var(--bg-dark);
+      color: var(--primary-neon);
+      box-shadow: 6px 6px 0 var(--primary-neon);
+
+      &:hover {
+        box-shadow: 10px 10px 0 var(--primary-neon);
+      }
+    }
+
+    &.secondary {
+      background: transparent;
+      color: var(--bg-dark);
+      border-color: var(--bg-dark);
+      box-shadow: 6px 6px 0 var(--bg-dark);
+
+      &:hover {
+        background: var(--bg-dark);
+        color: var(--primary-neon);
+        box-shadow: 10px 10px 0 var(--primary-neon);
+      }
+    }
+
+    &.tertiary {
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      border-color: var(--border-light);
+
+      &:hover {
+        color: var(--bg-dark);
+        border-color: var(--bg-dark);
+        background: var(--bg-secondary);
+      }
     }
   }
 }
 
-// Support Section
+// ================== SUPPORT ==================
 .support-section {
   text-align: center;
-  padding: 24px;
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-md);
-  margin-top: 20px;
+  padding: 22px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-light);
 
   .support-text {
+    margin-bottom: 12px;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     color: var(--text-secondary);
-    font-weight: 500;
-    margin-bottom: 15px;
-    font-size: 14px;
   }
 
   .support-contacts {
     display: flex;
     justify-content: center;
-    gap: 30px;
     flex-wrap: wrap;
+    gap: 12px 32px;
 
     @media (max-width: 768px) {
       flex-direction: column;
       gap: 10px;
     }
-
-    .support-item {
-      color: var(--primary-color);
-      font-weight: 500;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
   }
 
-  @media (max-width: 480px) {
-    padding: 16px;
+  .support-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
 
-    .support-text {
-      font-size: 13px;
-    }
-
-    .support-contacts .support-item {
-      font-size: 13px;
+    svg {
+      color: var(--bg-dark);
+      background: var(--primary-neon);
+      padding: 6px;
+      width: 0.9rem;
+      height: 0.9rem;
+      transform: skew(-10deg);
     }
   }
 }
 
-// Animations
-@keyframes fadeInUp {
+// ================== ANIMATION ==================
+@keyframes pop-in {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: skew(-10deg) scale(0.6);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: skew(-10deg) scale(1);
   }
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.03);
-  }
-}
-
-.result-card {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.status-icon {
-  animation: pulse 2s infinite ease-in-out;
-}
-
-// Loading animation
 .loading-spinner {
   animation: spin 1s linear infinite;
 }
@@ -560,19 +589,16 @@
   }
 }
 
-// Reduced motion support
+// Tôn trọng người dùng bật "giảm chuyển động"
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .speed-line,
+  .status-icon,
+  .loading-spinner {
+    animation: none !important;
   }
 
-  .status-icon,
-  .result-card {
-    animation: none;
+  .action-btn::after {
+    display: none;
   }
 
   .action-btn:hover,
@@ -581,21 +607,22 @@
   }
 }
 
-// Print styles
+// In hóa đơn: bỏ nền tối, hiệu ứng và phần nút bấm
 @media print {
-  .container {
-    background: var(--white);
+  .wrapper {
+    background: #fff;
     padding: 0;
+  }
+
+  .speed-line,
+  .actions-section,
+  .support-section {
+    display: none;
   }
 
   .result-card {
     box-shadow: none;
-    border: 1px solid var(--border-dark);
-  }
-
-  .actions-section,
-  .support-section {
-    display: none;
+    border: 1px solid var(--border-light);
   }
 
   .status-icon {
