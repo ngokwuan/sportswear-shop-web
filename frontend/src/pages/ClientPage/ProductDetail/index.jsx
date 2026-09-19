@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion, MotionConfig } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHeart,
@@ -16,6 +17,36 @@ import { formatCurrency } from '../../../utils/formatCurrency';
 import { UserContext } from '../../../context/UserContext';
 import { toast } from 'react-toastify';
 const cx = classNames.bind(styles);
+
+/* Cùng "ngôn ngữ chuyển động" với Home: lao vào từ vạch xuất phát bên trái */
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const stagger = (gap = 0.08) => ({
+  visible: { transition: { staggerChildren: gap } },
+});
+
+// motion ở lớp ngoài, các phần tử skew (CSS) nằm ở lớp trong để không bị ghi đè
+const dash = {
+  hidden: { opacity: 0, x: -50 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.55, ease: EASE_BURST },
+  },
+};
+
+const PLACEHOLDER_IMG =
+  'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image';
+
+// Trang nhập thông tin & thanh toán - đổi lại nếu route của bạn khác
+const CHECKOUT_PATH = '/checkout';
+
+const TABS = [
+  { id: 'description', label: 'Description' },
+  { id: 'specifications', label: 'Specifications' },
+  { id: 'shipping', label: 'Shipping' },
+  { id: 'reviews', label: 'Reviews' },
+];
 
 function ProductDetail() {
   const { slugAndId } = useParams();
@@ -35,6 +66,7 @@ function ProductDetail() {
     seconds: 12,
   });
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
 
   // size selection
   const [sizes, setSizes] = useState([]);
@@ -42,8 +74,7 @@ function ProductDetail() {
 
   // Helper function to get image URL
   const getImageUrl = (imageData) => {
-    if (!imageData)
-      return 'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image';
+    if (!imageData) return PLACEHOLDER_IMG;
 
     // If it's already a string URL
     if (typeof imageData === 'string') return imageData;
@@ -52,7 +83,7 @@ function ProductDetail() {
     if (typeof imageData === 'object' && imageData.url) return imageData.url;
 
     // Fallback
-    return 'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image';
+    return PLACEHOLDER_IMG;
   };
 
   // Helper function to process product images
@@ -94,9 +125,7 @@ function ProductDetail() {
 
     // If no images at all, add placeholder
     if (images.length === 0) {
-      images.push(
-        'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image'
-      );
+      images.push(PLACEHOLDER_IMG);
     }
 
     return images;
@@ -175,7 +204,7 @@ function ProductDetail() {
   }, []);
 
   const handleAddToCart = async () => {
-    if (isAddingToCart) return;
+    if (isAddingToCart || isBuyingNow) return;
     if (!user) return;
     // require size selection if sizes available
     if (sizes.length > 0 && !selectedSize) {
@@ -196,7 +225,7 @@ function ProductDetail() {
         window.dispatchEvent(
           new CustomEvent('cartUpdated', {
             detail: { action: 'add', quantity: quantity },
-          })
+          }),
         );
 
         toast.success('Đã thêm sản phẩm vào giỏ hàng!');
@@ -214,11 +243,65 @@ function ProductDetail() {
       } else {
         toast.error(
           error.response?.data?.message ||
-            'Không thể thêm sản phẩm vào giỏ hàng'
+            'Không thể thêm sản phẩm vào giỏ hàng',
         );
       }
     } finally {
       setIsAddingToCart(false);
+    }
+  };
+
+  // Mua ngay: bắt buộc đăng nhập + chọn size, thêm vào giỏ rồi sang trang thanh toán
+  const handleBuyNow = async () => {
+    if (isAddingToCart || isBuyingNow) return;
+
+    if (!user) {
+      toast.info('Vui lòng đăng nhập để mua hàng');
+      navigate('/login');
+      return;
+    }
+
+    if (sizes.length > 0 && !selectedSize) {
+      toast.warn('Vui lòng chọn kích thước');
+      return;
+    }
+
+    try {
+      setIsBuyingNow(true);
+
+      const response = await axios.post('/cart/add', {
+        productId: id,
+        quantity: quantity,
+        size: selectedSize || null,
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Không thể thêm vào giỏ hàng');
+      }
+
+      window.dispatchEvent(
+        new CustomEvent('cartUpdated', {
+          detail: { action: 'add', quantity: quantity },
+        }),
+      );
+
+      navigate(CHECKOUT_PATH);
+    } catch (error) {
+      console.error('Error buying now:', error);
+
+      if (error.response?.status === 401) {
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+        navigate('/login');
+      } else if (error.response?.status === 409) {
+        // Sản phẩm đã có trong giỏ => đi thẳng tới thanh toán
+        navigate(CHECKOUT_PATH);
+      } else {
+        toast.error(
+          error.response?.data?.message || 'Không thể tiến hành mua hàng',
+        );
+      }
+    } finally {
+      setIsBuyingNow(false);
     }
   };
 
@@ -246,7 +329,11 @@ function ProductDetail() {
       <div className={cx('error')}>
         <h2>Có lỗi xảy ra</h2>
         <p>{error}</p>
-        <button onClick={() => navigate(-1)} className={cx('back-btn')}>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className={cx('back-btn')}
+        >
           Quay lại
         </button>
       </div>
@@ -257,7 +344,11 @@ function ProductDetail() {
     return (
       <div className={cx('not-found')}>
         <h2>Không tìm thấy sản phẩm</h2>
-        <button onClick={() => navigate('/')} className={cx('home-btn')}>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className={cx('home-btn')}
+        >
           Về trang chủ
         </button>
       </div>
@@ -276,332 +367,400 @@ function ProductDetail() {
     product.sale_price != null ? product.sale_price : product.price;
   const displayPriceFormatted = formatCurrency(displayPrice);
 
+  // Hết hàng khi có số lượng tồn và nhỏ hơn 1 (cách viết cũ luôn false khi stock = 0)
+  const outOfStock =
+    product.stock_quantity != null && Number(product.stock_quantity) < 1;
+
+  const countdownUnits = [
+    { key: 'days', label: 'Days' },
+    { key: 'hours', label: 'Hours' },
+    { key: 'minutes', label: 'Minutes' },
+    { key: 'seconds', label: 'Seconds' },
+  ];
+
   return (
-    <div className={cx('product-detail')}>
-      <div className={cx('product-container')}>
-        {/* Product Images */}
-        <div className={cx('product-images')}>
-          <div className={cx('main-image')}>
-            {discountPercent > 0 && (
-              <span className={cx('discount-badge')}>-{discountPercent}%</span>
-            )}
-            <img
-              src={productImages[selectedImage]}
-              alt={product.name}
-              onError={(e) => {
-                e.target.src =
-                  'https://via.placeholder.com/500x500/f0f0f0/666?text=Product+Image';
-              }}
-            />
-          </div>
-          {productImages.length > 1 && (
-            <div className={cx('thumbnail-list')}>
-              {productImages.map((image, index) => (
+    <MotionConfig reducedMotion="user">
+      <div className={cx('product-detail')}>
+        <div className={cx('product-shell')}>
+          <div className={cx('product-container')}>
+            {/* Product Images */}
+            <motion.div
+              className={cx('product-images')}
+              initial={{ opacity: 0, x: -60 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, ease: EASE_BURST }}
+            >
+              <div className={cx('main-image')}>
+                {discountPercent > 0 && (
+                  <span className={cx('discount-badge')}>
+                    -{discountPercent}%
+                  </span>
+                )}
                 <img
-                  key={index}
-                  src={image}
-                  alt={`${product.name} ${index + 1}`}
-                  className={cx('thumbnail', {
-                    active: selectedImage === index,
-                  })}
-                  onClick={() => setSelectedImage(index)}
+                  src={productImages[selectedImage]}
+                  alt={product.name}
                   onError={(e) => {
-                    e.target.src =
-                      'https://via.placeholder.com/80x80/f0f0f0/666?text=No+Image';
+                    e.target.src = PLACEHOLDER_IMG;
                   }}
                 />
+              </div>
+              {productImages.length > 1 && (
+                <div className={cx('thumbnail-list')}>
+                  {productImages.map((image, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      aria-label={`View image ${index + 1}`}
+                      aria-pressed={selectedImage === index}
+                      className={cx('thumbnail', {
+                        active: selectedImage === index,
+                      })}
+                      onClick={() => setSelectedImage(index)}
+                    >
+                      <img
+                        src={image}
+                        alt=""
+                        onError={(e) => {
+                          e.target.src =
+                            'https://via.placeholder.com/80x80/f0f0f0/666?text=No+Image';
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Product Info */}
+            <motion.div
+              className={cx('product-info')}
+              initial="hidden"
+              animate="visible"
+              variants={stagger(0.08)}
+            >
+              <motion.div
+                className={cx('product-category-slot')}
+                variants={dash}
+              >
+                <div className={cx('product-category')}>
+                  {product.category?.name || product.brand || 'PRODUCT'}
+                </div>
+              </motion.div>
+
+              <motion.h1 className={cx('product-title')} variants={dash}>
+                {product.name}
+              </motion.h1>
+
+              <motion.div className={cx('product-price')} variants={dash}>
+                <span className={cx('current-price')}>
+                  {displayPriceFormatted}
+                </span>
+                {discountPercent > 0 && (
+                  <span className={cx('old-price')}>
+                    {formatCurrency(product.price)}
+                  </span>
+                )}
+              </motion.div>
+
+              <motion.p className={cx('product-description')} variants={dash}>
+                {product.description || 'No description available.'}
+              </motion.p>
+
+              {/* Countdown: show only when there is a sale */}
+              {discountPercent > 0 && (
+                <motion.div variants={dash}>
+                  <div className={cx('countdown')}>
+                    <div className={cx('countdown-inner')}>
+                      <span className={cx('countdown-heading')}>
+                        Sale ends in
+                      </span>
+                      <div className={cx('countdown-clock')}>
+                        {countdownUnits.map(({ key, label }, i) => (
+                          <React.Fragment key={key}>
+                            {i > 0 && (
+                              <span className={cx('separator')}>:</span>
+                            )}
+                            <div className={cx('countdown-item')}>
+                              <span className={cx('countdown-number')}>
+                                {String(countdown[key]).padStart(2, '0')}
+                              </span>
+                              <span className={cx('countdown-label')}>
+                                {label}
+                              </span>
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Product Options */}
+              <motion.div className={cx('product-options')} variants={dash}>
+                <div className={cx('option-group')}>
+                  <span className={cx('option-label')} id="size-label">
+                    SIZE
+                  </span>
+                  <div
+                    className={cx('size-options')}
+                    role="group"
+                    aria-labelledby="size-label"
+                  >
+                    {sizes.length === 0 ? (
+                      <div className={cx('no-size')}>One size</div>
+                    ) : (
+                      sizes.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          aria-pressed={selectedSize === s}
+                          className={cx('size-btn', {
+                            selected: selectedSize === s,
+                          })}
+                          onClick={() => setSelectedSize(s)}
+                        >
+                          {s}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {product.color && (
+                  <div className={cx('option-group')}>
+                    <span className={cx('option-label')}>COLOR</span>
+                    <div className={cx('color-tag')}>{product.color}</div>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Quantity and Add to Cart */}
+              <motion.div className={cx('quantity-section')} variants={dash}>
+                <div className={cx('quantity-control')}>
+                  <button
+                    type="button"
+                    aria-label="Decrease quantity"
+                    className={cx('quantity-btn')}
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    <FontAwesomeIcon icon={faMinus} />
+                  </button>
+                  <input
+                    type="number"
+                    aria-label="Quantity"
+                    value={quantity}
+                    onChange={(e) =>
+                      setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                    }
+                    className={cx('quantity-input')}
+                    min="1"
+                    max={product.stock_quantity || 999}
+                  />
+                  <button
+                    type="button"
+                    aria-label="Increase quantity"
+                    className={cx('quantity-btn')}
+                    onClick={() =>
+                      setQuantity(
+                        Math.min(product.stock_quantity || 999, quantity + 1),
+                      )
+                    }
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
+                  </button>
+                </div>
+
+                <div className={cx('purchase-actions')}>
+                  <button
+                    type="button"
+                    className={cx('add-to-cart-btn', {
+                      adding: isAddingToCart,
+                    })}
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart || isBuyingNow || outOfStock}
+                  >
+                    {isAddingToCart ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} spin />
+                        ADDING...
+                      </>
+                    ) : outOfStock ? (
+                      'OUT OF STOCK'
+                    ) : (
+                      'ADD TO CART'
+                    )}
+                  </button>
+
+                  {!outOfStock && (
+                    <button
+                      type="button"
+                      className={cx('buy-now-btn')}
+                      onClick={handleBuyNow}
+                      disabled={isAddingToCart || isBuyingNow}
+                    >
+                      {isBuyingNow ? (
+                        <>
+                          <FontAwesomeIcon icon={faSpinner} spin />
+                          PROCESSING...
+                        </>
+                      ) : (
+                        'BUY NOW'
+                      )}
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Stock Info */}
+              {product.stock_quantity !== undefined && (
+                <motion.div className={cx('stock-info')} variants={dash}>
+                  {product.stock_quantity > 0 ? (
+                    <span className={cx('in-stock')}>
+                      ✓ In stock ({product.stock_quantity} available)
+                    </span>
+                  ) : (
+                    <span className={cx('out-of-stock')}>✗ Out of stock</span>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Product Actions */}
+              <motion.div className={cx('product-actions')} variants={dash}>
+                <button
+                  type="button"
+                  className={cx('action-btn')}
+                  title="Add to Wishlist"
+                  aria-label="Add to wishlist"
+                >
+                  <FontAwesomeIcon icon={faHeart} />
+                </button>
+                <button
+                  type="button"
+                  className={cx('action-btn')}
+                  title="Share"
+                  aria-label="Share"
+                >
+                  <FontAwesomeIcon icon={faShareNodes} />
+                </button>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Product Tabs */}
+          <div className={cx('product-tabs')}>
+            <div className={cx('tab-list')} role="tablist">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  className={cx('tab-item', { active: activeTab === tab.id })}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* Product Info */}
-        <div className={cx('product-info')}>
-          <div className={cx('product-category')}>
-            {product.category?.name || product.brand || 'PRODUCT'}
-          </div>
-          <h1 className={cx('product-title')}>{product.name}</h1>
+            <div className={cx('tab-content')} role="tabpanel">
+              {activeTab === 'description' && (
+                <div>
+                  <p>
+                    {product.description ||
+                      'No detailed description available.'}
+                  </p>
 
-          <div className={cx('product-price')}>
-            <span className={cx('current-price')}>{displayPriceFormatted}</span>
-            {product.sale_price && (
-              <span className={cx('old-price')}>
-                {formatCurrency(product.price)}
-              </span>
-            )}
-          </div>
-
-          <p className={cx('product-description')}>
-            {product.description || 'No description available.'}
-          </p>
-
-          {/* Countdown: show only when there is a sale */}
-          {discountPercent > 0 && (
-            <div className={cx('countdown')}>
-              <div className={cx('countdown-item')}>
-                <span className={cx('countdown-number')}>
-                  {String(countdown.days).padStart(2, '0')}
-                </span>
-                <span className={cx('countdown-label')}>Days</span>
-              </div>
-              <span className={cx('separator')}>:</span>
-              <div className={cx('countdown-item')}>
-                <span className={cx('countdown-number')}>
-                  {String(countdown.hours).padStart(2, '0')}
-                </span>
-                <span className={cx('countdown-label')}>Hours</span>
-              </div>
-              <span className={cx('separator')}>:</span>
-              <div className={cx('countdown-item')}>
-                <span className={cx('countdown-number')}>
-                  {String(countdown.minutes).padStart(2, '0')}
-                </span>
-                <span className={cx('countdown-label')}>Minutes</span>
-              </div>
-              <span className={cx('separator')}>:</span>
-              <div className={cx('countdown-item')}>
-                <span className={cx('countdown-number')}>
-                  {String(countdown.seconds).padStart(2, '0')}
-                </span>
-                <span className={cx('countdown-label')}>Seconds</span>
-              </div>
-            </div>
-          )}
-
-          {/* Product Options */}
-          <div className={cx('product-options')}>
-            <div className={cx('option-group')}>
-              <label className={cx('option-label')}>SIZE</label>
-              <div className={cx('size-options')}>
-                {sizes.length === 0 ? (
-                  <div className={cx('no-size')}>One size</div>
-                ) : (
-                  sizes.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      className={cx('size-btn', {
-                        selected: selectedSize === s,
-                      })}
-                      onClick={() => setSelectedSize(s)}
-                    >
-                      {s}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className={cx('option-group')}>
-              <label className={cx('option-label')}>COLOR</label>
-              <div className={cx('color-options', 'active')}>
-                {product.color}
-              </div>
-            </div>
-          </div>
-
-          {/* Quantity and Add to Cart */}
-          <div className={cx('quantity-section')}>
-            <div className={cx('quantity-control')}>
-              <button
-                className={cx('quantity-btn')}
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              >
-                <FontAwesomeIcon icon={faMinus} />
-              </button>
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) =>
-                  setQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                }
-                className={cx('quantity-input')}
-                min="1"
-                max={product.stock_quantity || 999}
-              />
-              <button
-                className={cx('quantity-btn')}
-                onClick={() =>
-                  setQuantity(
-                    Math.min(product.stock_quantity || 999, quantity + 1)
-                  )
-                }
-              >
-                <FontAwesomeIcon icon={faPlus} />
-              </button>
-            </div>
-
-            <button
-              className={cx('add-to-cart-btn', { adding: isAddingToCart })}
-              onClick={handleAddToCart}
-              disabled={
-                isAddingToCart ||
-                (product.stock_quantity && product.stock_quantity < 1)
-              }
-            >
-              {isAddingToCart ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} spin />
-                  ADDING...
-                </>
-              ) : product.stock_quantity && product.stock_quantity < 1 ? (
-                'OUT OF STOCK'
-              ) : (
-                'ADD TO CART'
+                  {(product.brand || product.material || product.style) && (
+                    <div className={cx('product-specs')}>
+                      {product.brand && (
+                        <div className={cx('spec-row')}>
+                          <span>Brand</span>
+                          <span>{product.brand}</span>
+                        </div>
+                      )}
+                      {product.material && (
+                        <div className={cx('spec-row')}>
+                          <span>Material</span>
+                          <span>{product.material}</span>
+                        </div>
+                      )}
+                      {product.style && (
+                        <div className={cx('spec-row')}>
+                          <span>Style</span>
+                          <span>{product.style}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
-            </button>
-          </div>
 
-          {/* Stock Info */}
-          {product.stock_quantity !== undefined && (
-            <div className={cx('stock-info')}>
-              {product.stock_quantity > 0 ? (
-                <span className={cx('in-stock')}>
-                  ✓ In stock ({product.stock_quantity} available)
-                </span>
-              ) : (
-                <span className={cx('out-of-stock')}>✗ Out of stock</span>
-              )}
-            </div>
-          )}
-
-          {/* Product Actions */}
-          <div className={cx('product-actions')}>
-            <button className={cx('action-btn')} title="Add to Wishlist">
-              <FontAwesomeIcon icon={faHeart} />
-            </button>
-            <button className={cx('action-btn')} title="Share">
-              <FontAwesomeIcon icon={faShareNodes} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Product Tabs */}
-      <div className={cx('product-tabs')}>
-        <div className={cx('tab-list')}>
-          <button
-            className={cx('tab-item', { active: activeTab === 'description' })}
-            onClick={() => setActiveTab('description')}
-          >
-            Description
-          </button>
-          <button
-            className={cx('tab-item', {
-              active: activeTab === 'specifications',
-            })}
-            onClick={() => setActiveTab('specifications')}
-          >
-            Specifications
-          </button>
-          <button
-            className={cx('tab-item', { active: activeTab === 'shipping' })}
-            onClick={() => setActiveTab('shipping')}
-          >
-            Shipping
-          </button>
-          <button
-            className={cx('tab-item', { active: activeTab === 'reviews' })}
-            onClick={() => setActiveTab('reviews')}
-          >
-            Reviews
-          </button>
-        </div>
-
-        <div className={cx('tab-content')}>
-          {activeTab === 'description' && (
-            <div>
-              <p>
-                {product.description || 'No detailed description available.'}
-              </p>
-
-              {(product.brand || product.material || product.style) && (
+              {activeTab === 'specifications' && (
                 <div className={cx('product-specs')}>
+                  {sizes.length > 0 && (
+                    <div className={cx('spec-row')}>
+                      <span>Size</span>
+                      <span>{sizes.join(', ')}</span>
+                    </div>
+                  )}
+                  {product.color && (
+                    <div className={cx('spec-row')}>
+                      <span>Color</span>
+                      <span>{product.color}</span>
+                    </div>
+                  )}
                   {product.brand && (
                     <div className={cx('spec-row')}>
                       <span>Brand</span>
                       <span>{product.brand}</span>
                     </div>
                   )}
-                  {product.material && (
-                    <div className={cx('spec-row')}>
-                      <span>Material</span>
-                      <span>{product.material}</span>
-                    </div>
-                  )}
-                  {product.style && (
-                    <div className={cx('spec-row')}>
-                      <span>Style</span>
-                      <span>{product.style}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'specifications' && (
-            <div className={cx('product-specs')}>
-              {sizes.length > 0 && (
-                <div className={cx('spec-row')}>
-                  <span>Size</span>
-                  <span>{sizes.join(', ')}</span>
-                </div>
-              )}
-              {product.color && (
-                <div className={cx('spec-row')}>
-                  <span>Color</span>
-                  <span>{product.color}</span>
-                </div>
-              )}
-              {product.brand && (
-                <div className={cx('spec-row')}>
-                  <span>Brand</span>
-                  <span>{product.brand}</span>
-                </div>
-              )}
-              <div className={cx('spec-row')}>
-                <span>Availability</span>
-                <span>
-                  {product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'shipping' && (
-            <div>
-              <p>
-                Free shipping on orders over $50. Standard delivery takes 3-5
-                business days.
-              </p>
-              <ul>
-                <li>Free standard shipping (3-5 business days)</li>
-                <li>Express shipping available (1-2 business days) - $9.99</li>
-                <li>International shipping available</li>
-                <li>30-day return policy</li>
-              </ul>
-            </div>
-          )}
-
-          {activeTab === 'reviews' && (
-            <div>
-              <div className={cx('reviews-summary')}>
-                <div className={cx('rating-summary')}>
-                  <span className={cx('average-rating')}>
-                    {product.star || 0}/5
-                  </span>
-                  <div className={cx('stars')}>
-                    {renderStars(product.star || 0)}
+                  <div className={cx('spec-row')}>
+                    <span>Availability</span>
+                    <span>{outOfStock ? 'Out of Stock' : 'In Stock'}</span>
                   </div>
                 </div>
-              </div>
-              <p>Customer reviews will be displayed here.</p>
+              )}
+
+              {activeTab === 'shipping' && (
+                <div>
+                  <p>
+                    Free shipping on orders over $50. Standard delivery takes
+                    3-5 business days.
+                  </p>
+                  <ul>
+                    <li>Free standard shipping (3-5 business days)</li>
+                    <li>
+                      Express shipping available (1-2 business days) - $9.99
+                    </li>
+                    <li>International shipping available</li>
+                    <li>30-day return policy</li>
+                  </ul>
+                </div>
+              )}
+
+              {activeTab === 'reviews' && (
+                <div>
+                  <div className={cx('reviews-summary')}>
+                    <div className={cx('rating-summary')}>
+                      <span className={cx('average-rating')}>
+                        {product.star || 0}/5
+                      </span>
+                      <div className={cx('stars')}>
+                        {renderStars(product.star || 0)}
+                      </div>
+                    </div>
+                  </div>
+                  <p>Customer reviews will be displayed here.</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
 

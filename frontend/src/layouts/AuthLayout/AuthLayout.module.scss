@@ -1,5 +1,6 @@
 .wrapper {
   display: flex;
+  align-items: flex-start; // để container-right có thể sticky theo wrapper
   min-height: 100vh;
 }
 
@@ -10,17 +11,26 @@
   justify-content: center;
   background-color: var(--white);
   width: 100%;
+  min-height: 100vh; // đảm bảo luôn ít nhất bằng 1 viewport
 }
 
 .container-right {
   flex: 1;
-  position: relative;
+  position: sticky; // dính lại đúng khung nhìn dù bên trái cao hơn 100vh
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow: hidden;
+
+  @media (max-width: 992px) {
+    display: none; // ẩn ảnh trên màn hình nhỏ, chỉ ưu tiên form
+  }
 }
 
 .image-container {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100%; // lấy đủ chiều cao của container-right (100vh do sticky)
   overflow: hidden;
 }
 

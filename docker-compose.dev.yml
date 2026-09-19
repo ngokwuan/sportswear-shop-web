@@ -1,0 +1,50 @@
+services:
+  # ──────────────────────────────────────────────
+  # Backend — Node.js / Express with nodemon
+  # ──────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: sportswear-backend-dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # Mount source for hot-reload (nodemon watches file changes)
+      - ./backend:/app
+      # Anonymous volume prevents host node_modules from overriding container's
+      - /app/node_modules
+      # Persist uploads
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────
+  # Frontend — Vite dev server with HMR
+  # ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: sportswear-frontend-dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - VITE_NODE_ENV=development
+    volumes:
+      # Mount source for Vite HMR
+      - ./frontend:/app
+      # Anonymous volume prevents host node_modules from overriding container's
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: sportswear-network-dev

@@ -23,7 +23,6 @@
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 20px;
   }
 }
 
@@ -39,7 +38,7 @@
   flex-direction: column;
   height: 100%;
   border: 1px solid var(--border-light);
-
+  flex-direction: column;
   &:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-lg);
@@ -88,6 +87,9 @@
   flex: 1;
   flex-direction: column;
   padding: 28px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 768px) {
     padding: 24px 20px;

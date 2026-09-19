@@ -1,212 +1,291 @@
+// Orders.module.scss - đồng bộ theme "Vibrant Sportswear" với Home / Login / PaymentResult
+// Dùng chung CSS variables: --bg-primary, --bg-secondary, --bg-dark, --primary-neon,
+// --text-primary, --text-secondary, --text-muted, --text-inverse, --border-light,
+// --spacing-*, --transition-fast/base. Font 'Teko' cho heading/label.
+// Skew chỉ ở điểm nhấn (tab, nút, badge, ô số liệu); nội dung đọc giữ thẳng.
+
+$ease-burst: cubic-bezier(0.16, 1, 0.3, 1);
+
 .orders-container {
   min-height: 100vh;
-  background-color: var(--bg-primary);
-  padding: 40px 110px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 120px var(--spacing-xxl) 80px; // chừa chỗ cho header cố định
+  max-width: 1400px;
+  margin: 0 auto;
+  overflow-x: clip;
 
-  @media (max-width: 768px) {
-    padding: 24px 16px;
+  ::selection {
+    background: var(--primary-neon);
+    color: var(--bg-dark);
   }
 
-  @media (max-width: 480px) {
-    padding: 20px 12px;
+  @media (max-width: 768px) {
+    padding: 100px var(--spacing-lg) 56px;
   }
 }
 
-// Header Section
+// ================== HEADER ==================
 .header-section {
-  margin-bottom: 40px;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 36px;
+  }
 }
 
 .title-container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 14px;
 
+  // Ô icon skew neon
   .title-icon {
-    font-size: 32px;
-    color: var(--primary-color);
+    padding: 12px;
+    width: 1.6rem;
+    height: 1.6rem;
+    font-size: 1.6rem;
+    color: var(--bg-dark);
+    background: var(--primary-neon);
+    transform: skew(-10deg);
+    box-shadow: 4px 4px 0 var(--bg-dark);
   }
 
+  // Vệt highlight neon quét qua tiêu đề khi vào trang (giống Home .section-title)
   .title {
-    color: var(--text-primary);
-    font-size: 32px;
-    font-weight: 700;
+    position: relative;
+    display: inline-block;
+    z-index: 1;
     margin: 0;
-  }
+    font-family: 'Teko', sans-serif;
+    font-size: clamp(2.6rem, 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-primary);
 
-  @media (max-width: 768px) {
-    .title {
-      font-size: 28px;
-    }
-    .title-icon {
-      font-size: 28px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .title {
-      font-size: 24px;
-    }
-    .title-icon {
-      font-size: 24px;
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: -10px;
+      width: calc(100% + 20px);
+      height: 40%;
+      background: var(--primary-neon);
+      z-index: -1;
+      transform: skew(-10deg) scaleX(0);
+      transform-origin: left center;
+      animation: highlight-sweep 0.7s $ease-burst 0.25s forwards;
     }
   }
 }
 
+@keyframes highlight-sweep {
+  to {
+    transform: skew(-10deg) scaleX(1);
+  }
+}
+
+// Bảng điểm nhỏ: nền tối, vạch chéo neon bên trái mỗi ô
 .order-stats {
   display: flex;
-  justify-content: center;
-  gap: 64px;
+  gap: 20px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 480px) {
+    width: 100%;
     flex-direction: column;
-    gap: 20px;
   }
 }
 
 .stat-item {
-  text-align: center;
+  position: relative;
+  min-width: 170px;
+  padding: 12px 20px 12px 28px;
+  background: var(--bg-dark);
+  box-shadow: 6px 6px 0 var(--primary-neon);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+    width: 5px;
+    background: var(--primary-neon);
+    transform: skew(-10deg);
+  }
 
   .stat-number {
     display: block;
-    font-size: 28px;
+    font-family: 'Teko', sans-serif;
+    font-size: 2.4rem;
     font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: 8px;
+    line-height: 1;
+    color: var(--primary-neon);
+    font-variant-numeric: tabular-nums;
   }
 
   .stat-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    display: block;
+    margin-top: 4px;
+    font-size: 0.85rem;
     font-weight: 500;
+    color: var(--text-muted);
   }
 }
 
-// Loading State
+// ================== LOADING ==================
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  gap: 24px;
+  min-height: 50vh;
+  gap: 20px;
 
   .spinner-container {
-    width: 60px;
-    height: 60px;
-    background: var(--primary-color);
-    border-radius: var(--radius-md);
+    width: 64px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: pulse 2s infinite;
+    background: var(--bg-dark);
+    color: var(--primary-neon);
+    font-size: 1.6rem;
+    transform: skew(-10deg);
+    box-shadow: 6px 6px 0 var(--primary-neon);
 
     svg {
-      font-size: 24px;
-      color: var(--white);
+      transform: skew(10deg);
     }
   }
 
   p {
-    font-size: 15px;
-    color: var(--text-secondary);
-    font-weight: 500;
     margin: 0;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
   }
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
+// ================== BUTTON DÙNG CHUNG ==================
+// Vệt sáng đèn sân vận động quét qua khi hover (giống Home .btn-primary)
+@mixin shine {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.6s ease;
+    pointer-events: none;
   }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.9;
+
+  &:hover::after {
+    transform: translateX(120%);
   }
 }
 
-// Empty State
+// ================== EMPTY STATE ==================
 .no-orders {
   text-align: center;
-  padding: 80px 20px;
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
+  padding: 72px 24px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-light);
+  box-shadow: 10px 10px 0 var(--bg-dark);
 
   .empty-icon {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
     margin: 0 auto 24px;
-    background: var(--primary-color);
-    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--primary-neon);
+    color: var(--bg-dark);
+    font-size: 2.2rem;
+    transform: skew(-10deg);
+    box-shadow: 6px 6px 0 var(--bg-dark);
 
     svg {
-      font-size: 32px;
-      color: var(--white);
+      transform: skew(10deg);
     }
   }
 
   h3 {
+    margin-bottom: 8px;
+    font-family: 'Teko', sans-serif;
+    font-size: 2.6rem;
+    text-transform: uppercase;
     color: var(--text-primary);
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 12px;
   }
 
   p {
-    color: var(--text-secondary);
-    font-size: 15px;
     margin-bottom: 32px;
+    font-size: 1.05rem;
     line-height: 1.6;
+    color: var(--text-secondary);
   }
 
   .shop-link {
+    @include shine;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: var(--primary-color);
-    color: var(--white);
+    padding: 16px 32px;
+    background: var(--bg-dark);
+    color: var(--primary-neon);
+    font-family: 'Teko', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     text-decoration: none;
-    padding: 14px 32px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    font-size: 15px;
-    transition: all var(--transition-base);
-    box-shadow: var(--shadow-sm);
-
-    &:hover {
-      background: var(--primary-hover);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
+    transform: skew(-10deg);
+    box-shadow: 6px 6px 0 var(--primary-neon);
+    transition: all var(--transition-fast);
 
     svg {
-      font-size: 16px;
+      transform: skew(10deg);
+    }
+
+    &:hover {
+      transform: skew(-10deg) translate(-2px, -2px);
+      box-shadow: 10px 10px 0 var(--primary-neon);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--bg-dark);
+      outline-offset: 5px;
     }
   }
 }
 
-// Filter Tabs
+// ================== FILTER TABS ==================
 .filter-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 32px;
+  padding: 4px 8px 10px 4px;
   overflow-x: auto;
-  padding-bottom: 4px;
 
   &::-webkit-scrollbar {
-    height: 2px;
+    height: 4px;
   }
 
   &::-webkit-scrollbar-track {
@@ -214,65 +293,69 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: var(--radius-full);
+    background: var(--bg-dark);
   }
 }
 
 .filter-tab {
-  background: var(--white);
-  border: 1px solid var(--border-medium);
-  color: var(--text-secondary);
-  padding: 12px 20px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  white-space: nowrap;
   flex-shrink: 0;
+  padding: 8px 22px;
+  border: 2px solid var(--bg-dark);
+  background: transparent;
+  color: var(--bg-dark);
+  font-family: 'Teko', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transform: skew(-10deg);
+  transition: all var(--transition-fast);
 
   &:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+    background: var(--bg-secondary);
+    transform: skew(-10deg) translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--bg-dark);
   }
 
   &.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--white);
-    box-shadow: var(--shadow-sm);
+    background: var(--bg-dark);
+    color: var(--primary-neon);
+    box-shadow: 4px 4px 0 var(--primary-neon);
   }
 
-  @media (max-width: 480px) {
-    padding: 10px 16px;
-    font-size: 13px;
+  &:focus-visible {
+    outline: 3px solid var(--bg-dark);
+    outline-offset: 4px;
   }
 }
 
-// Orders List
+// ================== ORDERS LIST ==================
 .orders-list {
   display: grid;
-  gap: 20px;
+  gap: 28px;
+}
+
+.order-slot {
+  display: flex; // motion ở lớp ngoài, card ở lớp trong
+
+  .order-card {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .order-card {
-  background: var(--white);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-  overflow: hidden;
-  transition: all var(--transition-base);
   position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-light);
+  transition: all var(--transition-fast);
 
   &:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-    border-color: var(--border-medium);
-  }
-
-  @media (max-width: 768px) {
-    margin: 0;
+    border-color: var(--bg-dark);
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 var(--bg-dark);
   }
 }
 
@@ -280,13 +363,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-light);
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  border-bottom: 4px solid var(--primary-neon);
 
   @media (max-width: 640px) {
     flex-direction: column;
-    gap: 12px;
     align-items: flex-start;
     padding: 16px 20px;
   }
@@ -295,7 +379,7 @@
 .order-meta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 
   @media (max-width: 640px) {
     width: 100%;
@@ -305,13 +389,17 @@
 .order-id {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
+  gap: 10px;
+  font-family: 'Teko', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--text-inverse);
 
   svg {
-    color: var(--primary-color);
+    color: var(--primary-neon);
+    font-size: 1.1rem;
   }
 }
 
@@ -319,28 +407,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
+  font-size: 0.85rem;
+  color: var(--text-muted);
 
   svg {
-    color: var(--text-muted);
-    font-size: 12px;
+    font-size: 0.8rem;
   }
 }
 
+// Badge trạng thái: tem skew, chấm màu theo --status-color
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
+  gap: 8px;
+  padding: 4px 16px;
+  background: var(--bg-primary);
+  color: var(--bg-dark);
+  border-left: 8px solid var(--status-color, var(--bg-dark));
+  font-family: 'Teko', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background-color: color-mix(in srgb, var(--status-color) 10%, transparent);
-  color: var(--status-color);
-  border: 1px solid color-mix(in srgb, var(--status-color) 30%, transparent);
+  line-height: 1.3;
+  transform: skew(-10deg);
 
   @media (max-width: 640px) {
     align-self: flex-start;
@@ -348,139 +437,155 @@
 }
 
 .order-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
   padding: 24px;
 
   @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
     padding: 20px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 16px 20px;
   }
 }
 
 .order-details {
-  margin-bottom: 20px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
 }
 
 .detail-item {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  font-size: 0.95rem;
+  color: var(--text-primary);
 
   .detail-icon {
-    color: var(--text-muted);
-    font-size: 14px;
+    align-self: center;
     width: 16px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
   }
 
   .detail-label {
-    font-size: 14px;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     color: var(--text-secondary);
-    font-weight: 500;
   }
 
-  .detail-value {
-    font-size: 14px;
-    color: var(--text-primary);
-
-    &.price {
-      font-weight: 700;
-      color: var(--success-color);
-      font-size: 16px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    flex-wrap: wrap;
+  .detail-value.price {
+    padding: 0 12px;
+    background: var(--primary-neon);
+    color: var(--bg-dark);
+    font-family: 'Teko', sans-serif;
+    font-size: 1.7rem;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    transform: skew(-10deg);
   }
 }
 
 .order-actions {
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 0 6px 6px 0;
 
   @media (max-width: 640px) {
-    justify-content: stretch;
+    flex-direction: column;
+    padding: 0;
   }
 }
 
 .action-btn {
+  @include shine;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
+  padding: 10px 24px;
+  border: 2px solid transparent;
+  font-family: 'Teko', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all var(--transition-base);
-  border: none;
+  transform: skew(-10deg);
+  transition: all var(--transition-fast);
 
-  @media (max-width: 640px) {
-    flex: 1;
-    justify-content: center;
+  svg {
+    transform: skew(10deg);
+  }
+
+  &:hover {
+    transform: skew(-10deg) translate(-2px, -2px);
+  }
+
+  &:active {
+    transform: skew(-10deg) translate(0, 0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--bg-dark);
+    outline-offset: 4px;
   }
 
   &.primary {
-    background: var(--primary-color);
-    color: var(--white);
+    background: var(--bg-dark);
+    color: var(--primary-neon);
+    box-shadow: 5px 5px 0 var(--primary-neon);
 
     &:hover {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-sm);
+      box-shadow: 8px 8px 0 var(--primary-neon);
     }
   }
 
   &.secondary {
-    background: var(--white);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-medium);
+    background: transparent;
+    color: var(--bg-dark);
+    border-color: var(--bg-dark);
+    box-shadow: 5px 5px 0 var(--bg-dark);
 
     &:hover {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      border-color: var(--border-dark);
+      background: var(--bg-dark);
+      color: var(--primary-neon);
+      box-shadow: 8px 8px 0 var(--primary-neon);
     }
-  }
-
-  svg {
-    font-size: 14px;
   }
 }
 
+// Thanh tiến độ: đường đua, neon trên nền tối, đầu vạch cắt chéo
 .progress-indicator {
-  height: 4px;
-  background: var(--border-light);
-  position: relative;
+  height: 10px;
+  background: var(--bg-secondary);
+  border-top: 2px solid var(--border-light);
   overflow: hidden;
 
   .progress-bar {
-    height: 100%;
-    background: var(--primary-color);
-    width: var(--progress, 0%);
-    transition: width 0.5s ease;
     position: relative;
+    height: 100%;
+    width: var(--progress, 0%);
+    background: var(--primary-neon);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    transition: width 0.7s $ease-burst;
 
     &::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       background: linear-gradient(
         90deg,
         transparent,
-        rgba(255, 255, 255, 0.4),
+        rgba(255, 255, 255, 0.6),
         transparent
       );
       animation: shimmer 2s infinite;
@@ -489,18 +594,52 @@
 }
 
 @keyframes shimmer {
-  0% {
+  from {
     transform: translateX(-100%);
   }
-  100% {
+  to {
     transform: translateX(100%);
   }
 }
 
 .no-results {
-  text-align: center;
+  margin-top: 8px;
   padding: 40px 20px;
-  color: var(--text-secondary);
-  font-style: italic;
-  font-size: 15px;
+  text-align: center;
+  border: 2px dashed var(--border-light);
+
+  p {
+    margin: 0;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+}
+
+// Tôn trọng người dùng bật "giảm chuyển động"
+@media (prefers-reduced-motion: reduce) {
+  .title-container .title::before {
+    animation: none;
+    transform: skew(-10deg) scaleX(1);
+  }
+
+  .progress-bar::after {
+    animation: none;
+  }
+
+  .action-btn::after,
+  .shop-link::after {
+    display: none;
+  }
+
+  .order-card:hover,
+  .filter-tab:hover {
+    transform: none;
+  }
+
+  .filter-tab:hover {
+    transform: skew(-10deg);
+  }
 }

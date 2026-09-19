@@ -1,45 +1,141 @@
+// Login.module.scss - đồng bộ theme "Vibrant Sportswear" với Home.module.scss
+// Dùng chung CSS variables: --bg-primary, --bg-secondary, --bg-dark, --primary-neon,
+// --text-primary, --text-secondary, --text-inverse, --text-muted, --border-light,
+// --spacing-*, --transition-fast/base. Font 'Teko' cho heading/label.
+// Form giữ KHÔNG skew (input/nút social) để đảm bảo dễ dùng, chỉ skew ở các điểm
+// nhấn (nút chính, badge, vạch trang trí) — đúng cách Home dùng skew có chọn lọc.
+
 .wrapper {
+  min-height: 100vh;
+  height: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow-x: hidden; // chỉ chặn speed-line tràn ngang
+  overflow-y: auto; // cho cuộn dọc khi card cao hơn khung, không cắt nội dung
+  box-sizing: border-box;
+  background: var(--bg-dark);
+  padding: 40px 20px;
+
+  .speed-line {
+    position: absolute;
+    left: -40%;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary-neon));
+    opacity: 0.2;
+    animation: speed-line linear infinite;
+    pointer-events: none;
+  }
 }
+
+@keyframes speed-line {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(160vw);
+  }
+}
+
 .login-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  min-width: 500px;
+  max-width: 460px;
+  min-width: 0;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-light);
+  box-shadow: 10px 10px 0 var(--primary-neon);
+  padding: 48px 44px 40px;
+
+  // Vạch caro trang trí phía trên, gợi nhớ vạch đích ở Home .cta-box
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background-image: repeating-conic-gradient(
+      var(--bg-dark) 0 25%,
+      var(--bg-primary) 0 50%
+    );
+    background-size: 20px 20px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 40px 24px 32px;
+  }
 }
+
 .logo-container {
   position: absolute;
-
+  top: 24px;
+  left: 24px;
   z-index: 10;
 }
+
 .header {
   text-align: center;
-  margin: 32px 0 8px 0;
+  margin: 24px 0 8px 0;
 }
 
 .title {
-  font-size: 32px;
+  font-family: 'Teko', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(2rem, 4vw, 2.6rem);
   font-weight: 700;
-  color: #111827;
-  line-height: 1.2;
+  color: var(--text-primary);
+  line-height: 1;
+
+  @media (max-width: 480px) {
+    font-size: 1.8rem;
+  }
 }
 
 .subtitle {
-  font-size: 16px;
-  color: #6b7280;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
   line-height: 1.5;
+  margin-top: 6px;
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+  }
+}
+
+.admin-notice {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 4px;
+
+  p {
+    margin: 0;
+    padding: 8px 18px;
+    background: var(--bg-dark);
+    color: var(--primary-neon);
+    font-family: 'Teko', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.03em;
+    transform: skew(-10deg);
+  }
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
+  margin-top: 20px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .label-row {
@@ -49,44 +145,52 @@
 }
 
 .label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+  font-family: 'Teko', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
 }
 
 .forgot-password {
-  font-size: 14px;
-  color: #3b82f6;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 
   &:hover {
-    color: #1d4ed8;
+    color: var(--bg-dark);
     text-decoration: underline;
+    text-decoration-color: var(--primary-neon);
   }
 }
 
 .input {
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
+  padding: 13px 16px;
+  border: 2px solid var(--border-light);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-size: 16px;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
   outline: none;
+
   &.input-error {
     border-color: #f31d33 !important;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+    box-shadow: 0 0 0 3px rgba(243, 29, 51, 0.12) !important;
   }
+
   &::placeholder {
-    color: #9ca3af;
+    color: var(--text-muted);
   }
 
   &:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--primary-neon);
+    box-shadow: 0 0 0 3px rgba(204, 255, 0, 0.15);
   }
 
   &:hover {
-    border-color: #9ca3af;
+    border-color: var(--bg-dark);
   }
 }
 
@@ -94,46 +198,59 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .checkbox {
   width: 16px;
   height: 16px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-light);
   cursor: pointer;
-  accent-color: #3b82f6;
+  accent-color: var(--bg-dark);
 }
 
 .remember-label {
-  font-size: 14px;
-  color: #374151;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
 }
 
 .login-btn {
-  background: var(--primary-color);
-  color: white;
-  padding: 14px 20px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-dark);
+  color: var(--primary-neon);
+  padding: 15px 20px;
   border: none;
-  font-size: 16px;
-  font-weight: 600;
+  font-family: 'Teko', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s;
+  transform: skew(-10deg);
+  box-shadow: 6px 6px 0 var(--primary-neon);
+  transition: all var(--transition-fast);
+  margin-top: 4px;
 
   &:hover:not(:disabled) {
-    background: #e52727;
-    transform: translateY(-1px);
+    transform: skew(-10deg) translate(-2px, -2px);
+    box-shadow: 10px 10px 0 var(--primary-neon);
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+
+    &:hover {
+      transform: skew(-10deg);
+      box-shadow: 6px 6px 0 var(--primary-neon);
+    }
   }
 
   &:active:not(:disabled) {
-    transform: translateY(0);
+    transform: skew(-10deg) translate(0, 0);
+    box-shadow: 4px 4px 0 var(--primary-neon);
   }
 }
 
@@ -141,20 +258,24 @@
   display: flex;
   align-items: center;
   text-align: center;
+  margin: 4px 0;
 
   &::before,
   &::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: #e5e7eb;
+    background: var(--border-light);
   }
 
   span {
     padding: 0 16px;
-    color: #6b7280;
-    font-size: 14px;
-    background: white;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-family: 'Teko', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: var(--bg-primary);
   }
 }
 
@@ -170,19 +291,18 @@
   justify-content: center;
   gap: 12px;
   padding: 12px 16px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+  border: 2px solid var(--border-light);
+  background: var(--bg-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 
   &:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: var(--bg-dark);
+    background: var(--bg-secondary);
+    transform: translateY(-2px);
   }
 
   &:active {
@@ -198,36 +318,56 @@
 
 .signup-link {
   text-align: center;
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .signup-text {
-  color: #3b82f6;
+  color: var(--bg-dark);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700;
 
   &:hover {
-    color: #1d4ed8;
+    color: var(--text-primary);
     text-decoration: underline;
+    text-decoration-color: var(--primary-neon);
   }
 }
 
-// Responsive design
+.back-home {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.back-link {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--bg-dark);
+  }
+}
+
+// ================== RESPONSIVE ==================
 @media (max-width: 480px) {
   .wrapper {
     padding: 12px;
   }
 
-  .login-container {
-    padding: 32px 24px;
-  }
-
   .title {
-    font-size: 28px;
+    font-size: 1.8rem;
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speed-line {
+    animation: none !important;
   }
 }

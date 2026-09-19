@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion, MotionConfig } from 'framer-motion';
 import axios from '../../../setup/axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -14,6 +15,24 @@ import classNames from 'classnames/bind';
 import styles from './Products.module.scss';
 
 const cx = classNames.bind(styles);
+
+/* Cùng "ngôn ngữ chuyển động" với trang Home: lao vào từ vạch xuất phát bên trái */
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const cardIn = {
+  hidden: { opacity: 0, x: -40 },
+  visible: (i) => ({
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.5,
+      ease: EASE_BURST,
+      delay: Math.min(i, 8) * 0.05, // chỉ stagger 8 card đầu để không bị chờ lâu
+    },
+  }),
+};
+
+const getActualPrice = (product) => product.sale_price || product.price || 0;
 
 function Products() {
   const [searchParams] = useSearchParams();
@@ -36,13 +55,7 @@ function Products() {
         const response = await axios.get('/products');
         if (response.data && response.data.length > 0) {
           setAllProducts(response.data);
-
-          const actualPrices = response.data.map((product) => {
-            return product.sale_price || product.price || 0;
-          });
-          const min = 0;
-          const max = Math.max(...actualPrices);
-          setPriceRange([min, max]);
+          setPriceRange([0, Math.max(...response.data.map(getActualPrice))]);
         }
       } catch (error) {
         console.error('Lỗi khi lấy sản phẩm:', error);
@@ -77,10 +90,9 @@ function Products() {
     let filtered = [...allProducts];
 
     if (selectedCategories.length > 0) {
+      const normalizedSelectedCats = selectedCategories.map((id) => Number(id));
       filtered = filtered.filter((product) => {
-        const productCategories = product.category_ids || [];
-        const normalizedProductCats = productCategories.map((id) => Number(id));
-        const normalizedSelectedCats = selectedCategories.map((id) =>
+        const normalizedProductCats = (product.category_ids || []).map((id) =>
           Number(id),
         );
         return normalizedSelectedCats.some((selectedId) =>
@@ -102,24 +114,16 @@ function Products() {
     }
 
     filtered = filtered.filter((product) => {
-      const actualPrice = product.sale_price || product.price || 0;
+      const actualPrice = getActualPrice(product);
       return actualPrice >= priceRange[0] && actualPrice <= priceRange[1];
     });
 
     switch (sortBy) {
       case 'price-low':
-        filtered.sort((a, b) => {
-          const priceA = a.sale_price || a.price || 0;
-          const priceB = b.sale_price || b.price || 0;
-          return priceA - priceB;
-        });
+        filtered.sort((a, b) => getActualPrice(a) - getActualPrice(b));
         break;
       case 'price-high':
-        filtered.sort((a, b) => {
-          const priceA = a.sale_price || a.price || 0;
-          const priceB = b.sale_price || b.price || 0;
-          return priceB - priceA;
-        });
+        filtered.sort((a, b) => getActualPrice(b) - getActualPrice(a));
         break;
       case 'newest':
         filtered.sort(
@@ -225,12 +229,7 @@ function Products() {
     setSelectedBrands([]);
     setSelectedSizes([]);
     if (allProducts.length > 0) {
-      const actualPrices = allProducts.map((product) => {
-        return product.sale_price || product.price || 0;
-      });
-      const min = 0;
-      const max = Math.max(...actualPrices);
-      setPriceRange([min, max]);
+      setPriceRange([0, Math.max(...allProducts.map(getActualPrice))]);
     }
   };
 
@@ -239,137 +238,179 @@ function Products() {
   }));
 
   return (
-    <div className={cx('products-page')}>
-      <div className={cx('products-container')}>
-        <FilterSidebar
-          selectedCategories={selectedCategories}
-          selectedBrands={selectedBrands}
-          selectedSizes={selectedSizes}
-          priceRange={priceRange}
-          onCategoryChange={handleCategoryChange}
-          onBrandChange={handleBrandChange}
-          onSizeChange={handleSizeChange}
-          onPriceChange={handlePriceChange}
-          onClearFilters={clearAllFilters}
-        />
+    <MotionConfig reducedMotion="user">
+      <div className={cx('products-page')}>
+        <div className={cx('products-container')}>
+          <FilterSidebar
+            selectedCategories={selectedCategories}
+            selectedBrands={selectedBrands}
+            selectedSizes={selectedSizes}
+            priceRange={priceRange}
+            onCategoryChange={handleCategoryChange}
+            onBrandChange={handleBrandChange}
+            onSizeChange={handleSizeChange}
+            onPriceChange={handlePriceChange}
+            onClearFilters={clearAllFilters}
+          />
 
-        <main className={cx('main-content')}>
-          <div className={cx('products-header')}>
-            <div className={cx('results-info')}>
-              <h2>Products</h2>
-              <span>
-                Showing{' '}
-                {Math.min(startIndex + 1, filteredAndSortedProducts.length)}-
-                {Math.min(endIndex, filteredAndSortedProducts.length)} of{' '}
-                {filteredAndSortedProducts.length} Results
-              </span>
+          <main className={cx('main-content')}>
+            {/* motion ở lớp ngoài, skew (CSS) ở lớp trong để không bị ghi đè */}
+            <motion.div
+              className={cx('products-header-slot')}
+              initial={{ opacity: 0, x: -60 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, ease: EASE_BURST }}
+            >
+              <div className={cx('products-header')}>
+                <div className={cx('products-header-inner')}>
+                  <div className={cx('results-info')}>
+                    <h2 className={cx('page-title')}>
+                      ALL <span className={cx('accent')}>GEAR</span>
+                    </h2>
+                    <p className={cx('results-count')}>
+                      Showing{' '}
+                      {Math.min(
+                        startIndex + 1,
+                        filteredAndSortedProducts.length,
+                      )}
+                      -{Math.min(endIndex, filteredAndSortedProducts.length)} of{' '}
+                      {filteredAndSortedProducts.length} results
+                    </p>
+                  </div>
+
+                  <div className={cx('header-controls')}>
+                    <div className={cx('sort-by')}>
+                      <label htmlFor="products-sort">Sort by</label>
+                      <select
+                        id="products-sort"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className={cx('sort-select')}
+                      >
+                        <option value="popularity">Popularity</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="newest">Newest</option>
+                      </select>
+                    </div>
+
+                    <div className={cx('view-modes')}>
+                      <button
+                        type="button"
+                        aria-label="Grid view"
+                        aria-pressed={viewMode === 'grid'}
+                        className={cx('view-btn', {
+                          active: viewMode === 'grid',
+                        })}
+                        onClick={() => setViewMode('grid')}
+                      >
+                        <FontAwesomeIcon icon={faTh} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="List view"
+                        aria-pressed={viewMode === 'list'}
+                        className={cx('view-btn', {
+                          active: viewMode === 'list',
+                        })}
+                        onClick={() => setViewMode('list')}
+                      >
+                        <FontAwesomeIcon icon={faList} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <div className={cx('products-grid', viewMode)}>
+              {loading ? (
+                skeletonItems.map((item) => (
+                  <div className={cx('product-slot')} key={item.id}>
+                    <div className={cx('product-frame')}>
+                      <ProductCard isLoading={true} viewMode={viewMode} />
+                    </div>
+                  </div>
+                ))
+              ) : currentProducts.length > 0 ? (
+                currentProducts.map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    className={cx('product-slot')}
+                    custom={index}
+                    variants={cardIn}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <div className={cx('product-frame')}>
+                      <ProductCard product={product} viewMode={viewMode} />
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className={cx('no-products')}>
+                  <p>No gear matches your filters.</p>
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className={cx('reset-filters-btn')}
+                  >
+                    CLEAR ALL FILTERS
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className={cx('header-controls')}>
-              <div className={cx('sort-by')}>
-                <label>Sort by</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className={cx('sort-select')}
+            {filteredAndSortedProducts.length > 0 && totalPages > 1 && (
+              <nav className={cx('pagination')} aria-label="Pagination">
+                <button
+                  type="button"
+                  aria-label="Previous page"
+                  className={cx('page-btn', 'nav-btn', {
+                    disabled: currentPage === 1,
+                  })}
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
                 >
-                  <option value="popularity">Popularity</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="newest">Newest</option>
-                </select>
-              </div>
+                  <FontAwesomeIcon icon={faChevronLeft} />
+                </button>
 
-              <div className={cx('view-modes')}>
-                <button
-                  className={cx('view-btn', { active: viewMode === 'grid' })}
-                  onClick={() => setViewMode('grid')}
-                >
-                  <FontAwesomeIcon icon={faTh} />
-                </button>
-                <button
-                  className={cx('view-btn', { active: viewMode === 'list' })}
-                  onClick={() => setViewMode('list')}
-                >
-                  <FontAwesomeIcon icon={faList} />
-                </button>
-              </div>
-            </div>
-          </div>
+                {getPaginationNumbers().map((page, index) => (
+                  <React.Fragment key={index}>
+                    {page === '...' ? (
+                      <span className={cx('pagination-dots')}>...</span>
+                    ) : (
+                      <button
+                        type="button"
+                        aria-current={currentPage === page ? 'page' : undefined}
+                        className={cx('page-btn', {
+                          active: currentPage === page,
+                        })}
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </button>
+                    )}
+                  </React.Fragment>
+                ))}
 
-          <div className={cx('products-grid', viewMode)}>
-            {loading ? (
-              skeletonItems.map((item) => (
-                <ProductCard
-                  key={item.id}
-                  isLoading={true}
-                  viewMode={viewMode}
-                />
-              ))
-            ) : currentProducts.length > 0 ? (
-              currentProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  viewMode={viewMode}
-                />
-              ))
-            ) : (
-              <div className={cx('no-products')}>
-                <p>Không tìm thấy sản phẩm nào phù hợp với bộ lọc của bạn.</p>
                 <button
-                  onClick={clearAllFilters}
-                  className={cx('reset-filters-btn')}
+                  type="button"
+                  aria-label="Next page"
+                  className={cx('page-btn', 'nav-btn', {
+                    disabled: currentPage === totalPages,
+                  })}
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
                 >
-                  Xóa tất cả bộ lọc
+                  <FontAwesomeIcon icon={faChevronRight} />
                 </button>
-              </div>
+              </nav>
             )}
-          </div>
-
-          {filteredAndSortedProducts.length > 0 && totalPages > 1 && (
-            <div className={cx('pagination')}>
-              <button
-                className={cx('page-btn', 'nav-btn', {
-                  disabled: currentPage === 1,
-                })}
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-              >
-                <FontAwesomeIcon icon={faChevronLeft} />
-              </button>
-
-              {getPaginationNumbers().map((page, index) => (
-                <React.Fragment key={index}>
-                  {page === '...' ? (
-                    <span className={cx('pagination-dots')}>...</span>
-                  ) : (
-                    <button
-                      className={cx('page-btn', {
-                        active: currentPage === page,
-                      })}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  )}
-                </React.Fragment>
-              ))}
-
-              <button
-                className={cx('page-btn', 'nav-btn', {
-                  disabled: currentPage === totalPages,
-                })}
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-              >
-                <FontAwesomeIcon icon={faChevronRight} />
-              </button>
-            </div>
-          )}
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
 

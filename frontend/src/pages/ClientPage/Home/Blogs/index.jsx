@@ -52,7 +52,7 @@ function Blogs() {
   if (loading) {
     return (
       <div className={cx('container')}>
-        <HeaderSection title="Latest Updates" viewAll=" See All Articles →" />
+        <HeaderSection viewAll=" See All Articles →" />
         <div className={cx('blog-grid')}>
           {[1, 2, 3].map((index) => (
             <article key={index} className={cx('blog-card', 'loading')}>
@@ -71,7 +71,7 @@ function Blogs() {
   if (error) {
     return (
       <div className={cx('container')}>
-        <HeaderSection title="Latest Updates" viewAll=" See All Articles →" />
+        <HeaderSection viewAll=" See All Articles →" />
         <div className={cx('error-message')}>
           <p>{error}</p>
         </div>
@@ -81,7 +81,7 @@ function Blogs() {
 
   return (
     <div className={cx('container')}>
-      <HeaderSection title="Latest Updates" viewAll=" See All Articles →" />
+      <HeaderSection viewAll=" See All Articles →" />
       <div className={cx('blog-grid')}>
         {blogPosts.map((post) => (
           <Link

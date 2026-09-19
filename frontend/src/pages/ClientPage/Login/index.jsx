@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import classNames from 'classnames/bind';
+import { motion } from 'framer-motion';
 import styles from './Login.module.scss';
 import axios from '../../../setup/axios';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -8,6 +9,16 @@ import Logo from '../../../components/Logo';
 import { UserContext } from '../../../context/UserContext';
 
 const cx = classNames.bind(styles);
+
+// Cùng "ngôn ngữ chuyển động" với Home/BlogDetail/AboutUs/Profile
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const speedLines = [
+  { top: '15%', width: '32%', duration: 2.4, delay: 0 },
+  { top: '38%', width: '44%', duration: 3, delay: 0.7 },
+  { top: '60%', width: '26%', duration: 2, delay: 1.2 },
+  { top: '82%', width: '38%', duration: 2.6, delay: 0.3 },
+];
 
 function Login() {
   const navigate = useNavigate();
@@ -123,7 +134,7 @@ function Login() {
       setTimeout(() => {
         console.log(
           ' Customer redirect - delayed navigation to:',
-          redirectPath
+          redirectPath,
         );
         navigate(redirectPath, { replace: true });
       }, 1000);
@@ -176,7 +187,25 @@ function Login() {
 
   return (
     <div className={cx('wrapper')}>
-      <div className={cx('login-container')}>
+      {speedLines.map((line, i) => (
+        <span
+          key={i}
+          className={cx('speed-line')}
+          style={{
+            top: line.top,
+            width: line.width,
+            animationDuration: `${line.duration}s`,
+            animationDelay: `${line.delay}s`,
+          }}
+        />
+      ))}
+
+      <motion.div
+        className={cx('login-container')}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE_BURST }}
+      >
         <div className={cx('logo-container')}>
           <Logo />
         </div>
@@ -313,7 +342,7 @@ function Login() {
             </div>
           )}
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

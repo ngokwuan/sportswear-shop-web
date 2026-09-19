@@ -17,10 +17,28 @@ import {
   faLinkedin,
 } from '@fortawesome/free-brands-svg-icons';
 import classNames from 'classnames/bind';
+import { motion, useReducedMotion } from 'framer-motion';
 import styles from './BlogDetail.module.scss';
 import axios from '../../../../setup/axios';
 
 const cx = classNames.bind(styles);
+
+// Cùng "ngôn ngữ chuyển động" với Home: lao vào từ trái, ease-burst
+const EASE_BURST = [0.16, 1, 0.3, 1];
+
+const dash = {
+  hidden: { opacity: 0, x: -60, skewX: 12 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    skewX: 0,
+    transition: { duration: 0.6, ease: EASE_BURST },
+  },
+};
+
+const stagger = (gap = 0.1) => ({
+  visible: { transition: { staggerChildren: gap } },
+});
 
 function BlogDetail() {
   const { id } = useParams();
@@ -29,6 +47,7 @@ function BlogDetail() {
   const [relatedBlogs, setRelatedBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     if (id) {
@@ -46,9 +65,8 @@ function BlogDetail() {
   const fetchBlogDetail = async () => {
     try {
       setLoading(true);
-      // Fixed API endpoint - removed /api prefix and used correct endpoint
       const response = await axios.get(
-        `/blogs/${id}/public?increment_view=true`
+        `/blogs/${id}/public?increment_view=true`,
       );
 
       if (response.data.success) {
@@ -66,15 +84,13 @@ function BlogDetail() {
 
   const fetchRelatedBlogs = async () => {
     try {
-      // Fixed API endpoint
       const response = await axios.get(
-        `/blogs/published?category_id=${blog.category_id}&limit=4`
+        `/blogs/published?category_id=${blog.category_id}&limit=4`,
       );
 
       if (response.data.success) {
-        // Loại bỏ bài viết hiện tại khỏi danh sách related
         const filtered = response.data.data.blogs.filter(
-          (relatedBlog) => relatedBlog.id !== parseInt(id)
+          (relatedBlog) => relatedBlog.id !== parseInt(id),
         );
         setRelatedBlogs(filtered.slice(0, 3));
       }
@@ -106,17 +122,17 @@ function BlogDetail() {
     switch (platform) {
       case 'facebook':
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-          url
+          url,
         )}`;
         break;
       case 'twitter':
         shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
-          url
+          url,
         )}&text=${encodeURIComponent(title)}`;
         break;
       case 'linkedin':
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-          url
+          url,
         )}`;
         break;
       default:
@@ -132,7 +148,7 @@ function BlogDetail() {
         <div className={cx('container')}>
           <div className={cx('loading')}>
             <div className={cx('loading-spinner')}></div>
-            <p>Đang tải bài viết...</p>
+            <p>ĐANG TẢI BÀI VIẾT...</p>
           </div>
         </div>
       </div>
@@ -148,10 +164,10 @@ function BlogDetail() {
             <p>Bài viết bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
             <button
               onClick={() => navigate('/blogs')}
-              className={cx('back-button')}
+              className={cx('btn-primary')}
             >
               <FontAwesomeIcon icon={faArrowLeft} />
-              Về trang Blog
+              VỀ TRANG BLOG
             </button>
           </div>
         </div>
@@ -206,7 +222,12 @@ function BlogDetail() {
           <main className={cx('main-content')}>
             <article className={cx('blog-article')}>
               {/* Article Header */}
-              <header className={cx('article-header')}>
+              <motion.header
+                className={cx('article-header')}
+                initial="hidden"
+                animate="visible"
+                variants={stagger(0.1)}
+              >
                 <button
                   onClick={() => navigate('/blogs')}
                   className={cx('back-button')}
@@ -216,18 +237,22 @@ function BlogDetail() {
                 </button>
 
                 {blog.category && (
-                  <Link
-                    to={`/blogs?category=${blog.category.id}`}
-                    className={cx('article-category')}
-                  >
-                    <FontAwesomeIcon icon={faTag} />
-                    {blog.category.name}
-                  </Link>
+                  <motion.div variants={dash}>
+                    <Link
+                      to={`/blogs?category=${blog.category.id}`}
+                      className={cx('article-category')}
+                    >
+                      <FontAwesomeIcon icon={faTag} />
+                      {blog.category.name}
+                    </Link>
+                  </motion.div>
                 )}
 
-                <h1 className={cx('article-title')}>{blog.title}</h1>
+                <motion.h1 className={cx('article-title')} variants={dash}>
+                  {blog.title}
+                </motion.h1>
 
-                <div className={cx('article-meta')}>
+                <motion.div className={cx('article-meta')} variants={dash}>
                   <div className={cx('meta-left')}>
                     <span className={cx('meta-item')}>
                       <FontAwesomeIcon icon={faUser} />
@@ -273,20 +298,25 @@ function BlogDetail() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {blog.excerpt && (
-                  <div className={cx('article-excerpt')}>
+                  <motion.div className={cx('article-excerpt')} variants={dash}>
                     <p>{blog.excerpt}</p>
-                  </div>
+                  </motion.div>
                 )}
-              </header>
+              </motion.header>
 
               {/* Featured Image */}
               {blog.featured_image && (
-                <div className={cx('article-image')}>
+                <motion.div
+                  className={cx('article-image')}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, ease: EASE_BURST, delay: 0.15 }}
+                >
                   <img src={blog.featured_image} alt={blog.title} />
-                </div>
+                </motion.div>
               )}
 
               {/* Article Content */}
@@ -346,39 +376,50 @@ function BlogDetail() {
               <section className={cx('related-posts')}>
                 <h2 className={cx('related-title')}>Bài viết liên quan</h2>
                 <div className={cx('related-grid')}>
-                  {relatedBlogs.map((relatedBlog) => (
-                    <Link
-                      to={`/blogs/${relatedBlog.id}`}
+                  {relatedBlogs.map((relatedBlog, idx) => (
+                    <motion.div
                       key={relatedBlog.id}
-                      className={cx('related-card')}
+                      initial={{ opacity: 0, x: -60 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true, margin: '-60px' }}
+                      transition={{
+                        duration: 0.6,
+                        delay: reduce ? 0 : idx * 0.1,
+                        ease: EASE_BURST,
+                      }}
                     >
-                      <div className={cx('related-image')}>
-                        <img
-                          src={
-                            relatedBlog.featured_image ||
-                            '/default-blog-image.jpg'
-                          }
-                          alt={relatedBlog.title}
-                        />
-                      </div>
-                      <div className={cx('related-content')}>
-                        <h3 className={cx('related-card-title')}>
-                          {relatedBlog.title}
-                        </h3>
-                        <p className={cx('related-excerpt')}>
-                          {relatedBlog.excerpt?.substring(0, 120)}...
-                        </p>
-                        <div className={cx('related-meta')}>
-                          <span className={cx('related-date')}>
-                            {formatDate(relatedBlog.published_at)}
-                          </span>
-                          <span className={cx('related-views')}>
-                            <FontAwesomeIcon icon={faEye} />
-                            {relatedBlog.views || 0}
-                          </span>
+                      <Link
+                        to={`/blogs/${relatedBlog.id}`}
+                        className={cx('related-card')}
+                      >
+                        <div className={cx('related-image')}>
+                          <img
+                            src={
+                              relatedBlog.featured_image ||
+                              '/default-blog-image.jpg'
+                            }
+                            alt={relatedBlog.title}
+                          />
                         </div>
-                      </div>
-                    </Link>
+                        <div className={cx('related-content')}>
+                          <h3 className={cx('related-card-title')}>
+                            {relatedBlog.title}
+                          </h3>
+                          <p className={cx('related-excerpt')}>
+                            {relatedBlog.excerpt?.substring(0, 120)}...
+                          </p>
+                          <div className={cx('related-meta')}>
+                            <span className={cx('related-date')}>
+                              {formatDate(relatedBlog.published_at)}
+                            </span>
+                            <span className={cx('related-views')}>
+                              <FontAwesomeIcon icon={faEye} />
+                              {relatedBlog.views || 0}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
                   ))}
                 </div>
               </section>
@@ -390,17 +431,19 @@ function BlogDetail() {
             {/* Author Info */}
             {blog.author && (
               <div className={cx('sidebar-widget', 'author-widget')}>
-                <h3 className={cx('widget-title')}>Tác giả</h3>
-                <div className={cx('author-info')}>
-                  <div className={cx('author-avatar')}>
-                    <FontAwesomeIcon icon={faUser} />
-                  </div>
-                  <div className={cx('author-details')}>
-                    <h4 className={cx('author-name')}>{blog.author.name}</h4>
-                    <p className={cx('author-bio')}>
-                      Tác giả chuyên viết về các chủ đề thể thao, sức khỏe và
-                      lối sống năng động.
-                    </p>
+                <div className={cx('widget-inner')}>
+                  <h3 className={cx('widget-title')}>Tác giả</h3>
+                  <div className={cx('author-info')}>
+                    <div className={cx('author-avatar')}>
+                      <FontAwesomeIcon icon={faUser} />
+                    </div>
+                    <div className={cx('author-details')}>
+                      <h4 className={cx('author-name')}>{blog.author.name}</h4>
+                      <p className={cx('author-bio')}>
+                        Tác giả chuyên viết về các chủ đề thể thao, sức khỏe và
+                        lối sống năng động.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -408,31 +451,35 @@ function BlogDetail() {
 
             {/* Table of Contents */}
             <div className={cx('sidebar-widget')}>
-              <h3 className={cx('widget-title')}>Mục lục</h3>
-              <div className={cx('toc')}>
-                <p className={cx('toc-note')}>
-                  Nội dung bài viết được chia thành các phần để bạn dễ dàng theo
-                  dõi.
-                </p>
+              <div className={cx('widget-inner')}>
+                <h3 className={cx('widget-title')}>Mục lục</h3>
+                <div className={cx('toc')}>
+                  <p className={cx('toc-note')}>
+                    Nội dung bài viết được chia thành các phần để bạn dễ dàng
+                    theo dõi.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Newsletter */}
             <div className={cx('sidebar-widget', 'newsletter-widget')}>
-              <h3 className={cx('widget-title')}>Đăng ký nhận tin</h3>
-              <p className={cx('newsletter-description')}>
-                Nhận thông báo về những bài viết mới nhất và ưu đãi đặc biệt
-              </p>
-              <form className={cx('newsletter-form')}>
-                <input
-                  type="email"
-                  placeholder="Email của bạn..."
-                  className={cx('newsletter-input')}
-                />
-                <button type="submit" className={cx('newsletter-button')}>
-                  Đăng ký
-                </button>
-              </form>
+              <div className={cx('widget-inner')}>
+                <h3 className={cx('widget-title')}>Đăng ký nhận tin</h3>
+                <p className={cx('newsletter-description')}>
+                  Nhận thông báo về những bài viết mới nhất và ưu đãi đặc biệt
+                </p>
+                <form className={cx('newsletter-form')}>
+                  <input
+                    type="email"
+                    placeholder="Email của bạn..."
+                    className={cx('newsletter-input')}
+                  />
+                  <button type="submit" className={cx('newsletter-button')}>
+                    Đăng ký
+                  </button>
+                </form>
+              </div>
             </div>
           </aside>
         </div>

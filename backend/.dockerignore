@@ -1,0 +1,31 @@
+node_modules
+npm-debug.log*
+
+# Environment files (never bake secrets into image)
+.env
+.env.*
+
+# Temp and cache files
+temp/
+*.log
+
+# Uploads (mounted as volume in compose)
+uploads/products/*
+
+# Git
+.git
+.gitignore
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+*.test.js
+*.spec.js
