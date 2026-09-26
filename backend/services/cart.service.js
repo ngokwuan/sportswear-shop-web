@@ -36,6 +36,9 @@ export const createCartItem = async ({ userId, productId, quantity, size }) => {
 /**
  * Thêm sản phẩm vào giỏ: nếu đã có item cùng user/product/size thì cộng dồn
  * số lượng, chưa có thì tạo mới.
+ * Nếu DB có unique constraint chỉ trên (user_id, product_id) không bao gồm size,
+ * việc thêm cùng sản phẩm với size khác sẽ bị lỗi duplicate key.
+ * Trường hợp này ta bắt lỗi và fallback về cộng dồn số lượng của item hiện có.
  */
 export const addOrUpdateCartItem = async ({
   userId,
@@ -49,7 +52,24 @@ export const addOrUpdateCartItem = async ({
     return incrementCartItem(existing, quantity);
   }
 
-  return createCartItem({ userId, productId, quantity, size });
+  try {
+    return await createCartItem({ userId, productId, quantity, size });
+  } catch (err) {
+    // Handle DB-level unique constraint (e.g. unique on user_id+product_id only)
+    if (
+      err.name === 'SequelizeUniqueConstraintError' ||
+      (err.original && err.original.code === 'ER_DUP_ENTRY')
+    ) {
+      // Re-fetch the conflicting item (may differ in size stored in DB)
+      const conflict = await Cart.findOne({
+        where: { user_id: userId, product_id: productId },
+      });
+      if (conflict) {
+        return incrementCartItem(conflict, quantity);
+      }
+    }
+    throw err;
+  }
 };
 
 /**
@@ -80,6 +100,7 @@ export const getCartByUser = async (userId) => {
         attributes: [
           'id',
           'name',
+          'slug',
           'price',
           'sale_price',
           'featured_image',

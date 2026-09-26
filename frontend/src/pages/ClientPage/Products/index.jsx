@@ -108,9 +108,30 @@ function Products() {
     }
 
     if (selectedSizes.length > 0) {
-      filtered = filtered.filter((product) =>
-        selectedSizes.includes(product.size),
-      );
+      filtered = filtered.filter((product) => {
+        // Parse product.size thành mảng các size riêng lẻ
+        let productSizes = [];
+        if (Array.isArray(product.size)) {
+          productSizes = product.size.flatMap((s) =>
+            typeof s === 'string' && s.includes(',')
+              ? s.split(',').map((x) => x.trim()).filter(Boolean)
+              : [String(s)],
+          );
+        } else if (typeof product.size === 'string' && product.size.trim()) {
+          try {
+            const parsed = JSON.parse(product.size);
+            const arr = Array.isArray(parsed) ? parsed : [String(parsed)];
+            productSizes = arr.flatMap((s) =>
+              typeof s === 'string' && s.includes(',')
+                ? s.split(',').map((x) => x.trim()).filter(Boolean)
+                : [String(s)],
+            );
+          } catch {
+            productSizes = product.size.split(',').map((s) => s.trim()).filter(Boolean);
+          }
+        }
+        return productSizes.some((s) => selectedSizes.includes(s));
+      });
     }
 
     filtered = filtered.filter((product) => {

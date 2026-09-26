@@ -5,6 +5,36 @@ import styles from '../Products.module.scss';
 
 const cx = classNames.bind(styles);
 
+/**
+ * Parse chuỗi size từ DB thành mảng các kích thước riêng lẻ.
+ * Xử lý các dạng: "XS,S,M,L", '["XS","S","M"]', '["XS,S,M"]'
+ */
+const parseSizeValue = (raw) => {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    // Flatten nếu phần tử nào vẫn còn dấu phẩy
+    return raw.flatMap((s) =>
+      typeof s === 'string' && s.includes(',')
+        ? s.split(',').map((x) => x.trim()).filter(Boolean)
+        : [String(s)],
+    );
+  }
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    try {
+      const parsed = JSON.parse(raw);
+      const arr = Array.isArray(parsed) ? parsed : [String(parsed)];
+      return arr.flatMap((s) =>
+        typeof s === 'string' && s.includes(',')
+          ? s.split(',').map((x) => x.trim()).filter(Boolean)
+          : [String(s)],
+      );
+    } catch {
+      return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
+};
+
 const SizeFilter = ({ selectedSizes, onSizeChange }) => {
   const [availableSizes, setAvailableSizes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,9 +45,10 @@ const SizeFilter = ({ selectedSizes, onSizeChange }) => {
         const response = await axios.get('/products');
         if (response.data && response.data.length > 0) {
           const sizeCounts = response.data.reduce((acc, product) => {
-            if (product.size) {
-              acc[product.size] = (acc[product.size] || 0) + 1;
-            }
+            const sizes = parseSizeValue(product.size);
+            sizes.forEach((s) => {
+              acc[s] = (acc[s] || 0) + 1;
+            });
             return acc;
           }, {});
 

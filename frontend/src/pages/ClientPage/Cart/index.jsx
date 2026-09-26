@@ -36,6 +36,30 @@ const rise = {
 
 const PLACEHOLDER = '/placeholder-image.jpg';
 
+const getImageUrl = (imageData) => {
+  if (!imageData) return PLACEHOLDER;
+  if (typeof imageData === 'string') {
+    try {
+      const parsed = JSON.parse(imageData);
+      if (parsed && parsed.url) return parsed.url;
+    } catch {
+      // not JSON string
+    }
+    return imageData;
+  }
+  if (typeof imageData === 'object' && imageData?.url) {
+    return imageData.url;
+  }
+  return PLACEHOLDER;
+};
+
+const getProductDetailUrl = (product, fallbackProductId) => {
+  const id = product?.id || fallbackProductId;
+  if (!id) return '/products';
+  const slug = product?.slug || 'product';
+  return `/products/${slug}_${id}`;
+};
+
 function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -262,23 +286,40 @@ function Cart() {
                     ? item.product?.price
                     : null;
 
+                  const productDetailUrl = getProductDetailUrl(
+                    item.product,
+                    item.product_id,
+                  );
+
                   return (
                     <div key={item.id} className={cx('cart-item-slot')}>
                       <div className={cx('cart-item')}>
                         <div className={cx('col-product')}>
                           <div className={cx('product-info')}>
-                            <img
-                              src={item.product?.featured_image || PLACEHOLDER}
-                              alt={item.product?.name}
-                              className={cx('product-image')}
-                              loading="lazy"
-                              onError={(e) => {
-                                e.target.onerror = null; // tránh lặp vô hạn
-                                e.target.src = PLACEHOLDER;
-                              }}
-                            />
+                            <Link
+                              to={productDetailUrl}
+                              className={cx('product-image-link')}
+                              title={item.product?.name}
+                            >
+                              <img
+                                src={getImageUrl(item.product?.featured_image)}
+                                alt={item.product?.name}
+                                className={cx('product-image')}
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.target.onerror = null; // tránh lặp vô hạn
+                                  e.target.src = PLACEHOLDER;
+                                }}
+                              />
+                            </Link>
                             <div className={cx('product-details')}>
-                              <h3>{item.product?.name}</h3>
+                              <Link
+                                to={productDetailUrl}
+                                className={cx('product-name-link')}
+                                title={item.product?.name}
+                              >
+                                <h3>{item.product?.name}</h3>
+                              </Link>
                               <div className={cx('product-type')}>
                                 {/* show selected size (item.size) first; fallback to product.size list */}
                                 {item.size ? (
