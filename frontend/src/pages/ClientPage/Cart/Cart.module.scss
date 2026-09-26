@@ -345,6 +345,20 @@ $cols: minmax(0, 2.4fr) minmax(0, 1fr) auto minmax(0, 1fr) 44px;
     gap: 16px;
   }
 
+  .product-image-link {
+    display: block;
+    flex-shrink: 0;
+    line-height: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+
+    &:hover {
+      transform: scale(1.03);
+      opacity: 0.9;
+    }
+  }
+
   .product-image {
     width: 84px;
     height: 84px;
@@ -352,6 +366,8 @@ $cols: minmax(0, 2.4fr) minmax(0, 1fr) auto minmax(0, 1fr) 44px;
     object-fit: cover;
     background: var(--bg-secondary);
     border: 1px solid var(--border-light);
+    display: block;
+    cursor: pointer;
 
     @media (max-width: 480px) {
       width: 68px;
@@ -362,12 +378,25 @@ $cols: minmax(0, 2.4fr) minmax(0, 1fr) auto minmax(0, 1fr) 44px;
   .product-details {
     min-width: 0;
 
+    .product-name-link {
+      text-decoration: none;
+      color: inherit;
+      display: inline-block;
+      max-width: 100%;
+    }
+
     h3 {
       margin: 0 0 8px;
       font-size: 1rem;
       font-weight: 600;
       line-height: 1.4;
       color: var(--text-primary);
+      cursor: pointer;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--primary-neon);
+      }
     }
   }
 

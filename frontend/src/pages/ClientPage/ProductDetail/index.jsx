@@ -144,8 +144,9 @@ function ProductDetail() {
           setProduct(productData);
           // init sizes when product loads
           let parsedSizes = [];
-          if (Array.isArray(productData.size)) parsedSizes = productData.size;
-          else if (
+          if (Array.isArray(productData.size)) {
+            parsedSizes = productData.size;
+          } else if (
             typeof productData.size === 'string' &&
             productData.size.trim() !== ''
           ) {
@@ -159,6 +160,15 @@ function ProductDetail() {
                 .filter(Boolean);
             }
           }
+
+          // Flatten: handle case where parsed result is array of comma-separated strings
+          // e.g. ["XS,S,M,L,XL,XXL"] → ["XS","S","M","L","XL","XXL"]
+          parsedSizes = parsedSizes.flatMap((s) =>
+            typeof s === 'string' && s.includes(',')
+              ? s.split(',').map((x) => x.trim()).filter(Boolean)
+              : [s],
+          );
+
           setSizes(parsedSizes);
           // Do not auto-select any size — require user to choose
           setSelectedSize(null);
